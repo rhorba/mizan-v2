@@ -1,0 +1,202 @@
+# Story 1.3 — runs on every push and on pull requests to main.
+# Actions are pinned by commit SHA (tag in the comment); scanner images by digest.
+name: ci
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  JAVA_VERSION: "25"
+  NODE_VERSION: "22"
+  GITLEAKS_IMAGE: zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
+  SEMGREP_IMAGE: semgrep/semgrep:1.182.1@sha256:451b3d875c00dac7ed5db5293e584a07de11449a409c10b3c2d2652f429630b6
+  TRIVY_IMAGE: aquasec/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+      - name: Java — Enforcer, Spotless, Checkstyle
+        run: ./mvnw -B -ntp validate
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: mizan-web/package-lock.json
+      - name: Web — ESLint, Prettier
+        working-directory: mizan-web
+        run: |
+          npm ci
+          npm run lint
+          npm run format:check
+
+  test-backend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+      - name: Unit + architecture tests, JaCoCo gate 80 %
+        # Formatting and Checkstyle already run in the lint job.
+        run: ./mvnw -B -ntp verify -Dspotless.check.skip=true -Dcheckstyle.skip=true
+      - name: Coverage summary
+        if: always()
+        run: |
+          csv=coverage-report/target/site/jacoco-aggregate/jacoco.csv
+          [ -f "$csv" ] || exit 0
+          awk -F, 'NR>1 {m+=$8; c+=$9} END {
+            printf "### Backend coverage\n\n| Lines covered | Total | Line coverage |\n|---|---|---|\n| %d | %d | %.1f %% |\n", c, m+c, (m+c ? 100*c/(m+c) : 100)
+          }' "$csv" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: coverage-backend
+          path: coverage-report/target/site/jacoco-aggregate/
+          if-no-files-found: ignore
+
+  test-frontend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: mizan-web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: mizan-web/package-lock.json
+      - run: npm ci
+      - name: Unit tests, coverage gate 80 %
+        run: npm test
+      - name: Coverage summary
+        if: always()
+        run: |
+          f=coverage/mizan-web/coverage-summary.json
+          [ -f "$f" ] || exit 0
+          # shellcheck disable=SC2016 # ${...} below is JavaScript, not shell
+          node -e '
+            const t = require(process.argv[1]).total;
+            const row = k => `| ${k} | ${t[k].covered}/${t[k].total} | ${t[k].pct} % |`;
+            console.log(["### Frontend coverage", "", "| Metric | Covered | % |", "|---|---|---|",
+              ...["lines", "statements", "branches", "functions"].map(row)].join("\n"));
+          ' "$PWD/$f" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: coverage-frontend
+          path: mizan-web/coverage/
+          if-no-files-found: ignore
+
+  security:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Gitleaks (full history)
+        run: >-
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/repo" "$GITLEAKS_IMAGE"
+          git /repo --redact --no-banner --verbose
+      - name: Semgrep
+        run: >-
+          docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD:/src" -w /src "$SEMGREP_IMAGE"
+          semgrep scan --metrics=off --error
+          --config p/default --config p/java --config p/typescript --config p/dockerfile
+          --sarif-output=semgrep.sarif
+      # pom.xml is skipped: resolving BOMs from Maven Central gets rate-limited (HTTP 429).
+      # Java dependencies are scanned as resolved jars in the stack job's image scan.
+      - name: Trivy — npm, secrets, IaC (SARIF, all severities)
+        if: always()
+        run: >-
+          docker run --rm -v "$PWD:/repo" "$TRIVY_IMAGE"
+          fs --quiet --scanners vuln,secret,misconfig --skip-dirs /repo/skills --skip-files '**/pom.xml'
+          --format sarif --output /repo/trivy.sarif /repo
+      - name: Trivy — fail on HIGH/CRITICAL
+        run: >-
+          docker run --rm -v "$PWD:/repo" "$TRIVY_IMAGE"
+          fs --quiet --scanners vuln,secret,misconfig --skip-dirs /repo/skills --skip-files '**/pom.xml'
+          --severity HIGH,CRITICAL --exit-code 1 /repo
+      - name: Upload Semgrep results
+        if: always() && hashFiles('semgrep.sarif') != ''
+        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+      - name: Upload Trivy results
+        if: always() && hashFiles('trivy.sarif') != ''
+        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          sarif_file: trivy.sarif
+          category: trivy
+
+  stack:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Local-only env from .env.example
+        run: |
+          cp .env.example .env
+          grep -E '^[A-Z_]+=' .env.example >> "$GITHUB_ENV"
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build images (GitHub Actions layer cache)
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: compose.yaml
+          targets: mizan-api,mizan-analyzer,keycloak
+          load: true
+          set: |
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
+      - name: Stack healthy within 120 s (Story 1.2)
+        run: scripts/stack-check.sh --profile apps
+      - name: Logs on failure
+        if: failure()
+        run: docker compose --profile '*' logs --no-color --tail 200
+      - name: Trivy — images (fixable HIGH/CRITICAL)
+        run: |
+          for image in mizan-api:local mizan-analyzer:local mizan-keycloak:local; do
+            echo "::group::$image"
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock "$TRIVY_IMAGE" \
+              image --quiet --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 "$image"
+            echo "::endgroup::"
+          done
+      - name: Stop stack
+        if: always()
+        run: docker compose --profile '*' down -v

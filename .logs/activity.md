@@ -94,3 +94,19 @@ Need: commit + push. CI still absent (Story 1.3) → no CI to monitor. No video 
 
 ### [2026-10-22] PUSH — feature/s1-skeleton @ 6937cb8
 MILESTONE: Story 1.2 DONE. CI: none yet (Story 1.3).
+
+### [2026-10-22] PHASE UNDERSTAND — Story 1.3 (CI)
+AC: on push to any branch, GitHub Actions runs lint, backend tests, frontend tests, Gitleaks, Semgrep, Trivy; build fails < 80 % coverage. Repo PUBLIC (free Actions minutes, Code Scanning available). Out of scope per stories: sonar (6.2/S5), build-images+SBOM+bump-preprod (7.x), Playwright (no E2E yet). No secrets needed (GITHUB_TOKEN only).
+
+### [2026-10-22] HANDOFF Orchestrator → Scrum Master (Story 1.3)
+Context: 🔴 chosen. Need: batch plan. Constraints: public repo, GITHUB_TOKEN only; branch protection = repo setting (confirm at gate).
+
+### [2026-10-22] PHASE PLAN — Story 1.3 (awaiting approval)
+B1 ci.yml lint/test jobs · B2 security job + SARIF · B3 stack job + image scan · B4 dependabot, push, CI green loop · B5 branch protection (after green).
+
+### [2026-10-22] HANDOFF Scrum Master → DevOps/DevSecOps (Story 1.3)
+Context: plan approved (admin-exemption question open until B5). Need: B1–B4. Constraints: SHA-pinned actions, least privilege.
+
+### [2026-10-22] DONE B1–B3 (Story 1.3) — ci.yml + dependabot
+Jobs: lint (mvnw validate = Enforcer+Spotless+Checkstyle; ESLint, Prettier), test-backend (verify, JaCoCo gate, summary+artifact), test-frontend (npm test gate, json-summary → step summary + artifact), security (Gitleaks 8.30.1 full history, Semgrep 1.182.1 SARIF + --error, Trivy 0.76.1 fs SARIF + HIGH/CRIT gate), stack (bake + gha cache, stack-check --profile apps, Trivy image scan ignore-unfixed). Actions SHA-pinned, scanner images digest-pinned, contents:read default, security-events:write only in security job, concurrency cancel. .semgrepignore (skills/docs/.logs). dependabot weekly + 7-day cooldown (Semgrep finding).
+Local pre-flight: actionlint 0 (SC2016 suppressed for JS template), Semgrep 0, Trivy fs 0. Trivy fs on pom.xml → Maven Central 429 → skip pom.xml in fs; Java deps covered by image scan.

@@ -13,3 +13,6 @@ Parent POM + BOMs (Boot, Spring AI, Modulith) + plugin mgmt, JaCoCo aggregate, c
 
 ### [2026-10-22] DECISION — Story 1.2 approach: 🔴 COMPREHENSIVE
 compose.yaml with infra (default) + `apps` profile (mizan-api, mizan-analyzer Dockerfiles) + `mail` profile (Mailpit); DB init script (schemas mizan/keycloak + roles); minimal realm JSON; `up --wait` 120 s health proof. Chosen by user. Env defaults pending user confirmation at PLAN gate.
+
+### [2026-10-22] DECISION — Story 1.3 approach: 🔴 COMPREHENSIVE
+ci.yml: lint, test-backend, test-frontend, security (Gitleaks, Semgrep SARIF, Trivy fs+config SARIF), stack (compose build + stack-check --profile apps + Trivy image scan). SHA-pinned actions, least-privilege permissions, concurrency, caches, coverage artifacts + summary, dependabot.yml weekly. Branch protection on main requiring checks. Chosen by user.
