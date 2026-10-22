@@ -91,3 +91,6 @@ Context: B1–B4 done. Need: full verify (Enforcer after lz4 pin), scans on new 
 
 ### [2026-10-22] HANDOFF Tester → DevOps/Deployment (Story 1.2)
 Need: commit + push. CI still absent (Story 1.3) → no CI to monitor. No video (not a version completion).
+
+### [2026-10-22] PUSH — feature/s1-skeleton @ 6937cb8
+MILESTONE: Story 1.2 DONE. CI: none yet (Story 1.3).
