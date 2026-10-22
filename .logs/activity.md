@@ -125,3 +125,6 @@ Context: CI green, protection on. Need: prove coverage gate fails builds. Constr
 
 ### [2026-10-22] PHASE VERIFY — Story 1.3 PASS
 AC: every push runs lint, backend tests, frontend tests, Gitleaks, Semgrep, Trivy → run 39857095772 all green. Gate proof: -Dcoverage.minimum=1.01 → JaCoCo "Coverage checks have not been met" exit 1; Vitest lines threshold 101 → "does not meet global threshold" exit 1 (reverted). Code scanning: Semgrep 0, Trivy 2 LOW (DS-0026 HEALTHCHECK, by design).
+
+### [2026-10-22] PUSH + CI GREEN — feature/s1-skeleton @ 9c571b0 (run 39858005980, 5/5 green)
+MILESTONE: Story 1.3 DONE. Sprint 1 remaining: Story 1.4 (Keycloak sign-up/login). Video: N/A (no user-facing flows yet).
