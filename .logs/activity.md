@@ -11,3 +11,48 @@ PRD, system design, architecture (ADR-1..7), security, database, UX, UI, test st
 
 ### [2026-10-22] MILESTONE — Foundation docs approved and pushed
 User approved all 10 docs. PUSH: main 9967d0b..6cf4951 → https://github.com/rhorba/mizan-v2 (secret scan clean). No code yet — Sprint 1 (Stories 1.1–1.4, target 2026-10-30) starts next session from the repo root.
+
+### [2026-10-22] PHASE UNDERSTAND — Story 1.1
+Scope: pin Java 25 / Boot 4.0.x / Modulith / Spring AI / Spring Kafka / Testcontainers / Angular 22; Maven multi-module (mizan-api, mizan-analyzer) + Angular mizan-web; one smoke test each; ADR-8. No new env vars for 1.1.
+
+### [2026-10-22] HANDOFF Orchestrator → Scrum Master
+Context: user chose 🔴 for Story 1.1. Need: batch plan. Constraints: Maven wrapper (no global mvn), JDK 25, Node 22.23, fallbacks per Arch §8.
+
+### [2026-10-22] PHASE PLAN — Story 1.1 (awaiting approval)
+B1 spike+parent POM (1.1a-d) · B2 api/analyzer modules + smoke/arch tests (2a-d) · B3 Angular 22 web (3a-c) · B4 build rules + ADR-8 (4a-d). Branch feature/s1-skeleton.
+
+### [2026-10-22] HANDOFF Scrum Master → Tech Lead
+Context: plan approved (B1–B4). Need: version spike + parent POM. Constraints: 🔴 build rules, fallbacks per Arch §8.
+
+### [2026-10-22] DONE B1 — spike + parent POM
+1a latest GA: Boot 4.1.2 (Framework 7.0.10, Security 7.1.2, Kafka client 4.2.2, Spring Kafka 4.1.2, Testcontainers 2.0.5, JUnit 6.0.3), Modulith 2.1.2, Spring AI 2.0.2, ArchUnit 1.5.1, Angular 22.2.3 (node ^22.22.3 OK), Maven 3.9.16.
+1b spike GREEN: Boot 4.1.2 + Modulith JDBC registry + @Externalized + spring-modulith-events-kafka + Spring AI Anthropic ChatClient.entity() — context loads, ApplicationModules.verify() passes. No fallback needed.
+1c mvnw 3.3.4 (only-script, sha256 pinned, sha512 verified vs Central) + parent pom.xml (BOMs, Enforcer, Spotless/GJF, Checkstyle, JaCoCo 80% line gate). 1d config/checkstyle/checkstyle.xml + .editorconfig.
+
+### [2026-10-22] HANDOFF Tech Lead → Backend Dev
+Context: versions pinned (Boot 4.1.2, Modulith 2.1.2, Spring AI 2.0.2), parent POM ready. Need: mizan-api (modules contracts/quota/admin/shared), mizan-analyzer, smoke + Modulith verify + ArchUnit tests, coverage-report aggregate. Constraints: package root ma.mizan; no persistence/security yet (Stories 1.4, 2.1, 3.1).
+
+### [2026-10-22] DONE B2 — backend modules
+mizan-api (webmvc, actuator, modulith core; modules contracts/quota/admin + OPEN shared), mizan-analyzer (kafka, spring-ai anthropic, actuator), coverage-report (report-aggregate). Tests: api 7 (health smoke via MockMvcTester, Modulith verify + PlantUML docs, 4 ArchUnit rules), analyzer 3 (context w/ KafkaTemplate+ChatModel, 2 ArchUnit rules). ./mvnw verify GREEN.
+
+### [2026-10-22] HANDOFF Backend Dev → Frontend Dev
+Context: backend skeleton green (10 tests). Need: mizan-web Angular 22.2.3 (standalone, zoneless, strict), 1 smoke test, coverage, ESLint, npm test/lint scripts. Constraints: Node 22.23.3; no Material/Transloco/OIDC yet (Stories 1.4/2.2) — YAGNI.
+
+### [2026-10-22] DONE B3 — mizan-web
+Angular 22.2.3 (standalone, zoneless, strict, scss, Vitest 5, no SSR). Welcome page replaced by shell (h1 + router-outlet). angular-eslint 22, @vitest/coverage-v8, thresholds 80% all metrics in angular.json. Scripts: test (coverage, CI mode), test:watch, lint, format, format:check. 1 test pass, 100% coverage, lint clean, prod build OK.
+
+### [2026-10-22] DONE B4 — ADR-8 + README
+4a Enforcer rules active (proved by real convergence catch in B2). 4c ADR-8 added to docs/architecture-mizan-v2.md (v1.1, stack row → Boot 4.1.x). 4d README Build section.
+
+### [2026-10-22] HANDOFF Frontend Dev / Tech Lead → Tester
+Context: B1–B4 done. Need: clean full run of backend + web, coverage gate, security check. Constraints: skeleton only — coverage is over near-empty code.
+
+### [2026-10-22] PHASE VERIFY — Story 1.1 PASS
+Backend clean verify: api 8 tests, analyzer 4 tests, 0 fail. Web: 1 test, lint clean, prettier clean, prod build OK. Security: Semgrep (p/default, p/java, p/typescript) 0; Gitleaks v8.28.0 no leaks; Trivy 0.67.2 fs (vuln/misconfig/secret, HIGH+CRIT) 0; npm audit 0. Correction during verify: raw backend coverage was 33% (only main() lines, excluded from gate) → added main() tests, removed JaCoCo exclusion → 100%.
+
+### [2026-10-22] HANDOFF Tester → DevOps/Deployment
+Context: Story 1.1 verified. Need: commit + push feature/s1-skeleton. Constraints: no CI yet (Story 1.3), so CI monitoring starts with 1.3; no version completion → no video.
+
+### [2026-10-22] PUSH — feature/s1-skeleton @ 17994f8
+Story 1.1 shipped to branch. Added .gitattributes (LF, CRLF for *.cmd) + mvnw exec bit. CI: no workflow exists yet (Story 1.3) — nothing to monitor. Video: N/A (not a version completion).
+MILESTONE: Story 1.1 DONE.

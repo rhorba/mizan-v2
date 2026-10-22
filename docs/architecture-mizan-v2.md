@@ -1,16 +1,16 @@
 # Architecture: Mizan v2
 **PRD Reference**: docs/prd-mizan-v2.md
-**Version**: 1.0 | **Date**: 2026-10-22 | **Author**: Software Architect / Tech Lead
+**Version**: 1.1 | **Date**: 2026-10-22 | **Author**: Software Architect / Tech Lead
 
 ## 1. Overview
 Two Spring Boot 4 applications on Java 25 — a modular monolith API and a stateless analyzer worker —
 connected by Kafka through a transactional outbox, with Keycloak for identity and an Angular 22 SPA.
-Exact library versions are pinned in Sprint 1 (Story 1.1) to the latest GA compatible with Spring Boot 4.
+Exact library versions are pinned in ADR-8 (Story 1.1 spike).
 
 | Layer | Choice |
 |---|---|
 | Language / runtime | Java 25 LTS, virtual threads on |
-| Framework | Spring Boot 4.0.x (Spring Framework 7, Jackson 3, Security 7) |
+| Framework | Spring Boot 4.1.x (Spring Framework 7, Jackson 3, Security 7) — exact pins in ADR-8 |
 | Modularity | Spring Modulith 2.x (module boundaries verified in tests, event publication registry) |
 | Messaging | Apache Kafka 4.x (KRaft), Spring for Apache Kafka |
 | AI | Spring AI 2.x, Anthropic starter, structured output to Java records |
@@ -54,6 +54,33 @@ Exact library versions are pinned in Sprint 1 (Story 1.1) to the latest GA compa
 
 ### ADR-7: Server-Sent Events for status
 - **Decision**: `GET /api/v1/contracts/{id}/events` streams status changes; the SPA falls back to polling if SSE drops.
+
+### ADR-8: Pinned versions (Story 1.1 spike, 2026-10-22)
+- **Context**: the stack was chosen before checking which GA releases work together on Boot 4. Architecture §8 listed fallbacks (Anthropic Java SDK, hand-written outbox) in case Spring AI or Modulith were not ready.
+- **Decision**: pin the latest GA of each, proven by a spike (context start, `@Externalized` + JDBC event registry + `spring-modulith-events-kafka`, `ChatClient...entity()`, `ApplicationModules.verify()`). No fallback needed.
+
+| Component | Version | Managed by |
+|---|---|---|
+| Java (Temurin) | 25.0.3 LTS | Enforcer `[25,)` |
+| Maven (wrapper 3.3.4) | 3.9.16, SHA-256 pinned | Enforcer `[3.9,)` |
+| Spring Boot | **4.1.2** (Framework 7.0.10, Security 7.1.2, Jackson 3.1.7) | parent POM |
+| Spring for Apache Kafka / Kafka client | 4.1.2 / 4.2.2 | Boot BOM |
+| Spring Modulith | 2.1.2 | `spring-modulith-bom` |
+| Spring AI | 2.0.2 (anthropic-java-core 2.72.0) | `spring-ai-bom` |
+| victools jsonschema | 5.0.0 | `jsonschema-generator-bom` (see below) |
+| Testcontainers / JUnit Jupiter | 2.0.5 / 6.0.3 | Boot BOM |
+| ArchUnit | 1.5.1 | parent POM |
+| Spotless (google-java-format) / Checkstyle / JaCoCo / Enforcer | 3.10.4 / 14.3.0 / 0.8.15 / 3.6.3 | parent POM |
+| Angular / CLI | 22.2.x / 22.2.3 | `package.json` |
+| TypeScript / Vitest / angular-eslint | 6.0 / 5.0 / 22 | `package.json` |
+| Node | ^22.22.3 \|\| ^24.15.0 (dev: 22.23.3) | `engines` |
+
+- **Deviations from this document**:
+  - Boot **4.1.2** instead of 4.0.x — 4.1 is the current GA line and Modulith 2.1 targets it.
+  - victools jsonschema forced to **5.0.0**: Spring AI 2.0.2 needs 5.x, anthropic-java-core 2.72.0 asks for 4.38 (runtime). Enforcer `dependencyConvergence` flagged it; we only use Spring AI's schema path. Re-check on every Spring AI upgrade.
+  - npm `overrides` **vite 8.3.5**: `@angular/build` 22.2.4 pins 8.3.0, which has dev-server advisories (GHSA-9jrq-w75r-8gcw et al.). Remove when Angular bumps Vite.
+- **Build rules**: Enforcer (Java, Maven, dependency convergence, no duplicate POM deps), Spotless + Checkstyle at `validate`, JaCoCo ≥ 80 % line coverage per module (no exclusions) with an aggregate report in `coverage-report`, ArchUnit + Modulith verification tests; Vitest thresholds 80 % on all metrics.
+- **Consequences**: upgrades are one property each in the parent POM; convergence failures surface on the first build instead of at runtime.
 
 ## 3. System Design
 ```
