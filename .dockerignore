@@ -1,0 +1,16 @@
+# Only what docker/spring-app.Dockerfile copies is needed; keep secrets and build output out.
+.env
+.env.*
+.git
+.logs
+.recordings
+**/target
+**/node_modules
+mizan-web
+docs
+skills
+keycloak
+db
+infra
+k8s
+*.md

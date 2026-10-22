@@ -10,3 +10,6 @@ Market scan of on-site/hybrid Java offers (Free-Work Tech Lead + Java/Spring mis
 
 ### [2026-10-22] DECISION — Story 1.1 approach: 🔴 COMPREHENSIVE
 Parent POM + BOMs (Boot, Spring AI, Modulith) + plugin mgmt, JaCoCo aggregate, compatibility spike with fallbacks (Arch §8), plus Maven Enforcer (Java 25, dependency convergence/banned dups), ArchUnit + Modulith verification tests, shared Checkstyle config. Chosen by user.
+
+### [2026-10-22] DECISION — Story 1.2 approach: 🔴 COMPREHENSIVE
+compose.yaml with infra (default) + `apps` profile (mizan-api, mizan-analyzer Dockerfiles) + `mail` profile (Mailpit); DB init script (schemas mizan/keycloak + roles); minimal realm JSON; `up --wait` 120 s health proof. Chosen by user. Env defaults pending user confirmation at PLAN gate.

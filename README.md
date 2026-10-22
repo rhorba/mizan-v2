@@ -25,4 +25,28 @@ architecture tests, and fails under 80 % line coverage. The combined coverage re
 `mizan-api/target/spring-modulith-docs/`. Fix formatting with `./mvnw spotless:apply` and
 `npm run format`.
 
+## Run locally
+
+Prerequisites: Docker with Compose v2.24+.
+
+```bash
+cp .env.example .env                        # local-only values; change ports if they clash
+docker compose up -d --wait                 # Postgres 18, Kafka 4, Keycloak 26, otel-lgtm
+docker compose --profile apps up -d --wait  # + mizan-api and mizan-analyzer in containers
+docker compose --profile mail up -d --wait  # + Mailpit for Keycloak e-mails
+scripts/stack-check.sh [--fresh] [--profile apps]   # asserts everything healthy within 120 s
+```
+
+| Service | URL (default ports) |
+|---|---|
+| Keycloak (realm `mizan`, admin console) | http://localhost:8180 |
+| Grafana (traces, metrics, logs) | http://localhost:3000 |
+| mizan-api | http://localhost:8080/actuator/health |
+| Mailpit | http://localhost:8025 |
+| PostgreSQL | `localhost:5435`, database `mizan` |
+| Kafka | `localhost:9092` |
+
+Keycloak imports `keycloak/realm-mizan.json` on first start; delete the volumes
+(`docker compose down -v`) to re-import after editing it.
+
 Built with [Claude Team Skills (CTS)](https://github.com/rhorba/CTS).
