@@ -110,3 +110,6 @@ Context: plan approved (admin-exemption question open until B5). Need: B1–B4. 
 ### [2026-10-22] DONE B1–B3 (Story 1.3) — ci.yml + dependabot
 Jobs: lint (mvnw validate = Enforcer+Spotless+Checkstyle; ESLint, Prettier), test-backend (verify, JaCoCo gate, summary+artifact), test-frontend (npm test gate, json-summary → step summary + artifact), security (Gitleaks 8.30.1 full history, Semgrep 1.182.1 SARIF + --error, Trivy 0.76.1 fs SARIF + HIGH/CRIT gate), stack (bake + gha cache, stack-check --profile apps, Trivy image scan ignore-unfixed). Actions SHA-pinned, scanner images digest-pinned, contents:read default, security-events:write only in security job, concurrency cancel. .semgrepignore (skills/docs/.logs). dependabot weekly + 7-day cooldown (Semgrep finding).
 Local pre-flight: actionlint 0 (SC2016 suppressed for JS template), Semgrep 0, Trivy fs 0. Trivy fs on pom.xml → Maven Central 429 → skip pom.xml in fs; Java deps covered by image scan.
+
+### [2026-10-22] CI RED — run 39856772509 @ 280e016
+lint ✅ test-backend ✅ test-frontend ✅ security ✅ stack ❌: scripts/stack-check.sh Permission denied (exit 126) — exec bit not tracked on Windows. Fix: git update-index --chmod=+x (stack-check.sh, 01-schemas.sh).
