@@ -113,3 +113,15 @@ Local pre-flight: actionlint 0 (SC2016 suppressed for JS template), Semgrep 0, T
 
 ### [2026-10-22] CI RED — run 39856772509 @ 280e016
 lint ✅ test-backend ✅ test-frontend ✅ security ✅ stack ❌: scripts/stack-check.sh Permission denied (exit 126) — exec bit not tracked on Windows. Fix: git update-index --chmod=+x (stack-check.sh, 01-schemas.sh).
+
+### [2026-10-22] CI GREEN — run 39857095772 @ 311dd84
+lint ✅ (27 s) test-backend ✅ (36 s) test-frontend ✅ (22 s) security ✅ (66 s) stack ✅ (4 min; stack-check PASS 58 s on ubuntu-24.04, images 0 fixable HIGH/CRIT). Wall time ≈ 4 min.
+
+### [2026-10-22] DONE B5 (Story 1.3) — branch protection on main
+User chose: exempt admins. Required checks lint/test-backend/test-frontend/security/stack (strict: branch up to date), PR required (0 approvals — solo dev), stale reviews dismissed, conversation resolution required, no force-push, no deletion, enforce_admins=false.
+
+### [2026-10-22] HANDOFF DevOps → Tester (Story 1.3)
+Context: CI green, protection on. Need: prove coverage gate fails builds. Constraints: no code changes kept.
+
+### [2026-10-22] PHASE VERIFY — Story 1.3 PASS
+AC: every push runs lint, backend tests, frontend tests, Gitleaks, Semgrep, Trivy → run 39857095772 all green. Gate proof: -Dcoverage.minimum=1.01 → JaCoCo "Coverage checks have not been met" exit 1; Vitest lines threshold 101 → "does not meet global threshold" exit 1 (reverted). Code scanning: Semgrep 0, Trivy 2 LOW (DS-0026 HEALTHCHECK, by design).
