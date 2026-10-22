@@ -7,3 +7,6 @@ Market scan of on-site/hybrid Java offers (Free-Work Tech Lead + Java/Spring mis
 
 ### [2026-10-22] ARCHITECTURE — v2 foundation choices (pending approval)
 2 Spring Boot 4 apps (modular monolith API + stateless analyzer) instead of v1's 6 services; Keycloak replaces hand-written auth; Spring Modulith event externalization as outbox; PDFs not stored (text only); SSE for status; grafana/otel-lgtm; Argo CD pull deploy (cluster API never exposed); BUSINESS role dropped.
+
+### [2026-10-22] DECISION — Story 1.1 approach: 🔴 COMPREHENSIVE
+Parent POM + BOMs (Boot, Spring AI, Modulith) + plugin mgmt, JaCoCo aggregate, compatibility spike with fallbacks (Arch §8), plus Maven Enforcer (Java 25, dependency convergence/banned dups), ArchUnit + Modulith verification tests, shared Checkstyle config. Chosen by user.

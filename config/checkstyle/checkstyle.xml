@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+    "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<!--
+  Shared rules for all Java modules. Formatting is owned by Spotless (google-java-format),
+  so this file only checks things a formatter cannot fix.
+-->
+<module name="Checker">
+  <property name="charset" value="UTF-8"/>
+  <property name="severity" value="warning"/>
+
+  <module name="SuppressWarningsFilter"/>
+
+  <!-- ArchUnit rules are static final fields named like test methods -->
+  <module name="SuppressionSingleFilter">
+    <property name="files" value="ArchitectureTests\.java$"/>
+    <property name="checks" value="ConstantName"/>
+  </module>
+
+  <module name="TreeWalker">
+    <module name="SuppressWarningsHolder"/>
+
+    <!-- Imports -->
+    <module name="AvoidStarImport"/>
+    <module name="IllegalImport"/>
+    <module name="RedundantImport"/>
+
+    <!-- Naming -->
+    <module name="PackageName">
+      <property name="format" value="^ma\.mizan(\.[a-z][a-z0-9]*)*$"/>
+    </module>
+    <module name="TypeName"/>
+    <module name="MethodName"/>
+    <module name="ConstantName"/>
+    <module name="LocalVariableName"/>
+    <module name="MemberName"/>
+    <module name="ParameterName"/>
+
+    <!-- Coding -->
+    <module name="EqualsHashCode"/>
+    <module name="SimplifyBooleanExpression"/>
+    <module name="SimplifyBooleanReturn"/>
+    <module name="StringLiteralEquality"/>
+    <module name="MissingSwitchDefault"/>
+    <module name="FallThrough"/>
+    <module name="EmptyCatchBlock"/>
+    <module name="NeedBraces"/>
+    <module name="OneStatementPerLine"/>
+    <module name="ModifiedControlVariable"/>
+
+    <!-- Use the logger, not the console -->
+    <module name="Regexp">
+      <property name="format" value="System\.(out|err)\.print"/>
+      <property name="illegalPattern" value="true"/>
+      <property name="message" value="Use SLF4J instead of System.out/err."/>
+    </module>
+    <module name="Regexp">
+      <property name="format" value="\.printStackTrace\(\)"/>
+      <property name="illegalPattern" value="true"/>
+      <property name="message" value="Log the exception instead of printStackTrace()."/>
+    </module>
+  </module>
+</module>
