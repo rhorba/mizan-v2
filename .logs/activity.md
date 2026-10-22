@@ -56,3 +56,41 @@ Context: Story 1.1 verified. Need: commit + push feature/s1-skeleton. Constraint
 ### [2026-10-22] PUSH — feature/s1-skeleton @ 17994f8
 Story 1.1 shipped to branch. Added .gitattributes (LF, CRLF for *.cmd) + mvnw exec bit. CI: no workflow exists yet (Story 1.3) — nothing to monitor. Video: N/A (not a version completion).
 MILESTONE: Story 1.1 DONE.
+
+### [2026-10-22] PHASE UNDERSTAND — Story 1.2 (local stack)
+AC: `docker compose up -d` → Postgres 18, Kafka 4, Keycloak 26 (realm imported), otel-lgtm healthy < 2 min. Images: postgres:18.6-alpine, apache/kafka:4.2.2 (= client) / 4.4.0, keycloak 26.8.1, grafana/otel-lgtm 0.37.0. Host port 5432 already taken (madrasti-db) → host ports must be configurable. DB layout: db `mizan`, schemas `mizan` (mizan_app) + `keycloak` (keycloak). Env vars needed: POSTGRES_PASSWORD, MIZAN_DB_PASSWORD, KEYCLOAK_DB_PASSWORD, KEYCLOAK_ADMIN/_PASSWORD, host ports.
+
+### [2026-10-22] HANDOFF Orchestrator → Scrum Master (Story 1.2)
+Context: 🔴 chosen. Need: batch plan. Constraints: port 5432 busy → configurable host ports; apps have no DB/security config yet (Stories 1.4/2.1).
+
+### [2026-10-22] PHASE PLAN — Story 1.2 (awaiting approval)
+B1 compose infra + DB init + .env.example · B2 realm JSON · B3 Dockerfiles + apps profile · B4 health proof script, Dockerfile scan, README.
+
+### [2026-10-22] HANDOFF Scrum Master → DevOps/DevSecOps
+Context: Story 1.2 plan approved, env defaults accepted. Need: B1–B4. Constraints: images pinned per UNDERSTAND; non-root containers; .env never committed.
+
+### [2026-10-22] DONE B1 (Story 1.2) — compose infra
+compose.yaml (postgres 18.6, kafka 4.2.2 KRaft, keycloak 26.8.1 start-dev --import-realm on schema keycloak, otel-lgtm 0.37.0, mailpit profile mail, apps profile), db/init/01-schemas.sh, .env.example. Host ports bound to 127.0.0.1. All 4 healthy (cold start incl. pulls 7m42s). Verified: schemas mizan (mizan_app) + keycloak (keycloak, 101 tables), public empty, mizan_app denied on keycloak schema.
+
+### [2026-10-22] DONE B2 (Story 1.2) — realm-mizan.json
+Imported on start (--import-realm, IGNORE_EXISTING). Verified via admin API: registration+verifyEmail, bruteForce (5 failures, 60s→15 min backoff), password length(10)+notUsername+notEmail, tokens 300s / idle 1800s / max 28800s, locales fr(default)/ar/en, SMTP mailpit:1025; mizan-web public, PKCE S256, no implicit/ROPC, redirect localhost:4200, audience mapper mizan-api; default role → user.
+
+### [2026-10-22] DONE B3 (Story 1.2) — app images + apps profile
+docker/spring-app.Dockerfile (one file, ARG MODULE; Temurin 25.0.4.1 JDK/JRE alpine pinned by digest, amd64+arm64; BuildKit m2 cache; Boot tools extract --layers; jar renamed app.jar; UID 1001; MaxRAMPercentage=75). Image mizan-api 252MB. .dockerignore excludes .env/.git/target/node_modules. apps profile: api healthy (actuator UP), analyzer running.
+Fixes: analyzer exited 0 (no web/listener) → spring.main.keep-alive=true; compose --wait reports exited containers as healthy → stack-check must also assert no exited. CRLF vs Spotless → repo-local core.autocrlf=false (.gitattributes rules), working files normalised to LF; 76 stat-only M cleared, no content change.
+
+### [2026-10-22] DONE B4 (Story 1.2) — proof, scans, docs
+scripts/stack-check.sh: first run FAILED (keycloak start-dev re-augments every boot, ~3 min). Fix: docker/keycloak.Dockerfile (kc.sh build: postgres, health, cache=local) + `start --optimized`, KC_HTTP_ENABLED (local). Script `down` now covers all profiles. Results: --fresh infra PASS 75 s; --profile apps PASS 63 s; keycloak 14.9 s. Negative test: stopped analyzer flagged. Issuer http://localhost:8180/realms/mizan identical from host and in-network; JWKS via keycloak:8080.
+Trivy config docker/: 1 LOW (no HEALTHCHECK in shared Dockerfile — healthcheck lives in compose, by design). Trivy images (fixable HIGH/CRIT): api 0, analyzer 0 after lz4-java 1.11.2→1.11.4 pin, keycloak 0. README "Run locally".
+
+### [2026-10-22] HANDOFF DevOps → Tester (Story 1.2)
+Context: B1–B4 done. Need: full verify (Enforcer after lz4 pin), scans on new files. Constraints: no new app logic → coverage unchanged.
+
+### [2026-10-22] PHASE VERIFY — Story 1.2 PASS
+./mvnw clean verify GREEN (api 8, analyzer 4) incl. Enforcer after lz4 pin; web 1 test 100%. stack-check --profile apps PASS 75 s. Semgrep (p/default, p/dockerfile, p/docker-compose; p/bash 404 → dropped) 1 finding → keycloak.Dockerfile explicit USER 1000 → 0. Gitleaks no leaks; .env ignored. Trivy images 0 fixable HIGH/CRIT.
+
+### [2026-10-22] HANDOFF Tester → DevOps/Deployment (Story 1.2)
+Need: commit + push. CI still absent (Story 1.3) → no CI to monitor. No video (not a version completion).
+
+### [2026-10-22] PUSH — feature/s1-skeleton @ 6937cb8
+MILESTONE: Story 1.2 DONE. CI: none yet (Story 1.3).

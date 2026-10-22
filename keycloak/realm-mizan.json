@@ -1,0 +1,80 @@
+{
+  "realm": "mizan",
+  "displayName": "Mizan",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "verifyEmail": true,
+  "resetPasswordAllowed": true,
+  "rememberMe": false,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "failureFactor": 5,
+  "waitIncrementSeconds": 60,
+  "maxFailureWaitSeconds": 900,
+  "maxDeltaTimeSeconds": 43200,
+  "passwordPolicy": "length(10) and notUsername and notEmail",
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 28800,
+  "internationalizationEnabled": true,
+  "supportedLocales": ["fr", "ar", "en"],
+  "defaultLocale": "fr",
+  "smtpServer": {
+    "host": "mailpit",
+    "port": "1025",
+    "from": "no-reply@mizan.local",
+    "fromDisplayName": "Mizan"
+  },
+  "roles": {
+    "realm": [
+      { "name": "user", "description": "Every signed-up user (default role)" },
+      { "name": "admin", "description": "Admin statistics; assigned manually only" },
+      {
+        "name": "default-roles-mizan",
+        "description": "Roles granted on sign-up",
+        "composite": true,
+        "composites": { "realm": ["user"] }
+      }
+    ]
+  },
+  "defaultRole": { "name": "default-roles-mizan", "composite": true },
+  "clients": [
+    {
+      "clientId": "mizan-web",
+      "name": "Mizan web app",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "frontchannelLogout": true,
+      "rootUrl": "http://localhost:4200",
+      "baseUrl": "/",
+      "redirectUris": ["http://localhost:4200/*"],
+      "webOrigins": ["http://localhost:4200"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4200/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience-mizan-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "mizan-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,9 @@
 spring:
   application:
     name: mizan-analyzer
+  main:
+    # Worker with no web server: stay up even before any @KafkaListener exists.
+    keep-alive: true
   threads:
     virtual:
       enabled: true
