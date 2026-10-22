@@ -52,3 +52,7 @@ Backend clean verify: api 8 tests, analyzer 4 tests, 0 fail. Web: 1 test, lint c
 
 ### [2026-10-22] HANDOFF Tester → DevOps/Deployment
 Context: Story 1.1 verified. Need: commit + push feature/s1-skeleton. Constraints: no CI yet (Story 1.3), so CI monitoring starts with 1.3; no version completion → no video.
+
+### [2026-10-22] PUSH — feature/s1-skeleton @ 17994f8
+Story 1.1 shipped to branch. Added .gitattributes (LF, CRLF for *.cmd) + mvnw exec bit. CI: no workflow exists yet (Story 1.3) — nothing to monitor. Video: N/A (not a version completion).
+MILESTONE: Story 1.1 DONE.
