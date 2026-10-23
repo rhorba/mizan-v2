@@ -203,3 +203,8 @@ Env issue: OneDrive sync locks emptied target/ dirs → mvn clean fails locally;
 
 ### [2026-10-23] CI RED — run 39919684605 @ f0fc08d
 lint ✅ test-backend ✅ test-frontend ✅ security ✅ stack ❌ e2e ❌ — diagnosing.
+
+### [2026-10-23] CI GREEN — run 39937561681 @ 5ddaf82
+lint ✅ test-backend ✅ test-frontend ✅ security ✅ stack ✅ e2e ✅ (e2e 8 min incl. image build + stack).
+
+### [2026-10-23] SHIP — Sprint 1: required checks on main now include e2e (6 total); opening PR feature/s1-skeleton → main.
