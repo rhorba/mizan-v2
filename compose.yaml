@@ -109,6 +109,21 @@ services:
       timeout: 3s
       retries: 10
 
+  # Virus scanning (Sprint 2). First start downloads ~300 MB of signatures, so it is opt-in:
+  #   docker compose --profile apps --profile av up -d --wait   (and MIZAN_CLAMAV_HOST=clamav in .env)
+  clamav:
+    image: clamav/clamav:1.5.4
+    profiles: [av]
+    volumes:
+      # CI points CLAMAV_DB at a cached host directory so signatures are not re-downloaded.
+      - ${CLAMAV_DB:-clamav-db}:/var/lib/clamav
+    healthcheck:
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 15s
+      timeout: 10s
+      retries: 40
+      start_period: 120s
+
   mizan-api:
     image: mizan-api:local
     build:
@@ -118,11 +133,16 @@ services:
         MODULE: mizan-api
     profiles: [apps]
     environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/mizan
+      SPRING_DATASOURCE_USERNAME: mizan_app
+      SPRING_DATASOURCE_PASSWORD: ${MIZAN_DB_PASSWORD:?set in .env}
       # Tokens are issued to the browser via localhost; keys are fetched inside the network.
       KEYCLOAK_ISSUER_URI: http://localhost:${KEYCLOAK_PORT:-8180}/realms/mizan
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/mizan/protocol/openid-connect/certs
       MIZAN_CORS_ALLOWED_ORIGINS: ${MIZAN_CORS_ALLOWED_ORIGINS:-http://localhost:4200}
       MIZAN_QUOTA_DAILY_PER_USER: ${MIZAN_QUOTA_DAILY_PER_USER:-3}
+      MIZAN_UPLOADS_PER_MINUTE: ${MIZAN_UPLOADS_PER_MINUTE:-10}
+      MIZAN_CLAMAV_HOST: ${MIZAN_CLAMAV_HOST:-}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
     ports:
       - "127.0.0.1:${API_PORT:-8080}:8080"
@@ -139,6 +159,9 @@ services:
         condition: service_healthy
       keycloak:
         condition: service_healthy
+      clamav:
+        condition: service_healthy
+        required: false # only when the av profile is on
 
   mizan-analyzer:
     image: mizan-analyzer:local
@@ -158,3 +181,4 @@ services:
 
 volumes:
   postgres-data:
+  clamav-db:

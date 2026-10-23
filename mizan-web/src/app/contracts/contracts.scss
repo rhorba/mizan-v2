@@ -32,6 +32,10 @@
   color: var(--mz-error);
 }
 
+.actions {
+  margin-block-start: var(--mz-sp-lg);
+}
+
 .empty {
   padding-block: var(--mz-sp-xl);
 
@@ -45,5 +49,56 @@
     max-inline-size: 60ch;
     color: var(--mz-text-muted);
     line-height: 1.6;
+  }
+}
+
+// History: a ruled list, not cards; on narrow screens each row reflows into a small block.
+.history {
+  margin: var(--mz-sp-lg) 0 0;
+  padding: 0;
+  list-style: none;
+  border-block-start: 1px solid var(--mz-rule);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr) auto auto auto;
+  align-items: center;
+  gap: var(--mz-sp-md);
+  padding-block: var(--mz-sp-sm);
+  border-block-end: 1px solid var(--mz-rule);
+
+  @media (max-width: 767px) {
+    grid-template-columns: 1fr auto;
+    row-gap: var(--mz-sp-xs);
+
+    .name {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+.name {
+  color: var(--mz-primary);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.when,
+.pages {
+  color: var(--mz-text-muted);
+  font-size: var(--mz-fs-sm);
+}
+
+.delete {
+  --mat-button-text-label-text-color: var(--mz-error);
+}
+
+.more {
+  padding-block: var(--mz-sp-lg);
+  text-align: center;
+
+  .error {
+    color: var(--mz-error);
   }
 }

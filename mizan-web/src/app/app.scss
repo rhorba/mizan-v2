@@ -67,3 +67,25 @@ main:focus {
     filter: brightness(1.8);
   }
 }
+
+// Phones: the signed-in toolbar (brand, nav, language, logout) must fit 360–390 px.
+@media (max-width: 479px) {
+  .toolbar {
+    padding-inline: var(--mz-sp-sm);
+    --mat-button-text-horizontal-padding: 6px;
+  }
+
+  .nav {
+    margin-inline-start: var(--mz-sp-xs);
+  }
+
+  // Hidden visually, still the link's accessible name (the logo is decorative).
+  .brand-name {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

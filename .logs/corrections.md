@@ -15,3 +15,6 @@ User chose 3 for Story 1.4 (MIZAN_QUOTA_DAILY_PER_USER=3); security doc said 5. 
 
 ### [2026-10-23] CORRECTION — sign-up flow (UX doc)
 Keycloak 26.8 + verify-email: password set after verification. Flow 1 updated.
+
+### [2026-10-23] CORRECTION — idx_contracts_owner_created adds id DESC
+Keyset pagination (🔴 Sprint 2) orders by (created_at, id); index is (owner_sub, created_at DESC, id DESC) instead of the DB doc's two columns. DB doc to update in B7.

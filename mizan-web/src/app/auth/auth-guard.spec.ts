@@ -4,9 +4,9 @@ import { fakeAuth } from '../../testing/fake-auth';
 import { authGuard } from './auth-guard';
 
 describe('authGuard', () => {
-  const run = () =>
+  const run = (url = '/contracts/new') =>
     TestBed.runInInjectionContext(() =>
-      authGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot),
+      authGuard({} as ActivatedRouteSnapshot, { url } as RouterStateSnapshot),
     );
 
   it('lets signed-in users through', () => {
@@ -16,10 +16,10 @@ describe('authGuard', () => {
     expect(fake.login).not.toHaveBeenCalled();
   });
 
-  it('sends everyone else to Keycloak', () => {
+  it('sends everyone else to Keycloak, remembering the page they asked for', () => {
     const { fake, provider } = fakeAuth(false);
     TestBed.configureTestingModule({ providers: [provider] });
-    expect(run()).toBe(false);
-    expect(fake.login).toHaveBeenCalled();
+    expect(run('/contracts/new')).toBe(false);
+    expect(fake.login).toHaveBeenCalledWith('/contracts/new');
   });
 });

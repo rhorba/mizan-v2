@@ -65,6 +65,29 @@ describe('AuthService', () => {
     window.history.replaceState(null, '', '/');
   });
 
+  it.each([
+    ['/contracts/new', '/contracts/new'],
+    [encodeURIComponent('/contracts/c-1?x=1'), '/contracts/c-1'],
+    ['//evil.example/phish', '/contracts'],
+    ['/\\evil.example', '/contracts'], // "/\host" means "//host" to browsers
+    ['/evil.example', '/evil.example'], // a plain same-origin path is fine
+    ['https://evil.example', '/contracts'],
+    ['%E0%A4%A', '/contracts'],
+    ['', '/contracts'],
+  ])('after login restores the requested path %s only if same-origin', async (state, path) => {
+    window.history.replaceState(null, '', '/contracts');
+    oauth['hasValidAccessToken'].mockReturnValue(true);
+    TestBed.inject(OAuthService).state = state;
+    await auth().init();
+    expect(window.location.pathname).toBe(path);
+    window.history.replaceState(null, '', '/');
+  });
+
+  it('passes the requested path as OIDC state', () => {
+    auth().login('/contracts/new');
+    expect(oauth['initCodeFlow']).toHaveBeenCalledWith('/contracts/new', { ui_locales: 'fr' });
+  });
+
   it('keeps the URL when there is no iss parameter', async () => {
     window.history.replaceState(null, '', '/contracts');
     oauth['hasValidAccessToken'].mockReturnValue(true);

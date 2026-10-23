@@ -19,8 +19,53 @@
     </div>
   </header>
 
-  <div class="empty">
-    <h2>{{ 'contracts.empty.title' | transloco }}</h2>
-    <p>{{ 'contracts.empty.body' | transloco }}</p>
+  <div class="actions">
+    <a mat-flat-button routerLink="/contracts/new">{{ 'contracts.analyze' | transloco }}</a>
+  </div>
+
+  @if (empty()) {
+    <div class="empty">
+      <h2>{{ 'contracts.empty.title' | transloco }}</h2>
+      <p>{{ 'contracts.empty.body' | transloco }}</p>
+    </div>
+  } @else if (items().length) {
+    <ul class="history" [attr.aria-label]="'contracts.historyLabel' | transloco">
+      @for (c of items(); track c.id) {
+        <li class="row">
+          <a class="name" [routerLink]="['/contracts', c.id]" dir="auto">{{ c.fileName }}</a>
+          <span class="when">{{ formatDate(c.createdAt) }}</span>
+          <span class="pages">{{ 'detail.meta' | transloco: { pages: c.pageCount } }}</span>
+          <span class="status">
+            @if (c.analysis; as a) {
+              <app-status-chip [status]="a.status" />
+            }
+          </span>
+          <button
+            mat-button
+            type="button"
+            class="delete"
+            [attr.aria-label]="'contracts.deleteLabel' | transloco: { name: c.fileName }"
+            (click)="delete(c)"
+          >
+            {{ 'contracts.delete' | transloco }}
+          </button>
+        </li>
+      }
+    </ul>
+  }
+
+  <div class="more" aria-live="polite">
+    @if (loading()) {
+      <p class="loading">{{ 'detail.loading' | transloco }}</p>
+    } @else if (failed()) {
+      <p class="error">{{ 'contracts.loadFailed' | transloco }}</p>
+      <button mat-button type="button" class="retry" (click)="retry()">
+        {{ 'contracts.retry' | transloco }}
+      </button>
+    } @else if (nextCursor()) {
+      <button mat-stroked-button type="button" class="load-more" (click)="loadMore()">
+        {{ 'contracts.loadMore' | transloco }}
+      </button>
+    }
   </div>
 </section>

@@ -1,0 +1,29 @@
+<section class="detail" aria-live="polite">
+  <a mat-button routerLink="/contracts" class="back">{{ 'detail.back' | transloco }}</a>
+
+  @if (contract.hasValue()) {
+    @let c = contract.value();
+    <header class="head">
+      <h1 dir="auto">{{ c.fileName }}</h1>
+      @if (c.analysis; as a) {
+        <app-status-chip [status]="a.status" />
+      }
+    </header>
+    <p class="meta">
+      {{ 'detail.meta' | transloco: { pages: c.pageCount } }}
+      @if (c.analysis; as a) {
+        · {{ 'upload.languages.' + a.language | transloco }}
+      }
+    </p>
+    <p class="next">{{ 'detail.pending' | transloco }}</p>
+  } @else if (notFound()) {
+    <h1>{{ 'detail.notFound' | transloco }}</h1>
+  } @else if (contract.error()) {
+    <p class="error">{{ 'detail.error' | transloco }}</p>
+    <button mat-button type="button" (click)="contract.reload()">
+      {{ 'contracts.retry' | transloco }}
+    </button>
+  } @else {
+    <p class="loading">{{ 'detail.loading' | transloco }}</p>
+  }
+</section>

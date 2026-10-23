@@ -30,6 +30,30 @@
 
   <build>
     <plugins>
+      <!--
+        This module only aggregates reports. It puts mizan-api and mizan-analyzer on one artificial
+        classpath they never share at run time (separate deployables), so dependency convergence is
+        checked in each app module instead; Java and Maven version rules still apply here.
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-build-rules</id>
+            <configuration>
+              <rules combine.self="override">
+                <requireJavaVersion>
+                  <version>[25,)</version>
+                </requireJavaVersion>
+                <requireMavenVersion>
+                  <version>[3.9,)</version>
+                </requireMavenVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>

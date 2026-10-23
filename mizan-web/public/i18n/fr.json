@@ -40,7 +40,69 @@
     },
     "empty": {
       "title": "Aucun contrat pour l'instant.",
-      "body": "Le dépôt de PDF arrive dans la prochaine version. Vos contrats analysés apparaîtront ici, du plus récent au plus ancien."
+      "body": "Déposez un contrat en PDF pour lancer votre première analyse. Vos contrats apparaîtront ici, du plus récent au plus ancien."
+    },
+    "analyze": "Analyser un contrat",
+    "historyLabel": "Historique des contrats",
+    "delete": "Supprimer",
+    "deleteLabel": "Supprimer {{name}}",
+    "loadMore": "Afficher plus",
+    "loadFailed": "Impossible de charger vos contrats.",
+    "deleted": "Contrat supprimé.",
+    "deleteFailed": "La suppression a échoué. Réessayez.",
+    "confirm": {
+      "title": "Supprimer ce contrat ?",
+      "body": "Le texte et toutes ses analyses seront supprimés définitivement.",
+      "cancel": "Annuler",
+      "delete": "Supprimer"
     }
+  },
+  "upload": {
+    "title": "Analyser un contrat",
+    "back": "Mes contrats",
+    "drop": "Déposez un PDF ici",
+    "choose": "ou choisissez un fichier",
+    "change": "Choisir un autre fichier",
+    "limits": "PDF texte · {{mb}} Mo maximum · {{pages}} pages maximum",
+    "language": "Langue de l'analyse",
+    "languages": {
+      "fr": "Français",
+      "ar": "العربية",
+      "ary": "Darija"
+    },
+    "analyze": "Analyser",
+    "reading": "Lecture du PDF…",
+    "progress": "Envoi du fichier",
+    "retryIn": "Réessayez dans {{seconds}} s.",
+    "errors": {
+      "not-a-pdf": "Ce fichier n'est pas un PDF.",
+      "too-large": "Le fichier dépasse 10 Mo.",
+      "too-many-pages": "Le PDF dépasse 30 pages.",
+      "no-text-layer": "Ce PDF ne contient pas de texte (document scanné). Utilisez un PDF texte.",
+      "encrypted": "Ce PDF est protégé par un mot de passe.",
+      "unreadable": "Ce PDF est illisible ou endommagé.",
+      "bad-language": "Choisissez une langue d'analyse.",
+      "malware-detected": "L'analyse antivirus a bloqué ce fichier.",
+      "scanner-unavailable": "L'analyse antivirus est indisponible. Réessayez plus tard.",
+      "rate-limited": "Trop d'envois en peu de temps.",
+      "contract-not-found": "Contrat introuvable.",
+      "generic": "L'envoi a échoué. Vérifiez votre connexion et réessayez."
+    },
+    "sizeKb": "{{value}} Ko",
+    "sizeMb": "{{value}} Mo"
+  },
+  "detail": {
+    "back": "Mes contrats",
+    "meta": "{{pages}} page(s)",
+    "pending": "L'analyse est en file d'attente. Elle arrive avec la prochaine version de Mizan ; ce contrat est bien enregistré.",
+    "notFound": "Contrat introuvable.",
+    "error": "Impossible de charger ce contrat.",
+    "loading": "Chargement…"
+  },
+  "status": {
+    "PENDING": "En attente",
+    "ANALYZING": "Analyse en cours",
+    "COMPLETE": "Terminée",
+    "FAILED": "Échec"
   }
 }

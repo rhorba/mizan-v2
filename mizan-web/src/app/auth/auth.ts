@@ -31,6 +31,7 @@ export class AuthService {
       this.oauth.setupAutomaticSilentRefresh();
       if (this.oauth.hasValidAccessToken()) {
         this.forgetCallback();
+        this.restoreRequestedPath();
       }
     } catch {
       // Keycloak unreachable or a stale callback: stay signed out; the landing page still works.
@@ -38,8 +39,9 @@ export class AuthService {
     this.sync();
   }
 
-  login(): void {
-    this.oauth.initCodeFlow('', { ui_locales: this.language.current() });
+  /** @param returnPath where to land after login (carried in the OIDC state, same-origin only) */
+  login(returnPath = ''): void {
+    this.oauth.initCodeFlow(returnPath, { ui_locales: this.language.current() });
   }
 
   /** Opens Keycloak's registration form directly (OIDC prompt=create). */
@@ -59,6 +61,24 @@ export class AuthService {
     if (url.searchParams.has('iss')) {
       url.searchParams.delete('iss');
       window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+    }
+  }
+
+  /**
+   * Keycloak always redirects to /contracts; the page originally asked for travels in the OIDC
+   * state. It is restored before the router's first navigation, and only if it is a path on this
+   * origin ("/x", never "//host" or "https://…"), so the state cannot become an open redirect.
+   */
+  private restoreRequestedPath(): void {
+    let path: string;
+    try {
+      path = decodeURIComponent(this.oauth.state ?? '');
+    } catch {
+      return;
+    }
+    // Browsers treat "/\host" like "//host", so a backslash after the slash is refused too.
+    if (/^\/(?![/\\])/.test(path)) {
+      window.history.replaceState(window.history.state, '', path);
     }
   }
 

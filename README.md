@@ -7,7 +7,7 @@ Full rebuild of [mizan-ma](https://github.com/rhorba/mizan-ma) on a 2026 enterpr
 Java 25 · Spring Boot 4 · Angular 22 · Apache Kafka (transactional outbox) · Spring AI ·
 OpenTelemetry · PostgreSQL · Kubernetes (k3s) on Oracle Cloud, provisioned with Terraform.
 
-**Status:** Sprint 1 — skeleton, local stack, CI, sign-up and login. Design docs in `docs/`, pinned versions in ADR-8 (`docs/architecture-mizan-v2.md`).
+**Status:** Sprint 2 — contract upload (validated, virus-scanned, text only), history and delete. Analysis arrives in Sprint 3. Design docs in `docs/`, pinned versions in ADR-8 (`docs/architecture-mizan-v2.md`).
 
 ## Build
 
@@ -34,6 +34,7 @@ cp .env.example .env                        # local-only values; change ports if
 docker compose up -d --wait                 # Postgres 18, Kafka 4, Keycloak 26, otel-lgtm
 docker compose --profile apps up -d --wait  # + mizan-api and mizan-analyzer in containers
 docker compose --profile mail up -d --wait  # + Mailpit for Keycloak e-mails
+docker compose --profile av up -d --wait    # + ClamAV (set MIZAN_CLAMAV_HOST=clamav; ~300 MB first start)
 scripts/stack-check.sh [--fresh] [--profile apps]   # asserts everything healthy within 120 s
 ```
 
@@ -42,7 +43,7 @@ Web app and sign-in (stack running with `--profile apps --profile mail`):
 ```bash
 cd mizan-web && npm ci && npm start         # http://localhost:4200 — sign up, verify via Mailpit
 scripts/make-admin.sh you@example.com       # from the repo root: admin role + TOTP at next login
-cd mizan-web && npx playwright test         # E2E: sign-up → verify → login → quota → 401/403 → logout
+cd mizan-web && npx playwright test         # E2E: sign-up … logout; upload, history, delete (E2E_AV=1 with ClamAV)
 ```
 
 Sprint recordings are kept locally in `.recordings/` (git-ignored) and, for every CI run, in the `e2e-videos-and-traces` artifact.

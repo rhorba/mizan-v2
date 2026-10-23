@@ -219,3 +219,83 @@ Video: .recordings/v0.1-2026-10-23.webm (local, git-ignored; CI artifact e2e-vid
 - **Went well**: every gate caught something real before it shipped (Enforcer convergence, honest coverage, Trivy, E2E against real Keycloak); live browser runs found defects unit tests could not (OIDC leftovers, Keycloak readiness, deferred password).
 - **Went badly**: two "100 %" coverage reports were false until measured over all files; a reused local `ng serve` hid a build break that only CI's clean run exposed; heredoc-heavy shell commands failed twice on Git Bash.
 - **Change for Sprint 2**: always run `npm run build` (not only tests) before pushing web changes; never reuse a running dev server for E2E before a push; check coverage `include` whenever a new source folder is added; write multi-file changes with the file tool, not shell heredocs.
+
+### [2026-10-23] SPRINT 2 START — main green @ da8ae8f (run 39941602238). Branch feature/s2-upload. Phase: UNDERSTAND (Stories 2.1, 2.2, 4.2).
+
+### [2026-10-23] PHASE UNDERSTAND — Sprint 2 (2.1 upload/validate/extract, 2.2 upload screen, 4.2 history & delete)
+API: POST /api/v1/contracts (multipart file + language fr|ar|ary → 202 {contract, analysis PENDING}), GET /api/v1/contracts (newest 20, more on demand), GET /api/v1/contracts/{id} (owner-scoped; 404 otherwise), DELETE /api/v1/contracts/{id} (cascade). PDF rules FR-2: magic bytes, ≤ 10 MB (413), ≤ 30 pages, text layer required; store text only (ADR-5). Persistence: JPA + Flyway V1 (contracts, analyses, clause_flags) in schema mizan as mizan_app; Testcontainers Postgres 18. Out of scope (later stories): Kafka publish (3.1), quota counting (5.1), analysis view content (4.1).
+Libs: PDFBox 3.0.8, Flyway 12.4.0 / Hibernate 7.4.13 / pgjdbc 42.7.14 (Boot BOM).
+New env: SPRING_DATASOURCE_URL / _USERNAME / _PASSWORD for mizan-api (reuse MIZAN_DB_PASSWORD).
+
+### [2026-10-23] HANDOFF Orchestrator → Scrum Master (Sprint 2)
+Context: 🔴 chosen. Need: batch plan with DBA, Security, Backend, DevOps, UX/UI, Frontend, Tester handoffs. Constraints: ClamAV signature download is slow (stack 120 s target), fetch backend has no upload progress, env defaults for datasource pending.
+
+### [2026-10-23] PHASE PLAN — Sprint 2 (awaiting approval)
+B1 persistence · B2 upload + PDF hardening · B3 list/get/delete + IDOR · B4 ClamAV + rate limit · B5 upload screen · B6 history + delete UI · B7 E2E/video/CI/docs. Then VERIFY, SHIP (PR → main).
+
+### [2026-10-23] HANDOFF Scrum Master → DBA (Sprint 2 B1)
+Context: plan approved. Need: Flyway V1 per docs/database §3–4 in schema mizan, JPA mapping validated against it, Testcontainers Postgres for all @SpringBootTest. Constraints: app connects as mizan_app (owns schema mizan, cannot create schemas); ddl-auto validate.
+
+### [2026-10-23] DONE B1 (Sprint 2) — persistence
+Deps: data-jpa, flyway (+ flyway-database-postgresql), pgjdbc, PDFBox 3.0.8 (parent pin), testcontainers-postgresql, data-jpa-test. V1__contracts_analyses_flags.sql per DB doc. Entities Contract/Analysis (UUIDv7 via Hibernate VERSION_7, micros-truncated timestamps for keyset), Language (fr/ar/ary converter), AnalysisStatus; owner-scoped ContractRepository. ddl-auto=validate, open-in-view off, flyway create-schemas false. Tests: config/application.yml jdbc:tc:postgresql:18.6-alpine for every Spring test; PersistenceTests 6 (UUIDv7, owner scoping, CHECK page_count/language/status, cascade). API 42 tests green. Live: compose mizan-api migrated as mizan_app (all tables owned by mizan_app), Hibernate validate OK. compose + .env.example: SPRING_DATASOURCE_*.
+
+### [2026-10-23] HANDOFF DBA → Security Engineer → Backend Dev (Sprint 2 B2)
+Security design for upload: order size → magic → PDFBox load (mixed memory 16 MB + temp files) → encrypted reject (incl. owner-password-only) → pages ≤ 30 before extraction → text (strip NUL) → scan heuristic (< 20 non-space chars/page avg). File name: last path segment, NFC, drop control/bidi-override/zero-width chars, ≤ 255, fallback. Problem types urn:mizan:problem:{slug}; 413 also for servlet MaxUploadSizeExceeded. Audit line ids only (no file name, no text). PDF bytes never persisted; multipart temp file is container-managed and deleted after the request.
+
+### [2026-10-23] DONE B2 (Sprint 2) — upload + PDF hardening
+POST /api/v1/contracts (multipart file + language) → 202 + Location, {id, fileName, pageCount, createdAt, analysis{id, language, status PENDING}}. PdfInspector: size → %PDF- magic → PDFBox loadPDF(mixed 16 MB + temp) → isEncrypted (incl. owner-only) / InvalidPasswordException → pages 0/ > 30 before extraction → text (NUL stripped) → < 20 visible chars/page = scanned. FileNames.sanitize: last segment, NFC, drop Cc/Cf/unassigned/private/surrogates (bidi overrides, ZWSP, BOM, NUL), ≤ 255 code points, fallback. UploadProblem types urn:mizan:problem:{not-a-pdf,too-large(413),too-many-pages,no-text-layer,encrypted,unreadable,bad-language}; servlet MaxUploadSizeExceeded → too-large; spring.mvc.problemdetails on; multipart 10 MB / 11 MB, threshold 0. Audit logger "audit": ids, pages, language only.
+Tests: API 83 (+41: inspector 12, file names 19, upload HTTP 10 — 202 + text stored + no bytea column, 5 refusals store nothing, 11 MB → 413, missing file, unauthenticated). Coverage api 99.6 % lines; PdfInspector 16/16 branches.
+
+### [2026-10-23] HANDOFF Backend Dev (B2) → Backend Dev + Tester (Sprint 2 B3)
+Context: upload done. Need: keyset list (opaque cursor, 20/page, latest analysis per contract in 1 query), GET/DELETE by id owner-scoped (404 for foreign and missing alike), IDOR suite auto-discovering /{id} endpoints. Constraints: no find-by-id without owner.
+
+### [2026-10-23] DONE B3 (Sprint 2) — list / get / delete + IDOR
+GET /api/v1/contracts?cursor= → {items[20, latest analysis each], nextCursor}; native keyset (created_at, id) < (…) on idx (owner_sub, created_at DESC, id DESC), LIMIT 21 to detect more; latest analyses for a page in 1 query (IN). Opaque base64url cursor (micros|uuid); invalid → 400 urn:mizan:problem:bad-cursor. GET /{id}, DELETE /{id} (204, JPQL bulk delete + DB cascade, audit line); foreign and missing both 404 urn:mizan:problem:contract-not-found with identical bodies. {h-schema} in native SQL (superuser test conn has no mizan search_path).
+Tests: API 95 (+12: history 8 — 25 → 20+5, 21 same-timestamp rows no skip/dup, latest analysis, empty, no analysis, delete cascade + 404 + repeat 404, tampered cursors, bad uuid; IDOR 4 — every /{id} endpoint auto-discovered from handler mappings → 404 for bob without leaking, rows untouched, bob's list empty, foreign == missing). Coverage api 99.7 % lines / 93.9 % branches.
+Fix: PersistenceTests raw query not scoped → failed once other classes committed rows (shared DB); now scoped by id.
+
+### [2026-10-23] HANDOFF Backend Dev → DevOps + Security Engineer (Sprint 2 B4)
+Context: CRUD + IDOR done. Need: ClamAV (compose profile av, clamd INSTREAM client, 422 malware-detected, skip+warn when MIZAN_CLAMAV_HOST unset) and per-user upload rate limit (429 + Retry-After). Constraints: never write PDF to disk; EICAR must not appear literally in the repo (Defender/Gitleaks).
+
+### [2026-10-23] DONE B4 (Sprint 2) — ClamAV + rate limit
+ClamdClient (INSTREAM over socket, 64 KiB chunks, connect 2 s / read 60 s, reply ≤ 4 KiB, never touches disk), MalwareScanner runs BEFORE PdfInspector: host unset → skip + start-up WARN (owner choice); host set but unreachable → 503 scanner-unavailable (fail-closed, see decisions); infected → 422 malware-detected + audit warn with signature. UploadRateLimitFilter: Bucket4j 8.21.0 token bucket per subject (Caffeine, 10 min idle expiry, 100 k max), default 10/min (MIZAN_UPLOADS_PER_MINUTE), after Security / before MVC multipart, 429 rate-limited + Retry-After + RateLimit-Remaining. compose: clamav/clamav:1.5.4 in profile av (clamav-db volume), api depends_on clamav required:false. .env.example: MIZAN_UPLOADS_PER_MINUTE, MIZAN_CLAMAV_HOST.
+Tests: API 106 (+11; FakeClamd speaks real INSTREAM: chunking, infected, clamd error, unreachable, disabled; HTTP: 422 stores nothing, clean scanned once, 4th upload 429 + Retry-After while other user OK, reads not limited).
+Live (real ClamAV 1.5.4, healthy in 1m24 incl. signatures): EICAR (base64-decoded, piped, never on disk) → 422 + audit signature=Eicar-Test-Signature; 10 clean uploads 202 (RateLimit-Remaining 9→0), 11th 429 Retry-After 2; history 10 items. Temp Keycloak client created for the check and deleted. ClamAV stopped afterwards (RAM).
+
+### [2026-10-23] HANDOFF Security/DevOps → UX → UI → Frontend (Sprint 2 B5)
+UX (docs/ux §4 Upload wireframe + §5 states): title + quota chip, drop zone 'Drop a PDF here or [Choose a file]' with limits line, language select, Analyze; loading 'Reading PDF…' (+ progress), inline errors per problem type, selection kept, success → /contracts/:id. UI: same tokens, logical props, focus ring, dashed rule drop zone (no card), RTL. Frontend: XHR backend (upload progress), ContractsApi service, routes contracts/new + contracts/:id (guarded).
+
+### [2026-10-23] DONE B5 (Sprint 2) — upload screen + contract page
+SPA: XHR backend (withFetch removed: no upload progress with fetch). ContractsApi (upload with progress events, history cursor, url, delete; problemSlug() maps urn:mizan:problem:*). /contracts/new: label-wrapped focusable file input (aria-describedby limits+error, aria-invalid), drag & drop, client pre-checks (type, > 10 MB), language mat-select defaulting to UI language (fr/ar/ary), determinate progress bar, per-slug fr/ar messages incl. Retry-After, selection kept; retryable errors (rate-limited, scanner-unavailable, generic) re-enable Analyze, final ones need another file; size in Ko/Mo. /contracts/:id (input binding): name dir=auto, pages, language, StatusChip (words + shape, not colour alone), 404 → not found, other errors → retry. Contracts page CTA. Routes contracts/{'',new,:id} under one guard.
+Bugs found & fixed: (1) upload.spec never ran (@angular/animations import; my grep hid "Failed Suites" — now always check exit code); (2) FileList.item() vs test arrays → index access; (3) deep link after reload/login landed on /contracts — requested path now carried in OIDC state, restored before first navigation only if same-origin ("/x", not "//", "/\", absolute) with tests; (4) Analyze stayed disabled after retryable errors; (5) "0.0 Mo" for small files.
+Live: login → upload page; renamed text file refused by API (not-a-pdf) and kept; real PDF in Darija → /contracts/{id} "1 page · Darija · En attente"; cold deep link /contracts/new survives login and reload (silent SSO); Arabic RTL default language العربية; 0 console errors.
+Tests web 74 (+23), exit 0; coverage lines 100 % / branches 97 %.
+
+### [2026-10-23] HANDOFF Frontend (B5) → UX → Frontend (Sprint 2 B6)
+UX: docs/ux §5 History states (empty + CTA, loading skeleton, error + Retry, rows with status chips), Flow 3 delete (confirm 'This removes the text and all analyses' → row gone + snackbar). UI: rows reflow to cards < 768 px; delete is a labelled text button (no icon font). Frontend: signals state, keyset load more, MatDialog + MatSnackBar.
+
+### [2026-10-23] DONE B6 (Sprint 2) — history + delete UI
+Contracts page: history list (ruled rows → stacked blocks < 768 px), name link dir=auto, Intl date in UI language, pages, StatusChip, labelled delete button; keyset "load more" via nextCursor; loading / empty (+ CTA) / error states; retry re-requests the page that failed (first or next) and keeps shown rows. Delete: MatDialog ConfirmDelete (file name + "text and all analyses") → DELETE → row removed + snackbar; cancel = no request; failure keeps row + snackbar. fr/ar strings.
+Live: 11 rows, real dialog in Arabic → deleted, snackbar "تم حذف العقد.", 10 rows; 0 console errors.
+Found live: signed-in toolbar 459 px wide at 390 px (fr) / overflow left (ar) → < 480 px: brand word visually hidden (still the link's accessible name), tighter paddings; verified scrollWidth = 360 at 360 px fr/ar.
+Tests web 82 (+8 contracts, +1 dialog), exit 0; lines 100 % / branches 97.3 %. lint/format/build exit 0.
+
+### [2026-10-23] HANDOFF Frontend → Test Architect → Tester → DevOps → Tech Lead (Sprint 2 B7)
+Need: E2E upload (server-rejected, malware when E2E_AV, accepted Darija) → contract page → history → delete → API 404; sign-up steps shared; sprint video; CI e2e with av profile + cached signatures; ADR-10, DB doc index, README.
+
+### [2026-10-23] DONE B7 (Sprint 2) — E2E, video, CI, docs
+E2E: support/session.ts (sign-up helper, token captured on the wire), support/files.ts (text PDF built in code, fake PDF, EICAR decoded at run time, gitleaks:allow), upload-history-delete.spec.ts (empty CTA → fake PDF refused by API & kept → [E2E_AV] EICAR blocked → Darija PDF → page PENDING → history row → confirm delete → snackbar → empty → API 404 contract-not-found). Local: 2/2 without AV (25.8 s), 2/2 with real ClamAV (53 s). Video .recordings/v0.2-2026-10-23.webm (42 s, 2 tests concatenated, frames verified). CI e2e: av profile, E2E_AV=1, weekly actions/cache of ClamAV DB via CLAMAV_DB bind mount. Docs: ADR-10, ADR-8 row (PDFBox/Bucket4j/ClamAV), DB doc index + history query, README (av profile, status). ClamAV stopped after, .env reset.
+
+### [2026-10-23] HANDOFF Tech Lead → Tester (Sprint 2 VERIFY)
+Need: clean backend verify, web test/lint/format/build, E2E (done 2/2 ± AV), coverage gate, Semgrep/Gitleaks/Trivy. Rule from Sprint 1 retro + B5: judge by exit codes.
+
+### [2026-10-23] PHASE VERIFY — Sprint 2 PASS (exit codes)
+Backend ./mvnw verify exit 0: api 106 + analyzer 4 = 110 tests, lines 99 % / branches 91 %. Web: test exit 0 (82, lines 100 % / branches 97.3 %), lint 0, format 0, build 0, npm audit 0. E2E 2/2 without AV and 2/2 with real ClamAV. Semgrep 0, Gitleaks 0, Trivy fs 0, Trivy images api/analyzer 0 (fixable HIGH/CRIT).
+Found and fixed during VERIFY: (1) Enforcer convergence failed only in coverage-report (aggregator merges two deployables' classpaths: errorprone 2.49/2.50, antlr 4.13.2/4.13.1) — hidden while building -pl mizan-api; aggregator now keeps Java/Maven rules only, apps still enforce convergence. (2) Parallel image builds raced on the shared BuildKit m2 cache → sharing=locked; 2 cold parallel builds green. (3) A real U+202E char in ContractUploadTests source (google-java-format turns the \u escape back into the char) → built from code point; repo-wide bidi scan clean. (4) unencrypted-socket ×3 (clamd has no TLS; in-network only; loopback tests) → justified nosemgrep on the preceding line (GJF re-wraps trailing comments).
+
+### [2026-10-23] CI GREEN — run 39981858772 @ 43cd37e: lint, test-backend, test-frontend, security, stack, e2e (with ClamAV) all success.
+
+### [2026-10-23] RETROSPECTIVE — Sprint 2
+- **Went well**: live checks against the real stack (ClamAV EICAR, rate limit, real dialog, 360 px phones, cold deep links) found defects no unit test would; IDOR suite by endpoint discovery future-proofs ownership checks; CI green on first push.
+- **Went badly**: I reported "51 passed" while the run had exited 1 (a suite never loaded and my grep hid it); building -pl mizan-api hid an aggregator-only Enforcer failure until VERIFY; shell/sed escaping broke edits several times.
+- **Change for Sprint 3**: judge every run by exit code; always run the full reactor (not -pl) before declaring a batch done; make multi-line or escape-heavy edits with the file tools, not sed.

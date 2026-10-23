@@ -10,7 +10,21 @@ export const routes: Routes = [
   {
     path: 'contracts',
     canActivate: [authGuard],
-    loadComponent: () => import('./contracts/contracts').then((m) => m.Contracts),
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./contracts/contracts').then((m) => m.Contracts),
+      },
+      {
+        path: 'new',
+        loadComponent: () => import('./contracts/upload/upload').then((m) => m.Upload),
+      },
+      {
+        path: ':id',
+        loadComponent: () =>
+          import('./contracts/detail/contract-detail').then((m) => m.ContractDetail),
+      },
+    ],
   },
   { path: '**', redirectTo: '' },
 ];

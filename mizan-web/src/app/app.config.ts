@@ -1,4 +1,4 @@
-import { provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import {
   ApplicationConfig,
   inject,
@@ -20,8 +20,9 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding()),
+    // XHR backend (no withFetch): fetch cannot report upload progress (Story 2.2).
     // withInterceptorsFromDi: angular-oauth2-oidc adds the bearer token through a DI interceptor.
-    provideHttpClient(withFetch(), withInterceptorsFromDi()),
+    provideHttpClient(withInterceptorsFromDi()),
     provideOAuthClient({
       resourceServer: { allowedUrls: [environment.apiUrl], sendAccessToken: true },
     }),
