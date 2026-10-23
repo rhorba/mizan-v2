@@ -229,8 +229,20 @@ jobs:
           set: |
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
-      - name: Stack with apps and Mailpit
-        run: docker compose --profile apps --profile mail up -d --wait --wait-timeout 180
+      - name: ClamAV signatures cache key (weekly)
+        id: week
+        run: echo "key=clamav-db-$(date +%G-%V)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/clamav-db
+          key: ${{ steps.week.outputs.key }}
+          restore-keys: clamav-db-
+      - name: Stack with apps, Mailpit and ClamAV
+        run: |
+          mkdir -p "$RUNNER_TEMP/clamav-db" && chmod 777 "$RUNNER_TEMP/clamav-db"
+          export CLAMAV_DB="$RUNNER_TEMP/clamav-db" MIZAN_CLAMAV_HOST=clamav
+          sed -i 's/^MIZAN_CLAMAV_HOST=$/MIZAN_CLAMAV_HOST=clamav/' .env
+          docker compose --profile apps --profile mail --profile av up -d --wait --wait-timeout 600
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -241,8 +253,10 @@ jobs:
         run: |
           npm ci
           npx playwright install --with-deps chromium
-      - name: Playwright (sign-up, verify e-mail, login, quota, 401/403, logout)
+      - name: Playwright (sign-up … logout; upload, ClamAV, history, delete)
         working-directory: mizan-web
+        env:
+          E2E_AV: "1"
         run: npx playwright test
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()

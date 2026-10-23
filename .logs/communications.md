@@ -12,3 +12,8 @@ POSTGRES_PASSWORD=postgres, MIZAN_DB_PASSWORD=mizan, KEYCLOAK_DB_PASSWORD=keyclo
 User: 🔴, per-user daily cap = 3. Other env defaults (issuer/JWKS localhost:8180, CORS localhost:4200) to be confirmed at PLAN gate.
 
 ### [2026-10-23] Env defaults confirmed ("start"): KEYCLOAK_ISSUER_URI/JWK_SET_URI localhost:8180, MIZAN_CORS_ALLOWED_ORIGINS http://localhost:4200, MIZAN_QUOTA_DAILY_PER_USER=3.
+
+### [2026-10-23] Sprint 2 PLAN gate answers
+Datasource defaults OK (SPRING_DATASOURCE_URL jdbc:postgresql://localhost:5435/mizan, user mizan_app, password = MIZAN_DB_PASSWORD). ClamAV absent → skip scanning with a warning (fail-open, user choice). XHR backend instead of withFetch OK (upload progress).
+
+### [2026-10-23] B4 → B5: owner replied "go" without objecting to fail-closed when ClamAV is configured but down; treated as accepted (can be revisited).

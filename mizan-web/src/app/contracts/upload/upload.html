@@ -1,0 +1,77 @@
+<section class="upload" aria-labelledby="upload-title">
+  <header class="head">
+    <h1 id="upload-title">{{ 'upload.title' | transloco }}</h1>
+    <a mat-button routerLink="/contracts">{{ 'upload.back' | transloco }}</a>
+  </header>
+
+  <form (ngSubmit)="submit()">
+    <label
+      class="dropzone"
+      [class.dragging]="dragging()"
+      [class.invalid]="error()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave()"
+      (drop)="onDrop($event)"
+    >
+      <!-- The real input stays focusable for keyboard and screen-reader users. -->
+      <input
+        class="file-input"
+        type="file"
+        name="file"
+        accept="application/pdf,.pdf"
+        aria-describedby="upload-limits upload-error"
+        [attr.aria-invalid]="error() ? 'true' : null"
+        [disabled]="uploading()"
+        (change)="onFileInput($event)"
+      />
+      @if (file(); as f) {
+        <span class="chosen" dir="auto">{{ f.name }}</span>
+        <span class="meta">{{ size().key | transloco: { value: size().value } }}</span>
+        <span class="change">{{ 'upload.change' | transloco }}</span>
+      } @else {
+        <span class="prompt">{{ 'upload.drop' | transloco }}</span>
+        <span class="choose">{{ 'upload.choose' | transloco }}</span>
+      }
+    </label>
+    <p id="upload-limits" class="limits">
+      {{ 'upload.limits' | transloco: { mb: 10, pages: limits.maxPages } }}
+    </p>
+
+    <p id="upload-error" class="error" role="alert" aria-live="assertive">
+      @if (error(); as e) {
+        {{ 'upload.errors.' + e | transloco }}
+        @if (retryAfter(); as seconds) {
+          {{ 'upload.retryIn' | transloco: { seconds } }}
+        }
+      }
+    </p>
+
+    <mat-form-field appearance="outline" class="language">
+      <mat-label>{{ 'upload.language' | transloco }}</mat-label>
+      <mat-select
+        name="language"
+        [ngModel]="language()"
+        (ngModelChange)="language.set($event)"
+        [disabled]="uploading()"
+      >
+        @for (lang of languages; track lang) {
+          <mat-option [value]="lang">{{ 'upload.languages.' + lang | transloco }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <div class="actions">
+      <button mat-flat-button type="submit" [disabled]="!canSubmit()">
+        {{ (uploading() ? 'upload.reading' : 'upload.analyze') | transloco }}
+      </button>
+    </div>
+
+    @if (uploading()) {
+      <mat-progress-bar
+        mode="determinate"
+        [value]="progress()"
+        [attr.aria-label]="'upload.progress' | transloco"
+      />
+    }
+  </form>
+</section>

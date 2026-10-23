@@ -22,3 +22,9 @@ Resource server + /me/quota (cap from MIZAN_QUOTA_DAILY_PER_USER=3, counting in 
 
 ### [2026-10-23] DECISION — CVE-2026-114406 time-boxed exception (user chose A)
 docker/keycloak/trivyignore.yaml: this CVE only, Keycloak image only (CI --ignorefile for mizan-keycloak:local), expired_at 2026-11-30, statement with reason. Fixed ca-certificates only in RHEL subscription repos; UBI + Keycloak 26.8.1 still vulnerable.
+
+### [2026-10-23] DECISION — Sprint 2 approach: 🔴 COMPREHENSIVE
+🟡 (hardened PDF handling, stable problem types + i18n mapping, full IDOR suite, audit log, accessible drop zone, placeholder contract view, E2E + video) + per-user upload rate limit in the API, ClamAV scan, upload progress bar, keyset pagination. Chosen by user.
+
+### [2026-10-23] DECISION — ClamAV configured-but-down = fail-closed (503)
+Owner chose "skip scanning" when no scanner is configured. When MIZAN_CLAMAV_HOST IS set and clamd is unreachable, uploads are refused with 503 scanner-unavailable rather than silently unscanned (an explicit opt-in must not degrade silently). Flagged to owner for confirmation.

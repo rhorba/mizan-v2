@@ -1,0 +1,99 @@
+.upload {
+  max-inline-size: 760px;
+  margin-inline: auto;
+  padding: var(--mz-sp-xl) var(--mz-sp-md);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mz-sp-md);
+  padding-block-end: var(--mz-sp-md);
+  margin-block-end: var(--mz-sp-lg);
+  border-block-end: 3px solid var(--mz-accent);
+
+  h1 {
+    margin: 0;
+    color: var(--mz-primary);
+    font-size: var(--mz-fs-xl);
+  }
+}
+
+// A ruled box, not a card: dashed ink border, solid on hover, drag or focus.
+.dropzone {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: var(--mz-sp-xs);
+  padding: var(--mz-sp-xl) var(--mz-sp-md);
+  border: 2px dashed color-mix(in srgb, var(--mz-primary) 45%, transparent);
+  border-radius: 8px;
+  background: var(--mz-surface);
+  text-align: center;
+  cursor: pointer;
+
+  &:hover,
+  &.dragging,
+  &:focus-within {
+    border-style: solid;
+    border-color: var(--mz-primary);
+  }
+
+  &:focus-within {
+    outline: 2px solid var(--mz-accent);
+    outline-offset: 2px;
+  }
+
+  &.invalid {
+    border-color: var(--mz-error);
+  }
+}
+
+// Visually hidden but focusable and announced (not display:none).
+.file-input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.prompt,
+.chosen {
+  font-size: var(--mz-fs-lg);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.choose,
+.change {
+  color: var(--mz-primary);
+  text-decoration: underline;
+}
+
+.meta,
+.limits {
+  color: var(--mz-text-muted);
+  font-size: var(--mz-fs-sm);
+}
+
+.limits {
+  margin-block: var(--mz-sp-sm) 0;
+}
+
+.error {
+  min-block-size: 1.5em;
+  margin-block: var(--mz-sp-sm);
+  color: var(--mz-error);
+  font-weight: 600;
+}
+
+.language {
+  inline-size: min(100%, 320px);
+}
+
+.actions {
+  margin-block: var(--mz-sp-sm) var(--mz-sp-md);
+}

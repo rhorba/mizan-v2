@@ -4,6 +4,29 @@ spring:
   threads:
     virtual:
       enabled: true
+  mvc:
+    problemdetails:
+      enabled: true # framework errors (missing parameter, wrong method…) as RFC 9457 too
+  servlet:
+    multipart:
+      max-file-size: 10MB # = mizan.upload.max-bytes; larger files get 413 too-large
+      max-request-size: 11MB
+      file-size-threshold: 0 # container temp file, deleted after the request; never kept
+  # Overridden by SPRING_DATASOURCE_URL / _USERNAME / _PASSWORD (.env.example).
+  datasource:
+    url: jdbc:postgresql://localhost:5435/mizan
+    username: mizan_app
+    password: ${MIZAN_DB_PASSWORD:}
+  flyway:
+    schemas: mizan
+    default-schema: mizan
+    create-schemas: false # mizan_app owns schema "mizan" (db/init) and cannot create schemas
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate # Flyway owns the schema; Hibernate only checks the mapping
+    properties:
+      hibernate.default_schema: mizan
 
 management:
   endpoints:
@@ -19,3 +42,7 @@ mizan:
     cors-allowed-origins: ${MIZAN_CORS_ALLOWED_ORIGINS:http://localhost:4200}
   quota:
     daily-per-user: ${MIZAN_QUOTA_DAILY_PER_USER:3}
+  upload:
+    uploads-per-minute: ${MIZAN_UPLOADS_PER_MINUTE:10}
+  antivirus:
+    host: ${MIZAN_CLAMAV_HOST:} # empty = scanning disabled (warning at start-up)

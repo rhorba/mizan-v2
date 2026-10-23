@@ -26,3 +26,6 @@ Backend (JaCoCo aggregate, no exclusions): lines 87/87 = 100 %, branches 7/8 = 8
 - **Bugs/defects found by our own gates**: 12 (false-100 % coverage ×2, Keycloak bootstrap health, analyzer exit, CRLF/Spotless, OIDC leftovers ×2, contrast ×2, bidi wordmark, Trivy 429, lz4 CVE) — all fixed
 - **Security**: 2 HIGH/CRIT dependency CVEs fixed (lz4, vite), 1 CRITICAL time-boxed exception to 2026-11-30 (Keycloak base ca-certificates), 0 open SAST/secret findings
 - **Scope changes**: Boot 4.0.x → 4.1.2; per-user cap 3 (doc said 5); sign-up flow verify → set password (Keycloak 26.8)
+
+### [2026-10-23] COVERAGE — Sprint 2
+Backend (aggregate, no exclusions): lines 99 %, branches 91 % (110 tests incl. Testcontainers Postgres + Keycloak). Web: lines 100 %, branches 97.3 % (82 tests). E2E 2. Gate 80 %: PASS.

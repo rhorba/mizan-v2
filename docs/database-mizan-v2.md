@@ -64,7 +64,7 @@ Quota increments use `INSERT … ON CONFLICT (owner_sub, usage_day) DO UPDATE SE
 ## 4. Index Strategy
 | Table | Index Name | Columns | Query Pattern |
 |---|---|---|---|
-| contracts | idx_contracts_owner_created | owner_sub, created_at DESC | History page |
+| contracts | idx_contracts_owner_created | owner_sub, created_at DESC, id DESC | History page (keyset cursor on created_at, id) |
 | analyses | idx_analyses_contract | contract_id, requested_at DESC | Latest analysis per contract |
 | analyses | idx_analyses_status_requested | status, requested_at | Admin stats, stuck-job sweep |
 | clause_flags | idx_flags_analysis | analysis_id, position | Load flags in order |
@@ -83,7 +83,7 @@ Flyway, run by `mizan-api` at startup, schema `mizan`. Keycloak manages its own 
 ## 6. Access Patterns
 | Use Case | Query Pattern | Index Coverage |
 |---|---|---|
-| History | `WHERE owner_sub = ? ORDER BY created_at DESC LIMIT 20` | idx_contracts_owner_created |
+| History | `WHERE owner_sub = ? AND (created_at, id) < (?, ?) ORDER BY created_at DESC, id DESC LIMIT 21` | idx_contracts_owner_created |
 | Contract detail | `WHERE id = ? AND owner_sub = ?` + latest analysis + flags | PK, idx_analyses_contract, idx_flags_analysis |
 | Apply analysis result | `UPDATE analyses SET … WHERE id = ? AND status = 'ANALYZING'` | PK |
 | Stuck jobs (> 10 min ANALYZING) | `WHERE status = 'ANALYZING' AND requested_at < ?` | idx_analyses_status_requested |

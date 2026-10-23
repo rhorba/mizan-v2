@@ -17,7 +17,9 @@ COPY mizan-analyzer/pom.xml mizan-analyzer/pom.xml
 COPY coverage-report/pom.xml coverage-report/pom.xml
 COPY ${MODULE}/src ${MODULE}/src
 # Tests, formatting and coverage run in CI (./mvnw verify); the image build only packages.
-RUN --mount=type=cache,target=/root/.m2 \
+# sharing=locked: compose/bake build api and analyzer in parallel; they must not write the same
+# Maven repository at once (seen locally as an intermittent build failure).
+RUN --mount=type=cache,target=/root/.m2,sharing=locked \
     ./mvnw -B -q -pl ${MODULE} -am package \
       -DskipTests -Djacoco.skip=true -Dspotless.check.skip=true -Dcheckstyle.skip=true \
  && java -Djarmode=tools -jar ${MODULE}/target/${MODULE}-*.jar extract --layers --destination /layers \
