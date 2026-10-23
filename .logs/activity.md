@@ -208,3 +208,14 @@ lint ✅ test-backend ✅ test-frontend ✅ security ✅ stack ❌ e2e ❌ — d
 lint ✅ test-backend ✅ test-frontend ✅ security ✅ stack ✅ e2e ✅ (e2e 8 min incl. image build + stack).
 
 ### [2026-10-23] SHIP — Sprint 1: required checks on main now include e2e (6 total); opening PR feature/s1-skeleton → main.
+
+### [2026-10-23] MERGED — PR #4 (Sprint 1) into main @ ab60c86 by owner; then owner merged Dependabot #5 (kafka image 4.3.1), #6 (lz4-java 1.12.0), #7 (Maven 3.10.0), #8 (typescript-eslint 8.71.2)
+Intermediate main runs cancelled by concurrency (superseded). Final main run 39940671815 @ e7e4869: 6/6 GREEN. Maven 3.10.0 SHA-256 from Dependabot re-verified (Central SHA-512 match).
+
+### [2026-10-23] MILESTONE — Sprint 1 DONE (Stories 1.1–1.4)
+Video: .recordings/v0.1-2026-10-23.webm (local, git-ignored; CI artifact e2e-videos-and-traces on every run).
+
+### [2026-10-23] RETROSPECTIVE — Sprint 1
+- **Went well**: every gate caught something real before it shipped (Enforcer convergence, honest coverage, Trivy, E2E against real Keycloak); live browser runs found defects unit tests could not (OIDC leftovers, Keycloak readiness, deferred password).
+- **Went badly**: two "100 %" coverage reports were false until measured over all files; a reused local `ng serve` hid a build break that only CI's clean run exposed; heredoc-heavy shell commands failed twice on Git Bash.
+- **Change for Sprint 2**: always run `npm run build` (not only tests) before pushing web changes; never reuse a running dev server for E2E before a push; check coverage `include` whenever a new source folder is added; write multi-file changes with the file tool, not shell heredocs.
