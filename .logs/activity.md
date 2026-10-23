@@ -128,3 +128,75 @@ AC: every push runs lint, backend tests, frontend tests, Gitleaks, Semgrep, Triv
 
 ### [2026-10-22] PUSH + CI GREEN — feature/s1-skeleton @ 9c571b0 (run 39858005980, 5/5 green)
 MILESTONE: Story 1.3 DONE. Sprint 1 remaining: Story 1.4 (Keycloak sign-up/login). Video: N/A (no user-facing flows yet).
+
+### [2026-10-22] CI check — run 39858749115 @ 00686ee: exit=0
+
+### [2026-10-23] PHASE UNDERSTAND — Story 1.4 started
+Scope: API = OAuth2 resource server (issuer + audience mizan-api, realm roles → authorities, RFC 9457 401/403, CORS localhost:4200), GET /api/v1/me/quota (cap counting = Story 5.1), /api/v1/admin/** hasRole admin. SPA: OIDC code+PKCE (angular-oauth2-oidc 22.0.2), token in memory, landing → login → /contracts quota chip, logout. Keycloak: brand theme, password blacklist + admin TOTP (deferred from 1.2). Sprint 1 ends here with user-facing flow → Playwright video (rule 9). Env: KEYCLOAK_ISSUER_URI, KEYCLOAK_JWK_SET_URI, MIZAN_CORS_ALLOWED_ORIGINS, MIZAN_QUOTA_DAILY_PER_USER (value TBD by user). Libs: testcontainers-keycloak 4.4.0, @angular/material 22.2.4, Transloco 8.4.0, Playwright 1.64.1.
+
+### [2026-10-23] HANDOFF Orchestrator → Scrum Master (Story 1.4)
+Context: 🔴, cap 3. Need: batch plan with specialist handoffs (Security, Backend, DBA n/a, UX, UI, Frontend, Test Architect, DevOps). Constraints: L story; Sprint 1 ends here → video + PR into protected main.
+
+### [2026-10-23] PHASE PLAN — Story 1.4 (awaiting approval)
+B1 API security + quota · B2 Keycloak hardening (blacklist, admin TOTP) · B3 Keycloak theme · B4 SPA shell/i18n/landing · B5 SPA auth + contracts/quota · B6 Playwright E2E + video + CI e2e job · B7 docs/env. Then VERIFY, SHIP (PR → main, sprint close).
+
+### [2026-10-23] HANDOFF Scrum Master → Security Engineer (Story 1.4 B1)
+Context: plan approved, env confirmed. Need: resource-server design (issuer+audience, role mapping, 401/403 problem details, CORS, headers) + abuse test list. Constraints: stateless, no sessions; Modulith shared module (OPEN).
+
+### [2026-10-23] HANDOFF Security Engineer → Backend Dev (Story 1.4 B1)
+Design: explicit JwtDecoder (jwk-set-uri) + validator chain (timestamp 30 s skew, issuer, aud mizan-api); realm_access.roles → ROLE_*; stateless, CSRF off (bearer-only, no cookies); /actuator/health public, /api/v1/admin/** admin, /api/** authenticated, rest denyAll; 401/403 RFC 9457 + WWW-Authenticate; CORS from mizan.cors.allowed-origins (no credentials); CSP default-src 'none', frame-ancestors 'none', Referrer-Policy no-referrer. Tests: validator unit (expired/issuer/aud), slice with jwt(), Testcontainers Keycloak (valid 200, none 401, other realm 401, wrong aud 401, user→admin 403, admin→admin not 401/403).
+
+### [2026-10-23] DONE B1 (Story 1.4) — API security + quota
+shared.security: SecurityConfig (stateless, CSRF off w/ rationale, health public, /api/v1/admin/** admin, /api/** authenticated, else denyAll, CORS from props, CSP default-src 'none' + no-referrer), explicit NimbusJwtDecoder + AccessTokenValidators (30 s skew, issuer, aud mizan-api), KeycloakRealmRolesConverter, ProblemDetailsAuthHandler (RFC 9457 + WWW-Authenticate), RFC 9728 metadata customised (authorization_servers = issuer, mTLS-bound false). quota: GET /api/v1/me/quota {limit 3, used 0, remaining 3}. Tests 35 api (+25): validators 6, converter 4, rules 10, Keycloak Testcontainers 7 (valid 200, none 401, tampered 401, other realm 401, no aud 401, user→admin 403, admin→admin 404). Coverage lines 87/87 = 100 %, branches 7/8.
+Found: Spring Security 7 adds RFC 9728 resource_metadata to WWW-Authenticate; default metadata lacked authorization_servers and claimed mTLS-bound tokens → customised.
+
+### [2026-10-23] HANDOFF Backend Dev → Security Engineer (Story 1.4 B2)
+Context: API security done. Need: password blacklist in Keycloak image + make-admin script with TOTP required action. Constraints: test container must get the same blacklist.
+
+### [2026-10-23] DONE B2 (Story 1.4) — Keycloak hardening
+docker/keycloak/password-blacklist.txt (117,572 entries ≥10 chars, lower-cased, from SecLists xato 1M @4c0fd59, MIT, NOTICE file) baked into image at data/password-blacklists/mizan.txt; realm policy + passwordBlacklist(mizan.txt). Test container gets the same file; new test blacklistedPasswordIsRejected ("Password123" → 400). scripts/make-admin.sh (kcadm in container; admin role + CONFIGURE_TOTP; unknown e-mail → exit 1; MSYS_NO_PATHCONV for Git Bash) verified live.
+Found: Keycloak 26.8 imports realm during bootstrap AFTER /health/ready is UP (503s meanwhile) → compose healthcheck now requires 200 from /realms/mizan/.well-known/openid-configuration. stack-check --fresh PASS 81 s.
+
+### [2026-10-23] HANDOFF Security Engineer → UX Designer → UI Designer (Story 1.4 B3)
+Context: realm hardened. Need: themed Keycloak login pages (login, register, verify email, reset, error) matching docs/ui tokens, fr/ar + RTL. Constraints: extend keycloak.v2, no external font CDN (self-host), minimal templates override (YAGNI).
+
+### [2026-10-23] DONE B3 (Story 1.4) — Keycloak login theme
+docker/keycloak/themes/mizan (parent keycloak.v2, CSS-only: no .ftl overrides → all login pages themed, upgrade-safe; RTL from parent template; Keycloak's own fr/ar messages). Direction "notarial calm" (paper bg, ink-green primary, gold card rule, balance mark SVG). Fonts self-hosted (Inter + Noto Sans Arabic variable, OFL, NOTICE). Realm: loginTheme mizan, displayNameHtml bilingual lockup. Screens fr/ar/dark in .recordings/screens.
+Self-review fixes: bidi "·" on wrong side → dropped, two-line lockup; dark primary button white on #6fc2ae 2.1:1 → #0b1f1a 8.17:1. All checked pairs ≥ 6.39:1.
+
+### [2026-10-23] HANDOFF UI Designer → UX Designer → Frontend Dev (Story 1.4 B4)
+Context: Keycloak themed with brand tokens. Need: SPA shell (Material 22, M3 theme from tokens), Transloco fr/ar + RTL switch, landing per UX doc. Constraints: logical CSS only, self-hosted fonts, same 'notarial calm' direction, no auth yet (B5).
+
+### [2026-10-23] DONE B4 (Story 1.4) — SPA shell, i18n, landing
+Material 22.2.4 (M3 palettes generated from #0F5C4C/#C9A24B/#B3261E; filled buttons pinned to exact brand ink), self-hosted Inter + Noto Sans Arabic (@fontsource-variable via angular.json styles), Transloco 8.4.0 (fr default, ar; HTTP loader public/i18n), LanguageService (stored → browser → fr; sets html lang/dir; storage failures tolerated), cdk Dir on shell, skip link, not-legal-advice footer, landing per UX/Copywriter (one CTA, numbered steps, FR-10 notice). Screens fr/ar/dark/ar-mobile, no console errors.
+Tests 14, coverage 100 % — after fixing a false 100 %: Vitest only counted imported files; coverageInclude src/app/**/*.ts exposed 77 % lines / 69 % funcs → added loader/routes/config specs.
+Fixes from review: toggle lang attr moved to inner span (aria-label stays in page language), dark-mode logo contrast.
+
+### [2026-10-23] HANDOFF Frontend (shell) → Frontend + Security (auth) (Story 1.4 B5)
+Context: shell/i18n/landing done. Need: OIDC code+PKCE, tokens in memory, token only to API origin, guard, /contracts with quota chip, logout. Constraints: docs/security §3 (no localStorage for tokens), refresh via refresh token.
+
+### [2026-10-23] DONE B5 (Story 1.4) — SPA auth + contracts
+angular-oauth2-oidc 22.0.2: code + PKCE (S256 seen live), ui_locales, prompt=create for sign-up, refresh via refresh token (no iframe), logOut via end_session. TransientOAuthStorage: tokens in memory only; PKCE_verifier + nonce in sessionStorage (prefixed) and cleared after login; RFC 9207 iss param stripped. Token attached by library interceptor only to allowedUrls [apiUrl]. authGuard → login. /contracts: httpResource quota chip with CLDR plurals (Intl.PluralRules; ar zero/one/two/few/many/other), error+retry, empty state. Shell: contracts link/logout vs login. compose mizan-api env: issuer localhost:8180, JWKS keycloak:8080, CORS, quota; .env.example +4 vars.
+Live run (real Keycloak + API in compose): login → /contracts "3 analyses restantes aujourd'hui"; storages hold no tokens; Authorization only to :8080; ar plural "3 تحليلات متبقية اليوم"; reload → silent SSO re-login; logout → /contracts shows Keycloak login; 0 console errors.
+Fixed from live run: PKCE_verifier/nonce left in sessionStorage; ?iss= left in URL.
+Tests web 40 (+26), coverage lines 100 % / branches 98.75 % (src/app/** all files).
+
+### [2026-10-23] HANDOFF Frontend/Security → Test Architect → Tester (Story 1.4 B6)
+Context: auth works live. Need: Playwright E2E of AC (sign-up, verify e-mail, login, quota, 401/403, logout) + sprint video + CI e2e job. Constraints: Mailpit API for verification link; tokens only observable on the wire.
+
+### [2026-10-23] DONE B6 (Story 1.4) — Playwright E2E, video, CI job
+mizan-web/playwright.config.ts (video on, trace on failure, webServer ng serve, E2E_SLOWMO), e2e/sign-up-and-login.spec.ts mirrors the Gherkin: landing → prompt=create sign-up → verify link via Mailpit API → set password (blacklisted "password123" refused with visible message) → /contracts chip → token observed on the wire, absent from web storage → API 200/401 problem+json/403 → Arabic RTL plural → logout ends session. 3 consecutive local passes (~10 s). Sprint video .recordings/v0.1-2026-10-23.webm (28.9 s, E2E_PAUSE=2000, SLOWMO=200; frames verified with ffmpeg contact sheet). CI job e2e (bake + compose apps+mail + playwright, artifacts: videos/traces).
+Finding: Keycloak 26.8 + verifyEmail → no password at registration; VERIFY_EMAIL + UPDATE_PASSWORD required actions (anti pre-hijacking). Flow = sign-up → verify → set password. UX doc to update (B7).
+
+### [2026-10-23] HANDOFF Tester → Tech Lead / PM (Story 1.4 B7 docs)
+Context: E2E green, video recorded. Need: ADR-9, ADR-8 table additions, UX flow (verify → set password), security doc statuses, README.
+
+### [2026-10-23] DONE B7 (Story 1.4) — docs
+architecture: ADR-9 (auth as built) + ADR-8 rows (oidc/material/transloco/playwright/testcontainers-keycloak). security: STRIDE Spoofing/Tampering-JWT/Elevation Done (1.4), Public repo Done (1.3), cap 3/day. ux: Flow 1 with verify → set password. README: web app, make-admin, E2E, recordings. .env.example done in B5.
+
+### [2026-10-23] HANDOFF Tech Lead → Tester (Story 1.4 VERIFY)
+Context: B1–B7 done. Need: clean full verify (backend incl. Testcontainers Keycloak, web unit + lint + format, E2E), coverage gate, security scans. Constraints: stack running locally.
+
+### [2026-10-23] PHASE VERIFY — Story 1.4 PASS
+Backend verify GREEN: api 36 + analyzer 4 = 40 tests (incl. 8 Testcontainers Keycloak). Web: 40 tests, lint + Prettier clean. E2E 1/1 (4 local runs green). Security: Semgrep 0, Gitleaks 0 after inline gitleaks:allow on 2 test-fixture passwords, Trivy fs 0, Trivy images api/keycloak 0 fixable HIGH/CRIT, npm audit 0. Manual review: no tokens in logs/storage, token only to API origin, CORS explicit, CSP on API, problem details leak nothing.
+Env issue: OneDrive sync locks emptied target/ dirs → mvn clean fails locally; workaround rm -rf then verify (CI unaffected).

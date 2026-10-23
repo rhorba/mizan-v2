@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Mizan">
+  <!-- Balance (mīzān): ink-green beam and pans, gold pivot. -->
+  <g fill="none" stroke="#0F5C4C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 12v40"/>
+    <path d="M22 54h20"/>
+    <path d="M12 18h40"/>
+    <path d="M14 18l-7 16h14z"/>
+    <path d="M50 18l-7 16h14z"/>
+    <path d="M7 34a7 4 0 0 0 14 0"/>
+    <path d="M43 34a7 4 0 0 0 14 0"/>
+  </g>
+  <circle cx="32" cy="12" r="4" fill="#C9A24B"/>
+</svg>

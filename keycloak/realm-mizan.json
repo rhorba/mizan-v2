@@ -1,6 +1,9 @@
 {
   "realm": "mizan",
   "displayName": "Mizan",
+  "displayNameHtml": "Mizan <span class=\"mz-wordmark-ar\" lang=\"ar\" dir=\"rtl\">ميزان</span>",
+  "loginTheme": "mizan",
+  "emailTheme": "keycloak",
   "enabled": true,
   "sslRequired": "external",
   "registrationAllowed": true,
@@ -17,7 +20,7 @@
   "waitIncrementSeconds": 60,
   "maxFailureWaitSeconds": 900,
   "maxDeltaTimeSeconds": 43200,
-  "passwordPolicy": "length(10) and notUsername and notEmail",
+  "passwordPolicy": "length(10) and notUsername and notEmail and passwordBlacklist(mizan.txt)",
   "accessTokenLifespan": 300,
   "ssoSessionIdleTimeout": 1800,
   "ssoSessionMaxLifespan": 28800,

@@ -14,3 +14,9 @@ Global core.autocrlf=true rewrote working files as CRLF after .gitattributes (eo
 
 ### [2026-10-22] ISSUE (resolved) — lz4-java CVE-2026-106451 (HIGH) in analyzer image
 kafka-clients 4.2.2 → lz4-java 1.11.2. Pinned 1.11.4 in parent dependencyManagement. Remove when Boot/Kafka bump it.
+
+### [2026-10-23] ISSUE (resolved) — Keycloak healthy before realm import
+/health/ready reported UP while BootstrapFilter still returned 503 and realm 'mizan' was not imported yet. Healthcheck switched to the realm discovery endpoint. Affects stack-check, CI stack job, E2E.
+
+### [2026-10-23] ISSUE (workaround) — OneDrive locks target/ during mvn clean
+Repo lives in a OneDrive-synced folder; deleting freshly emptied target/ dirs fails. Workaround: rm -rf */target then ./mvnw verify. Long-term: move repo out of OneDrive or exclude target/ and node_modules/ from sync.

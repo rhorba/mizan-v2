@@ -1,0 +1,69 @@
+.shell {
+  min-block-size: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.skip-link {
+  position: absolute;
+  inset-inline-start: var(--mz-sp-md);
+  inset-block-start: -100px;
+  padding: var(--mz-sp-sm) var(--mz-sp-md);
+  background: var(--mz-surface);
+  color: var(--mz-primary);
+  z-index: 10;
+
+  &:focus {
+    inset-block-start: var(--mz-sp-sm);
+  }
+}
+
+.toolbar {
+  background: var(--mz-surface);
+  border-block-end: 1px solid var(--mz-rule);
+  padding-inline: var(--mz-sp-md);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mz-sp-sm);
+  color: var(--mz-primary);
+  font-weight: 650;
+  font-size: var(--mz-fs-lg);
+  text-decoration: none;
+}
+
+.nav {
+  margin-inline-start: var(--mz-sp-lg);
+
+  .active {
+    text-decoration: underline;
+    text-decoration-color: var(--mz-accent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 6px;
+  }
+}
+
+.spacer {
+  flex: 1;
+}
+
+main:focus {
+  outline: none;
+}
+
+.notice-footer {
+  padding: var(--mz-sp-md);
+  border-block-start: 1px solid var(--mz-rule);
+  color: var(--mz-text-muted);
+  font-size: var(--mz-fs-sm);
+  text-align: center;
+}
+
+// The mark is ink-green on transparent; lift it on dark surfaces (same as the Keycloak theme).
+@media (prefers-color-scheme: dark) {
+  .brand img {
+    filter: brightness(1.8);
+  }
+}

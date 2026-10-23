@@ -200,3 +200,55 @@ jobs:
       - name: Stop stack
         if: always()
         run: docker compose --profile '*' down -v
+
+  e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Local-only env from .env.example
+        run: |
+          cp .env.example .env
+          grep -E '^[A-Z_]+=' .env.example >> "$GITHUB_ENV"
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build images (GitHub Actions layer cache)
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: compose.yaml
+          targets: mizan-api,mizan-analyzer,keycloak
+          load: true
+          set: |
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
+      - name: Stack with apps and Mailpit
+        run: docker compose --profile apps --profile mail up -d --wait --wait-timeout 180
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: mizan-web/package-lock.json
+      - name: Install web dependencies and Chromium
+        working-directory: mizan-web
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Playwright (sign-up, verify e-mail, login, quota, 401/403, logout)
+        working-directory: mizan-web
+        run: npx playwright test
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: e2e-videos-and-traces
+          path: |
+            mizan-web/test-results/
+            mizan-web/playwright-report/
+          if-no-files-found: ignore
+      - name: Logs on failure
+        if: failure()
+        run: docker compose --profile '*' logs --no-color --tail 200
+      - name: Stop stack
+        if: always()
+        run: docker compose --profile '*' down -v

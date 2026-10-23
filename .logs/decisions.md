@@ -16,3 +16,6 @@ compose.yaml with infra (default) + `apps` profile (mizan-api, mizan-analyzer Do
 
 ### [2026-10-22] DECISION — Story 1.3 approach: 🔴 COMPREHENSIVE
 ci.yml: lint, test-backend, test-frontend, security (Gitleaks, Semgrep SARIF, Trivy fs+config SARIF), stack (compose build + stack-check --profile apps + Trivy image scan). SHA-pinned actions, least-privilege permissions, concurrency, caches, coverage artifacts + summary, dependabot.yml weekly. Branch protection on main requiring checks. Chosen by user.
+
+### [2026-10-23] DECISION — Story 1.4 approach: 🔴 COMPREHENSIVE; daily cap 3
+Resource server + /me/quota (cap from MIZAN_QUOTA_DAILY_PER_USER=3, counting in 5.1), Testcontainers Keycloak abuse tests, Angular Material, Transloco fr/ar + RTL, landing per UX doc, full Keycloak login theme, password blacklist, admin TOTP, Playwright E2E + sprint video, e2e CI job. Chosen by user.

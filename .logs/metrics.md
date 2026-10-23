@@ -14,3 +14,6 @@ No new application logic (one config line). Backend 100% lines (6/6), web 100%. 
 
 ### [2026-10-22] COVERAGE — Story 1.3
 No app code changed. Backend 100% / web 100%. CI enforces both gates (proved failing at 101%).
+
+### [2026-10-23] COVERAGE — Story 1.4
+Backend (JaCoCo aggregate, no exclusions): lines 87/87 = 100 %, branches 7/8 = 87.5 %. Web (Vitest v8, all src/app files): lines 100 %, statements 100 %, functions 100 %, branches 98.75 %. Gate 80 %: PASS. Tests: 80 unit/integration + 1 E2E.

@@ -10,15 +10,15 @@
 ## 2. STRIDE Analysis (top risks only)
 | Threat | Component | Mitigation | Status |
 |---|---|---|---|
-| Spoofing | Login | Keycloak: brute-force detection, verify-email, PKCE, no implicit flow | TODO |
-| Tampering | JWT | RS256 signed by Keycloak; API checks issuer, audience `mizan-api`, expiry | TODO |
+| Spoofing | Login | Keycloak: brute-force detection, verify-email (password set only after verification), PKCE S256, no implicit/password grant, password blacklist, admin TOTP | Done (1.4) |
+| Tampering | JWT | RS256 signed by Keycloak; API checks issuer, audience `mizan-api`, expiry (30 s skew); tested against real Keycloak (tampered, other realm, no audience) | Done (1.4) |
 | Tampering | Kafka messages | Cluster-internal only (NetworkPolicy); no external listener | TODO |
 | Repudiation | Contracts | Audit log line (trace id, subject, action, contract id) on upload/delete/re-analyze | TODO |
 | Info Disclosure | Contracts API | Every query scoped by `owner_sub`; IDOR integration tests on every endpoint | TODO |
 | Info Disclosure | Logs/traces | Never log contract text, tokens or prompts; span attributes exclude bodies | TODO |
-| Info Disclosure | Public repo | Gitleaks in CI + pre-push scan; `.env`, `*.tfvars`, `*.pem` git-ignored | TODO |
-| DoS / cost | Analyzer | Per-user 5/day + global 200/day caps; 10 MB / 30 pages; Traefik rate limit 10 req/s per IP | TODO |
-| Elevation | Admin API | `hasRole('admin')`; admin role assigned manually in Keycloak only | TODO |
+| Info Disclosure | Public repo | Gitleaks in CI (full history); `.env`, `*.tfvars`, `*.pem` git-ignored | Done (1.3) |
+| DoS / cost | Analyzer | Per-user 3/day (`MIZAN_QUOTA_DAILY_PER_USER`) + global 200/day caps; 10 MB / 30 pages; Traefik rate limit 10 req/s per IP | TODO |
+| Elevation | Admin API | `hasRole('admin')`; admin role assigned only via `scripts/make-admin.sh` (adds TOTP) | Done (1.4) |
 | Prompt injection | Analyzer | Contract text in a delimited data block; system prompt forbids following embedded instructions; structured output schema; output is rendered as text, never HTML | TODO |
 
 ## 3. Authentication Strategy
