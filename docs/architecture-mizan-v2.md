@@ -62,9 +62,9 @@ Exact library versions are pinned in ADR-8 (Story 1.1 spike).
 | Component | Version | Managed by |
 |---|---|---|
 | Java (Temurin) | 25.0.3 LTS | Enforcer `[25,)` |
-| Maven (wrapper 3.3.4) | 3.9.16, SHA-256 pinned | Enforcer `[3.9,)` |
+| Maven (wrapper 3.3.4) | 3.10.0 (Dependabot #7; SHA-256 re-verified against Central's SHA-512) | Enforcer `[3.9,)` |
 | Spring Boot | **4.1.2** (Framework 7.0.10, Security 7.1.2, Jackson 3.1.7) | parent POM |
-| Spring for Apache Kafka / Kafka client | 4.1.2 / 4.2.2 | Boot BOM |
+| Spring for Apache Kafka / Kafka client | 4.1.2 / 4.2.2 (broker image 4.3.1: newer brokers accept older clients) | Boot BOM |
 | Spring Modulith | 2.1.2 | `spring-modulith-bom` |
 | Spring AI | 2.0.2 (anthropic-java-core 2.72.0) | `spring-ai-bom` |
 | victools jsonschema | 5.0.0 | `jsonschema-generator-bom` (see below) |
@@ -80,8 +80,8 @@ Exact library versions are pinned in ADR-8 (Story 1.1 spike).
 - **Deviations from this document**:
   - Boot **4.1.2** instead of 4.0.x — 4.1 is the current GA line and Modulith 2.1 targets it.
   - victools jsonschema forced to **5.0.0**: Spring AI 2.0.2 needs 5.x, anthropic-java-core 2.72.0 asks for 4.38 (runtime). Enforcer `dependencyConvergence` flagged it; we only use Spring AI's schema path. Re-check on every Spring AI upgrade.
-  - lz4-java forced to **1.11.4**: kafka-clients 4.2.2 brings 1.11.2 (CVE-2026-106451, HIGH, found by Trivy on the analyzer image). Remove when Boot/Kafka bump it.
-  - Local images (Story 1.2): `postgres:18.6-alpine`, `apache/kafka:4.2.2`, Keycloak **26.8.1 pre-built** (`docker/keycloak.Dockerfile`, `start --optimized` — start-dev re-runs the Quarkus build each boot and missed the 2-minute target), `grafana/otel-lgtm:0.37.0`, `axllent/mailpit:v1.31.6`; app runtime `eclipse-temurin:25.0.4.1_1-jre-alpine` pinned by digest.
+  - lz4-java forced (1.11.4, now **1.12.0** via Dependabot #6): kafka-clients 4.2.2 brings 1.11.2 (CVE-2026-106451, HIGH, found by Trivy on the analyzer image). Remove when Boot/Kafka bump it.
+  - Local images (Story 1.2): `postgres:18.6-alpine`, `apache/kafka:4.3.1` (Dependabot #5), Keycloak **26.8.1 pre-built** (`docker/keycloak.Dockerfile`, `start --optimized` — start-dev re-runs the Quarkus build each boot and missed the 2-minute target), `grafana/otel-lgtm:0.37.0`, `axllent/mailpit:v1.31.6`; app runtime `eclipse-temurin:25.0.4.1_1-jre-alpine` pinned by digest.
   - npm `overrides` **vite 8.3.5**: `@angular/build` 22.2.4 pins 8.3.0, which has dev-server advisories (GHSA-9jrq-w75r-8gcw et al.). Remove when Angular bumps Vite.
 - **Build rules**: Enforcer (Java, Maven, dependency convergence, no duplicate POM deps), Spotless + Checkstyle at `validate`, JaCoCo ≥ 80 % line coverage per module (no exclusions) with an aggregate report in `coverage-report`, ArchUnit + Modulith verification tests; Vitest thresholds 80 % on all metrics.
 - **Consequences**: upgrades are one property each in the parent POM; convergence failures surface on the first build instead of at runtime.

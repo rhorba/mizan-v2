@@ -17,3 +17,12 @@ No app code changed. Backend 100% / web 100%. CI enforces both gates (proved fai
 
 ### [2026-10-23] COVERAGE — Story 1.4
 Backend (JaCoCo aggregate, no exclusions): lines 87/87 = 100 %, branches 7/8 = 87.5 %. Web (Vitest v8, all src/app files): lines 100 %, statements 100 %, functions 100 %, branches 98.75 %. Gate 80 %: PASS. Tests: 80 unit/integration + 1 E2E.
+
+### [2026-10-23] SPRINT_SNAPSHOT — Sprint 1 (goal: skeleton that builds, tests, scans, runs locally + sign-up/login)
+- **Planned stories**: 4 (1.1 M, 1.2 S, 1.3 M, 1.4 L ≈ 5 days) — **Completed**: 4 — Dropped: 0
+- **Approach chosen**: 🔴 comprehensive on all four (user)
+- **Tests**: backend 40 (incl. 8 Testcontainers Keycloak), web 40 unit, 1 E2E; coverage backend 100 % lines, web 100 % lines / 98.75 % branches
+- **CI**: 6 required checks (lint, test-backend, test-frontend, security, stack, e2e); red runs: 3 (exec bit, ng build vs test helper, Keycloak CVE) — all fixed same session
+- **Bugs/defects found by our own gates**: 12 (false-100 % coverage ×2, Keycloak bootstrap health, analyzer exit, CRLF/Spotless, OIDC leftovers ×2, contrast ×2, bidi wordmark, Trivy 429, lz4 CVE) — all fixed
+- **Security**: 2 HIGH/CRIT dependency CVEs fixed (lz4, vite), 1 CRITICAL time-boxed exception to 2026-11-30 (Keycloak base ca-certificates), 0 open SAST/secret findings
+- **Scope changes**: Boot 4.0.x → 4.1.2; per-user cap 3 (doc said 5); sign-up flow verify → set password (Keycloak 26.8)
