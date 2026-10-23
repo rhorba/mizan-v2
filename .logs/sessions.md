@@ -14,3 +14,8 @@ Resumed from foundation SESSION_END. Target: Story 1.1 (version spike + skeleton
 ### [2026-10-23] SESSION_END — Sprint 1 complete
 Done: Stories 1.1–1.4 merged to main (PR #4), Dependabot #5–#8 merged by owner, main CI 6/6 green @ e7e4869, sprint video recorded. Branch chore/sprint-1-close carries ADR-8 version rows + sprint logs (PR to main).
 Next: Sprint 2 (→ Nov 6): Story 2.1 upload/validate/extract PDF (Flyway V1–V3, contracts module, owner scoping + IDOR tests), 2.2 upload screen, 4.2 history & delete. Watch: CVE exception expires 2026-11-30; local cold start margin; repo inside OneDrive (mvn clean locks). Env still to collect: ANTHROPIC_API_KEY (Sprint 3), SONAR_TOKEN (Sprint 5), OCI + host + SMTP (Sprints 5–6).
+
+### [2026-10-23] SESSION_END — Sprint 2 complete (PR #10 open, mergeable)
+Done: Sprint 1 merged earlier (PR #4, #9 + Dependabot #5–#8). Sprint 2 (Stories 2.1, 2.2, 4.2, 🔴 option) on feature/s2-upload: upload pipeline (rate limit → ClamAV → PDF checks), history (keyset) + delete, IDOR suite, upload/contract/history UI, E2E ×2, video v0.2. CI 6/6 green; PR #10 clean (3 code-scanning alerts dismissed with justification).
+Next: owner merges PR #10 → confirm main CI green → Sprint 3 (Stories 3.1 outbox → Kafka, 3.2 analyzer with Spring AI, 3.3 apply results idempotently). Needs ANTHROPIC_API_KEY at UNDERSTAND (Sprint 3 env). Later env: SONAR_TOKEN (Sprint 5), OCI + host + SMTP (Sprints 5–6).
+Watch: Keycloak CVE exception expires 2026-11-30; local cold-start margin; repo inside OneDrive (mvn clean locks); judge runs by exit code, full reactor before "done".
