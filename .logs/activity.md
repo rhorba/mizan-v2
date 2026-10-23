@@ -292,3 +292,10 @@ Need: clean backend verify, web test/lint/format/build, E2E (done 2/2 ± AV), co
 ### [2026-10-23] PHASE VERIFY — Sprint 2 PASS (exit codes)
 Backend ./mvnw verify exit 0: api 106 + analyzer 4 = 110 tests, lines 99 % / branches 91 %. Web: test exit 0 (82, lines 100 % / branches 97.3 %), lint 0, format 0, build 0, npm audit 0. E2E 2/2 without AV and 2/2 with real ClamAV. Semgrep 0, Gitleaks 0, Trivy fs 0, Trivy images api/analyzer 0 (fixable HIGH/CRIT).
 Found and fixed during VERIFY: (1) Enforcer convergence failed only in coverage-report (aggregator merges two deployables' classpaths: errorprone 2.49/2.50, antlr 4.13.2/4.13.1) — hidden while building -pl mizan-api; aggregator now keeps Java/Maven rules only, apps still enforce convergence. (2) Parallel image builds raced on the shared BuildKit m2 cache → sharing=locked; 2 cold parallel builds green. (3) A real U+202E char in ContractUploadTests source (google-java-format turns the \u escape back into the char) → built from code point; repo-wide bidi scan clean. (4) unencrypted-socket ×3 (clamd has no TLS; in-network only; loopback tests) → justified nosemgrep on the preceding line (GJF re-wraps trailing comments).
+
+### [2026-10-23] CI GREEN — run 39981858772 @ 43cd37e: lint, test-backend, test-frontend, security, stack, e2e (with ClamAV) all success.
+
+### [2026-10-23] RETROSPECTIVE — Sprint 2
+- **Went well**: live checks against the real stack (ClamAV EICAR, rate limit, real dialog, 360 px phones, cold deep links) found defects no unit test would; IDOR suite by endpoint discovery future-proofs ownership checks; CI green on first push.
+- **Went badly**: I reported "51 passed" while the run had exited 1 (a suite never loaded and my grep hid it); building -pl mizan-api hid an aggregator-only Enforcer failure until VERIFY; shell/sed escaping broke edits several times.
+- **Change for Sprint 3**: judge every run by exit code; always run the full reactor (not -pl) before declaring a batch done; make multi-line or escape-heavy edits with the file tools, not sed.
