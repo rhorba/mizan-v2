@@ -13,3 +13,12 @@ Parent POM + BOMs (Boot, Spring AI, Modulith) + plugin mgmt, JaCoCo aggregate, c
 
 ### [2026-10-22] DECISION — Story 1.2 approach: 🔴 COMPREHENSIVE
 compose.yaml with infra (default) + `apps` profile (mizan-api, mizan-analyzer Dockerfiles) + `mail` profile (Mailpit); DB init script (schemas mizan/keycloak + roles); minimal realm JSON; `up --wait` 120 s health proof. Chosen by user. Env defaults pending user confirmation at PLAN gate.
+
+### [2026-10-22] DECISION — Story 1.3 approach: 🔴 COMPREHENSIVE
+ci.yml: lint, test-backend, test-frontend, security (Gitleaks, Semgrep SARIF, Trivy fs+config SARIF), stack (compose build + stack-check --profile apps + Trivy image scan). SHA-pinned actions, least-privilege permissions, concurrency, caches, coverage artifacts + summary, dependabot.yml weekly. Branch protection on main requiring checks. Chosen by user.
+
+### [2026-10-23] DECISION — Story 1.4 approach: 🔴 COMPREHENSIVE; daily cap 3
+Resource server + /me/quota (cap from MIZAN_QUOTA_DAILY_PER_USER=3, counting in 5.1), Testcontainers Keycloak abuse tests, Angular Material, Transloco fr/ar + RTL, landing per UX doc, full Keycloak login theme, password blacklist, admin TOTP, Playwright E2E + sprint video, e2e CI job. Chosen by user.
+
+### [2026-10-23] DECISION — CVE-2026-114406 time-boxed exception (user chose A)
+docker/keycloak/trivyignore.yaml: this CVE only, Keycloak image only (CI --ignorefile for mizan-keycloak:local), expired_at 2026-11-30, statement with reason. Fixed ca-certificates only in RHEL subscription repos; UBI + Keycloak 26.8.1 still vulnerable.

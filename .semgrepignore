@@ -1,0 +1,9 @@
+# Semgrep skips these in CI (replaces Semgrep's defaults, so keep .gitignore'd paths too).
+:include .gitignore
+skills/
+docs/
+.logs/
+**/node_modules/
+**/target/
+mizan-web/dist/
+mizan-web/coverage/

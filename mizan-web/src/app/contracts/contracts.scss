@@ -1,0 +1,49 @@
+.contracts {
+  max-inline-size: 1100px;
+  margin-inline: auto;
+  padding: var(--mz-sp-xl) var(--mz-sp-md);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mz-sp-md);
+  padding-block-end: var(--mz-sp-md);
+  border-block-end: 3px solid var(--mz-accent);
+
+  h1 {
+    margin: 0;
+    color: var(--mz-primary);
+    font-size: var(--mz-fs-xl);
+  }
+}
+
+.quota {
+  display: flex;
+  align-items: center;
+  gap: var(--mz-sp-sm);
+  color: var(--mz-text-muted);
+  font-size: var(--mz-fs-sm);
+}
+
+.quota-error {
+  color: var(--mz-error);
+}
+
+.empty {
+  padding-block: var(--mz-sp-xl);
+
+  h2 {
+    margin: 0 0 var(--mz-sp-sm);
+    font-size: var(--mz-fs-lg);
+  }
+
+  p {
+    margin: 0;
+    max-inline-size: 60ch;
+    color: var(--mz-text-muted);
+    line-height: 1.6;
+  }
+}

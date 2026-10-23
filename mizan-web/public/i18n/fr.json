@@ -1,0 +1,46 @@
+{
+  "shell": {
+    "skipToContent": "Aller au contenu",
+    "switchLanguage": "Afficher en arabe",
+    "languageName": {
+      "fr": "Français",
+      "ar": "العربية"
+    },
+    "notice": "Analyse informative — pas un avis juridique.",
+    "nav": "Navigation principale",
+    "contracts": "Mes contrats",
+    "login": "Se connecter",
+    "logout": "Se déconnecter"
+  },
+  "landing": {
+    "eyebrow": "Analyse de contrats · Maroc",
+    "title": "Lisez votre contrat avant de le signer, pas après.",
+    "lead": "Déposez un contrat en PDF. Mizan le résume en français, en arabe ou en darija, signale les clauses risquées — pénalités, résiliation unilatérale, cession de propriété intellectuelle — et propose une formulation plus équilibrée.",
+    "tryIt": "Essayer gratuitement",
+    "signIn": "J'ai déjà un compte",
+    "quota": "3 analyses gratuites par jour.",
+    "howTitle": "Comment ça marche",
+    "step1": "Déposez le PDF : un document texte, 10 Mo et 30 pages au maximum.",
+    "step2": "Choisissez la langue de l'analyse : français, arabe ou darija.",
+    "step3": "Lisez le résumé et les clauses signalées, de la plus risquée à la moins risquée.",
+    "noticeTitle": "Pas un avis juridique.",
+    "notice": "Mizan fournit une analyse informative. Pour une décision importante, consultez un avocat.",
+    "goToContracts": "Voir mes contrats"
+  },
+  "contracts": {
+    "title": "Mes contrats",
+    "retry": "Réessayer",
+    "quota": {
+      "label": "Quota du jour",
+      "loading": "Chargement du quota…",
+      "error": "Quota indisponible.",
+      "one": "{{count}} analyse restante aujourd'hui",
+      "many": "{{count}} d'analyses restantes aujourd'hui",
+      "other": "{{count}} analyses restantes aujourd'hui"
+    },
+    "empty": {
+      "title": "Aucun contrat pour l'instant.",
+      "body": "Le dépôt de PDF arrive dans la prochaine version. Vos contrats analysés apparaîtront ici, du plus récent au plus ancien."
+    }
+  }
+}

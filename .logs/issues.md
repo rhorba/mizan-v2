@@ -14,3 +14,13 @@ Global core.autocrlf=true rewrote working files as CRLF after .gitattributes (eo
 
 ### [2026-10-22] ISSUE (resolved) — lz4-java CVE-2026-106451 (HIGH) in analyzer image
 kafka-clients 4.2.2 → lz4-java 1.11.2. Pinned 1.11.4 in parent dependencyManagement. Remove when Boot/Kafka bump it.
+
+### [2026-10-23] ISSUE (resolved) — Keycloak healthy before realm import
+/health/ready reported UP while BootstrapFilter still returned 503 and realm 'mizan' was not imported yet. Healthcheck switched to the realm discovery endpoint. Affects stack-check, CI stack job, E2E.
+
+### [2026-10-23] ISSUE (workaround) — OneDrive locks target/ during mvn clean
+Repo lives in a OneDrive-synced folder; deleting freshly emptied target/ dirs fails. Workaround: rm -rf */target then ./mvnw verify. Long-term: move repo out of OneDrive or exclude target/ and node_modules/ from sync.
+
+### [2026-10-23] BLOCKER — CI stack job: Keycloak image ca-certificates CVE-2026-114406 (CRITICAL)
+Fixed package (2026.2.92_v9.0.319-90.3.el9_8) exists only in RHEL subscription repos; UBI repos still ship 2025.2.80; no Keycloak > 26.8.1 yet. dnf --installroot patch stage tried → installs the same vulnerable version → reverted. Awaiting user decision (accept with expiry vs alternatives).
+Second failure (e2e: ng serve TS2304 'vi' in src/testing) fixed: tsconfig.app.json excludes src/testing/**.

@@ -1,0 +1,43 @@
+# cooldown: let a new release age a week before proposing it (supply-chain safety).
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      spring:
+        patterns: ["org.springframework*"]
+
+  - package-ecosystem: npm
+    directory: /mizan-web
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      angular:
+        patterns: ["@angular/*", "@angular-devkit/*", "angular-eslint", "@angular-eslint/*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+
+  - package-ecosystem: docker
+    directories: [/docker]
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7

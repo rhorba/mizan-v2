@@ -73,6 +73,8 @@ Exact library versions are pinned in ADR-8 (Story 1.1 spike).
 | Spotless (google-java-format) / Checkstyle / JaCoCo / Enforcer | 3.10.4 / 14.3.0 / 0.8.15 / 3.6.3 | parent POM |
 | Angular / CLI | 22.2.x / 22.2.3 | `package.json` |
 | TypeScript / Vitest / angular-eslint | 6.0 / 5.0 / 22 | `package.json` |
+| angular-oauth2-oidc / Angular Material + CDK / Transloco | 22.0.2 / 22.2.4 / 8.4.0 | `package.json` |
+| Playwright / testcontainers-keycloak | 1.64.1 / 4.4.0 | `package.json` / parent POM |
 | Node | ^22.22.3 \|\| ^24.15.0 (dev: 22.23.3) | `engines` |
 
 - **Deviations from this document**:
@@ -83,6 +85,13 @@ Exact library versions are pinned in ADR-8 (Story 1.1 spike).
   - npm `overrides` **vite 8.3.5**: `@angular/build` 22.2.4 pins 8.3.0, which has dev-server advisories (GHSA-9jrq-w75r-8gcw et al.). Remove when Angular bumps Vite.
 - **Build rules**: Enforcer (Java, Maven, dependency convergence, no duplicate POM deps), Spotless + Checkstyle at `validate`, JaCoCo ≥ 80 % line coverage per module (no exclusions) with an aggregate report in `coverage-report`, ArchUnit + Modulith verification tests; Vitest thresholds 80 % on all metrics.
 - **Consequences**: upgrades are one property each in the parent POM; convergence failures surface on the first build instead of at runtime.
+
+### ADR-9: Authentication as built (Story 1.4, 2026-10-23)
+- **Context**: ADR-3 chose Keycloak + PKCE; building it surfaced choices the doc did not fix.
+- **Decision — API**: explicit `JwtDecoder` (JWK set URI) with our own validator chain (timestamp 30 s skew, issuer, audience `mizan-api`) so every rule is unit-testable; `realm_access.roles` → `ROLE_*`; stateless, CSRF off (bearer header only, no cookies); `/actuator/health` public, `/api/v1/admin/**` admin, `/api/**` authenticated, everything else denied; 401/403 as RFC 9457 with `WWW-Authenticate`; RFC 9728 protected-resource metadata names Keycloak. Issuer (browser view, `localhost:8180`) and JWK set URI (in-network `keycloak:8080`) are configured separately.
+- **Decision — SPA**: angular-oauth2-oidc, code + PKCE S256, `prompt=create` for sign-up, `ui_locales` from the UI language, refresh via refresh token (no iframe). `TransientOAuthStorage`: tokens in memory only; PKCE verifier + nonce in `sessionStorage` for the redirect and removed after login; RFC 9207 `iss` stripped from the URL. Bearer token sent only to `allowedUrls = [apiUrl]`. A reload re-authenticates silently through the Keycloak SSO session.
+- **Decision — Keycloak**: CSS-only `mizan` login theme on `keycloak.v2` (no template overrides; RTL from parent), password blacklist (117 k entries, SecLists, MIT) baked into the image, admin via `scripts/make-admin.sh` (role + CONFIGURE_TOTP). Health check waits for the realm discovery document: `/health/ready` is UP before the realm import finishes.
+- **Consequences**: with verify-email on, Keycloak 26.8 defers the password to after verification (sign-up → verify → set password); E2E and UX doc follow it. TOTP is enforced once configured; an always-OTP flow for the `admin` role is left for preprod hardening (Epic 7). `/me/quota` returns the configured cap with `used = 0` until Story 5.1 counts usage.
 
 ## 3. System Design
 ```

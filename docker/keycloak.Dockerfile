@@ -12,5 +12,8 @@ RUN /opt/keycloak/bin/kc.sh build
 
 FROM ${KEYCLOAK_IMAGE}
 COPY --from=build /opt/keycloak/ /opt/keycloak/
+# Realm policy passwordBlacklist(mizan.txt) reads this (see keycloak/password-blacklist.NOTICE).
+COPY --chown=1000:0 keycloak/themes/ /opt/keycloak/themes/
+COPY --chown=1000:0 keycloak/password-blacklist.txt /opt/keycloak/data/password-blacklists/mizan.txt
 USER 1000
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]

@@ -33,6 +33,8 @@
               }
             ],
             "styles": [
+              "@fontsource-variable/inter/wght.css",
+              "@fontsource-variable/noto-sans-arabic/wght.css",
               "src/styles.scss"
             ]
           },
@@ -77,6 +79,7 @@
           "options": {
             "coverageReporters": [
               "text-summary",
+              "json-summary",
               "lcov",
               "html"
             ],
@@ -85,7 +88,13 @@
               "branches": 80,
               "functions": 80,
               "lines": 80
-            }
+            },
+            "coverageInclude": [
+              "src/app/**/*.ts"
+            ],
+            "coverageExclude": [
+              "src/**/*.spec.ts"
+            ]
           }
         },
         "lint": {

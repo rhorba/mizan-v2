@@ -24,7 +24,7 @@
 ## 3. Core User Flows (top 3 journeys)
 ### Flow 1: First visit → first analysis
 ```
-[Landing] → [Try it] → [Keycloak sign-up] → [Verify email] → [/contracts empty state]
+[Landing] → [Try it] → [Keycloak sign-up: e-mail + name] → [Verify email] → [Set password] → [/contracts empty state]
    → [Upload PDF + language] → [/contracts/:id: "Reading…" → "Analyzing…" (live)] → [Result]
                      ↓ invalid PDF / too big / scanned
                [Inline error under drop zone, file kept selected for retry]
@@ -43,6 +43,9 @@
 [Result] → [Language menu: Analyze in Arabic] → [Live status] → [New result; previous kept in tabs]
 [History row menu] → [Delete] → [Confirm dialog: "This removes the text and all analyses"] → [Row gone + snackbar]
 ```
+
+> Keycloak 26.8 asks for the password only after the e-mail is verified (required actions
+> VERIFY_EMAIL + UPDATE_PASSWORD), so nobody can pre-claim someone else's address (Story 1.4).
 
 ## 4. Key Screen Wireframes (text-based)
 ### Screen: Upload

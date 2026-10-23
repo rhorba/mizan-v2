@@ -72,13 +72,14 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      # The image has no curl; talk HTTP to the management port over bash /dev/tcp.
+      # The image has no curl; talk HTTP over bash /dev/tcp. /health/ready turns UP before the
+      # realm import (bootstrap) finishes, so wait for the mizan realm's discovery document instead.
       test:
         - CMD-SHELL
         - >-
-          exec 3<>/dev/tcp/localhost/9000 &&
-          printf 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 &&
-          grep -q '"status": "UP"' <&3
+          exec 3<>/dev/tcp/localhost/8080 &&
+          printf 'GET /realms/mizan/.well-known/openid-configuration HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 &&
+          head -n 1 <&3 | grep -q ' 200 '
       interval: 10s
       timeout: 5s
       retries: 15
@@ -117,6 +118,11 @@ services:
         MODULE: mizan-api
     profiles: [apps]
     environment:
+      # Tokens are issued to the browser via localhost; keys are fetched inside the network.
+      KEYCLOAK_ISSUER_URI: http://localhost:${KEYCLOAK_PORT:-8180}/realms/mizan
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/mizan/protocol/openid-connect/certs
+      MIZAN_CORS_ALLOWED_ORIGINS: ${MIZAN_CORS_ALLOWED_ORIGINS:-http://localhost:4200}
+      MIZAN_QUOTA_DAILY_PER_USER: ${MIZAN_QUOTA_DAILY_PER_USER:-3}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
     ports:
       - "127.0.0.1:${API_PORT:-8080}:8080"

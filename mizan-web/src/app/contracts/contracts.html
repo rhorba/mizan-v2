@@ -1,0 +1,26 @@
+<section class="contracts" aria-labelledby="contracts-title">
+  <header class="head">
+    <h1 id="contracts-title">{{ 'contracts.title' | transloco }}</h1>
+    <div class="quota" aria-live="polite">
+      @if (quota.hasValue()) {
+        <mat-chip-set [attr.aria-label]="'contracts.quota.label' | transloco">
+          <mat-chip class="quota-chip" [disableRipple]="true">
+            {{ quotaKey() | transloco: { count: quota.value().remaining } }}
+          </mat-chip>
+        </mat-chip-set>
+      } @else if (quota.error()) {
+        <span class="quota-error">{{ 'contracts.quota.error' | transloco }}</span>
+        <button mat-button type="button" (click)="quota.reload()">
+          {{ 'contracts.retry' | transloco }}
+        </button>
+      } @else {
+        <span class="quota-loading">{{ 'contracts.quota.loading' | transloco }}</span>
+      }
+    </div>
+  </header>
+
+  <div class="empty">
+    <h2>{{ 'contracts.empty.title' | transloco }}</h2>
+    <p>{{ 'contracts.empty.body' | transloco }}</p>
+  </div>
+</section>

@@ -9,3 +9,9 @@ Architecture said "Spring Boot 4.0.x"; Story 1.1 says "latest compatible GA". 4.
 ### [2026-10-22] NOTE — Checkstyle ConstantName suppressed for *ArchitectureTests.java (ArchUnit idiom: camelCase static final rules).
 
 ### [2026-10-22] CORRECTION — JaCoCo *Application exclusion removed; main() covered by tests instead (gate must reflect raw coverage).
+
+### [2026-10-23] CORRECTION — per-user daily cap 5 → 3 in docs/security STRIDE row
+User chose 3 for Story 1.4 (MIZAN_QUOTA_DAILY_PER_USER=3); security doc said 5. Doc aligned to the user decision.
+
+### [2026-10-23] CORRECTION — sign-up flow (UX doc)
+Keycloak 26.8 + verify-email: password set after verification. Flow 1 updated.

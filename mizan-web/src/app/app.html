@@ -1,4 +1,48 @@
-<main>
-  <h1>{{ title }}</h1>
-  <router-outlet />
-</main>
+<div class="shell" [dir]="language.dir()">
+  <a class="skip-link" href="#main">{{ 'shell.skipToContent' | transloco }}</a>
+
+  <mat-toolbar class="toolbar">
+    <a class="brand" routerLink="/">
+      <img src="mizan-mark.svg" alt="" width="28" height="28" />
+      <span>Mizan</span>
+    </a>
+    @if (auth.isAuthenticated()) {
+      <nav class="nav" [attr.aria-label]="'shell.nav' | transloco">
+        <a
+          mat-button
+          routerLink="/contracts"
+          routerLinkActive="active"
+          ariaCurrentWhenActive="page"
+          >{{ 'shell.contracts' | transloco }}</a
+        >
+      </nav>
+    }
+    <span class="spacer"></span>
+    <button
+      mat-button
+      type="button"
+      class="lang-switch"
+      [attr.aria-label]="'shell.switchLanguage' | transloco"
+      (click)="language.toggle()"
+    >
+      <span [attr.lang]="language.other()">{{
+        'shell.languageName.' + language.other() | transloco
+      }}</span>
+    </button>
+    @if (auth.isAuthenticated()) {
+      <button mat-button type="button" class="logout" (click)="auth.logout()">
+        {{ 'shell.logout' | transloco }}
+      </button>
+    } @else {
+      <button mat-button type="button" class="login" (click)="auth.login()">
+        {{ 'shell.login' | transloco }}
+      </button>
+    }
+  </mat-toolbar>
+
+  <main id="main" tabindex="-1">
+    <router-outlet />
+  </main>
+
+  <footer class="notice-footer">{{ 'shell.notice' | transloco }}</footer>
+</div>
