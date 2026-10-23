@@ -200,3 +200,6 @@ Context: B1–B7 done. Need: clean full verify (backend incl. Testcontainers Key
 ### [2026-10-23] PHASE VERIFY — Story 1.4 PASS
 Backend verify GREEN: api 36 + analyzer 4 = 40 tests (incl. 8 Testcontainers Keycloak). Web: 40 tests, lint + Prettier clean. E2E 1/1 (4 local runs green). Security: Semgrep 0, Gitleaks 0 after inline gitleaks:allow on 2 test-fixture passwords, Trivy fs 0, Trivy images api/keycloak 0 fixable HIGH/CRIT, npm audit 0. Manual review: no tokens in logs/storage, token only to API origin, CORS explicit, CSP on API, problem details leak nothing.
 Env issue: OneDrive sync locks emptied target/ dirs → mvn clean fails locally; workaround rm -rf then verify (CI unaffected).
+
+### [2026-10-23] CI RED — run 39919684605 @ f0fc08d
+lint ✅ test-backend ✅ test-frontend ✅ security ✅ stack ❌ e2e ❌ — diagnosing.

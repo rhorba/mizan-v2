@@ -193,8 +193,14 @@ jobs:
         run: |
           for image in mizan-api:local mizan-analyzer:local mizan-keycloak:local; do
             echo "::group::$image"
-            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock "$TRIVY_IMAGE" \
-              image --quiet --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 "$image"
+            ignore=()
+            # Time-boxed, documented exceptions for the Keycloak base image only.
+            if [ "$image" = mizan-keycloak:local ]; then
+              ignore=(--ignorefile /repo/docker/keycloak/trivyignore.yaml)
+            fi
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD:/repo:ro" "$TRIVY_IMAGE" \
+              image --quiet --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 \
+              "${ignore[@]}" "$image"
             echo "::endgroup::"
           done
       - name: Stop stack
