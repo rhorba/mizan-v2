@@ -31,7 +31,7 @@
     <!-- Spring AI 2.0.2 needs 5.x; anthropic-java-core 2.72.0 asks for 4.38 (ADR-8) -->
     <victools-jsonschema.version>5.0.0</victools-jsonschema.version>
     <!-- kafka-clients 4.2.2 brings lz4-java 1.11.2 (CVE-2026-106451, HIGH); 1.11.4 fixes it (ADR-8) -->
-    <lz4-java.version>1.11.4</lz4-java.version>
+    <lz4-java.version>1.12.0</lz4-java.version>
     <archunit.version>1.5.1</archunit.version>
     <testcontainers-keycloak.version>4.4.0</testcontainers-keycloak.version>
     <spotless.version>3.10.4</spotless.version>
