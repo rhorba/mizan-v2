@@ -18,3 +18,8 @@ Keycloak 26.8 + verify-email: password set after verification. Flow 1 updated.
 
 ### [2026-10-23] CORRECTION — idx_contracts_owner_created adds id DESC
 Keyset pagination (🔴 Sprint 2) orders by (created_at, id); index is (owner_sub, created_at DESC, id DESC) instead of the DB doc's two columns. DB doc to update in B7.
+
+### [2026-10-26] CORRECTION — Migration order swapped: V2 = modulith event_publication (Sprint 3), V3 = daily_usage (Sprint 4). Flyway rejects a lower version added after a higher one. docs/database updated.
+
+### [2026-10-26] CORRECTION — Results apply while status IN (PENDING, ANALYZING)
+Nothing sets ANALYZING yet (analyzer emits no "started" event). Story 3.3 guard = "not yet terminal" via one conditional UPDATE. The PENDING→ANALYZING step moves to Story 3.4 (SSE stepper), where it is needed. docs/database access pattern updated.

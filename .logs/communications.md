@@ -17,3 +17,5 @@ User: 🔴, per-user daily cap = 3. Other env defaults (issuer/JWKS localhost:81
 Datasource defaults OK (SPRING_DATASOURCE_URL jdbc:postgresql://localhost:5435/mizan, user mizan_app, password = MIZAN_DB_PASSWORD). ClamAV absent → skip scanning with a warning (fail-open, user choice). XHR backend instead of withFetch OK (upload progress).
 
 ### [2026-10-23] B4 → B5: owner replied "go" without objecting to fail-closed when ClamAV is configured but down; treated as accepted (can be revisited).
+
+### [2026-10-26] Sprint 3 UNDERSTAND: owner wants spend kept under $3/month (cap set in Console). Prefers I act directly ("just do it"). Paid/credential steps stay with the owner.

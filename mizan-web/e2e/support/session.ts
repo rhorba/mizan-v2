@@ -2,7 +2,7 @@ import { APIRequestContext, Page, expect } from '@playwright/test';
 import { verificationLink } from './mailpit';
 
 export const API_URL = process.env['E2E_API_URL'] ?? 'http://localhost:8080';
-const PASSWORD = 'Mizan-e2e-Contrat-2026'; // gitleaks:allow (throwaway local E2E account)
+export const PASSWORD = 'Mizan-e2e-Contrat-2026'; // gitleaks:allow (throwaway local E2E account)
 
 /**
  * Signs up a brand-new verified user through Keycloak (sign-up → e-mail link via Mailpit → set

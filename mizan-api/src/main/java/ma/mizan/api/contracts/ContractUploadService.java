@@ -2,10 +2,14 @@ package ma.mizan.api.contracts;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** FR-3: validate, extract, persist the contract and a PENDING analysis in one transaction. */
+/**
+ * FR-3: validate, extract, persist the contract and a PENDING analysis in one transaction, and
+ * request the analysis in that same transaction (ADR-2 outbox).
+ */
 @Service
 class ContractUploadService {
 
@@ -16,20 +20,28 @@ class ContractUploadService {
   private final PdfInspector inspector;
   private final ContractRepository contracts;
   private final AnalysisRepository analyses;
+  private final ApplicationEventPublisher events;
+  private final SpendBudget budget;
 
   ContractUploadService(
+      SpendBudget budget,
       MalwareScanner scanner,
       PdfInspector inspector,
       ContractRepository contracts,
-      AnalysisRepository analyses) {
+      AnalysisRepository analyses,
+      ApplicationEventPublisher events) {
     this.scanner = scanner;
     this.inspector = inspector;
     this.contracts = contracts;
     this.analyses = analyses;
+    this.events = events;
+    this.budget = budget;
   }
 
   @Transactional
   Analysis upload(String ownerSub, String fileName, byte[] bytes, Language language) {
+    // Cheapest refusal first: no scan or parse for a user with no budget left.
+    budget.check(ownerSub);
     // Scan before any parser touches the bytes.
     scanner.check(ownerSub, bytes);
     PdfInspector.Inspection pdf = inspector.inspect(bytes);
@@ -37,6 +49,7 @@ class ContractUploadService {
         contracts.save(
             new Contract(ownerSub, FileNames.sanitize(fileName), pdf.pageCount(), pdf.text()));
     Analysis analysis = analyses.save(new Analysis(contract, language));
+    events.publishEvent(AnalysisRequested.of(analysis));
     AUDIT.info(
         "action=contract.upload subject={} contract={} analysis={} pages={} language={}",
         ownerSub,

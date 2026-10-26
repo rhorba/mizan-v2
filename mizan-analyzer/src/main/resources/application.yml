@@ -9,6 +9,39 @@ spring:
       enabled: true
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: mizan-analyzer
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # A malformed message must reach the DLT instead of failing the poll loop forever.
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      max-poll-records: 1 # one model call at a time per consumer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+        spring.json.value.default.type: ma.mizan.analyzer.AnalysisRequest
+        spring.json.use.type.headers: false
+        # A model call plus 3 back-off retries can take minutes; stay in the group meanwhile.
+        max.poll.interval.ms: 900000
+        # Topics come from NewTopic beans with the right partition count, never from a consumer.
+        allow.auto.create.topics: false
+    producer:
+      acks: all
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      properties:
+        enable.idempotence: true
+        spring.json.add.type.headers: false # mizan-api maps JSON to its own records
   ai:
     anthropic:
       api-key: ${ANTHROPIC_API_KEY:}
+      timeout: PT5M
+      # Kafka back-off owns retries (ADR-4); SDK retries on top would multiply model calls.
+      max-retries: 0
+
+mizan:
+  analyzer:
+    # Sent on every request by ContractAnalyzer (spring.ai chat defaults are not inherited).
+    model: ${MIZAN_AI_MODEL:claude-opus-5-5}
+    max-tokens: ${MIZAN_AI_MAX_TOKENS:16000}
+    retry:
+      initial-interval: PT2S
+      multiplier: 3 # 2 s, 6 s, 18 s

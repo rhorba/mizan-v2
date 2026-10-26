@@ -13,7 +13,8 @@ class MizanAnalyzerApplicationMainTests {
                 MizanAnalyzerApplication.main(
                     new String[] {
                       "--spring.ai.anthropic.api-key=test-key-not-used",
-                      "--spring.jmx.enabled=false"
+                      "--spring.jmx.enabled=false",
+                      "--spring.kafka.listener.auto-startup=false"
                     }))
         .doesNotThrowAnyException();
   }

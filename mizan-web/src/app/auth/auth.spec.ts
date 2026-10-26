@@ -3,7 +3,7 @@ import { OAuthEvent, OAuthService, OAuthStorage } from 'angular-oauth2-oidc';
 import { Subject } from 'rxjs';
 import { translocoTesting } from '../../testing/transloco-testing';
 import { LanguageService } from '../i18n/language';
-import { AuthService } from './auth';
+import { AuthService, realmRoles } from './auth';
 
 describe('AuthService', () => {
   let events: Subject<OAuthEvent>;
@@ -18,6 +18,7 @@ describe('AuthService', () => {
       setupAutomaticSilentRefresh: vi.fn(),
       hasValidAccessToken: vi.fn(() => false),
       getIdentityClaims: vi.fn(() => null),
+      getAccessToken: vi.fn(() => null),
       initCodeFlow: vi.fn(),
       logOut: vi.fn(),
     };
@@ -123,5 +124,45 @@ describe('AuthService', () => {
   it('logs out through Keycloak', () => {
     auth().logout();
     expect(oauth['logOut']).toHaveBeenCalled();
+  });
+
+  it('marks Keycloak admins from the access token realm roles', async () => {
+    oauth['hasValidAccessToken'].mockReturnValue(true);
+    oauth['getAccessToken'].mockReturnValue(token({ realm_access: { roles: ['user', 'admin'] } }));
+
+    await auth().init();
+
+    expect(auth().isAdmin()).toBe(true);
+  });
+
+  it('does not mark plain users or signed-out visitors as admin', async () => {
+    oauth['getAccessToken'].mockReturnValue(token({ realm_access: { roles: ['admin'] } }));
+    await auth().init();
+    expect(auth().isAdmin()).toBe(false); // signed out: the token is ignored
+
+    oauth['hasValidAccessToken'].mockReturnValue(true);
+    oauth['getAccessToken'].mockReturnValue(token({ realm_access: { roles: ['user'] } }));
+    events.next({ type: 'token_received' } as OAuthEvent);
+    expect(auth().isAdmin()).toBe(false);
+  });
+});
+
+/** Unsigned JWT with the given claims, base64url-encoded like Keycloak's. */
+function token(claims: object): string {
+  const encode = (o: object) =>
+    btoa(JSON.stringify(o)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return `${encode({ alg: 'none' })}.${encode(claims)}.`;
+}
+
+describe('realmRoles', () => {
+  it('reads realm_access.roles and ignores anything unreadable', () => {
+    expect(realmRoles(token({ realm_access: { roles: ['admin', 7, 'user'] } }))).toEqual([
+      'admin',
+      'user',
+    ]);
+    expect(realmRoles(token({ sub: 'x' }))).toEqual([]);
+    expect(realmRoles('not.a-token!.x')).toEqual([]);
+    expect(realmRoles(null)).toEqual([]);
+    expect(realmRoles('')).toEqual([]);
   });
 });

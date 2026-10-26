@@ -299,3 +299,62 @@ Found and fixed during VERIFY: (1) Enforcer convergence failed only in coverage-
 - **Went well**: live checks against the real stack (ClamAV EICAR, rate limit, real dialog, 360 px phones, cold deep links) found defects no unit test would; IDOR suite by endpoint discovery future-proofs ownership checks; CI green on first push.
 - **Went badly**: I reported "51 passed" while the run had exited 1 (a suite never loaded and my grep hid it); building -pl mizan-api hid an aggregator-only Enforcer failure until VERIFY; shell/sed escaping broke edits several times.
 - **Change for Sprint 3**: judge every run by exit code; always run the full reactor (not -pl) before declaring a batch done; make multi-line or escape-heavy edits with the file tools, not sed.
+
+### [2026-10-23] PUSH + PR #10 (feature/s2-upload → main) — checks:      10 pass       4 pending 
+
+### [2026-10-23] PR #10 unblocked — code-scanning bot opened 3 review threads for Semgrep unencrypted-socket (reported despite nosemgrep); branch rule requires conversation resolution. Alerts 3/4/5 dismissed as won't fix with written justification (clamd plain TCP in-network; loopback test doubles), threads resolved. No rule weakened.
+
+### [2026-10-26] SETUP — Claude API key `mizan-v2-dev-2` created (expires 2026-11-25), stored in gitignored .env (ANTHROPIC_API_KEY). Auth verified (count_tokens → credit-balance error, not auth error). Org monthly spend limit set to $3. Unused key `mizan-v2-dev` left to expire. Credits: $0 — user to top up.
+
+### [2026-10-26] SETUP — Credits added by user. Live test call to claude-haiku-5-5 succeeded (21 in / 7 out tokens). Claude API ready; $3/month cap active.
+
+### [2026-10-26] PLAN — Sprint 3 (🔴) on feature/s3-analysis, awaiting owner approval
+B1 outbox→Kafka (3.1, ~4h) · B2 analyzer core (3.2, ~6h) · B3 idempotent apply (3.3, ~3h) · B4 🔴 extras: per-user daily cost budget enforced in API at publish (MIZAN_AI_DAILY_BUDGET_USD, default $0.50), system-prompt caching, schema contract tests, admin DLT replay screen (first to slip) (~7h) · B5 verify/ship (~3h). Total ~23h. Languages fr/ar/ary (not en). Budget moved analyzer→API (analyzer stateless) — pending owner OK.
+
+### [2026-10-26] APPROVED — Sprint 3 plan approved by owner (incl. budget in API). EXECUTE B1 started. HANDOFF Scrum Master → Backend Dev.
+
+### [2026-10-26] B1 DONE — Story 3.1 outbox → Kafka (feature/s3-analysis, uncommitted)
+Deps: modulith-starter-jdbc, modulith-events-kafka, starter-kafka; Flyway V2 event_publication (schema mizan). AnalysisRequested (schemaVersion 1, @Externalized key=contractId) published in upload tx. Topic contract.analysis-requested (3 partitions). completion-mode delete (no contract text left in registry), republish on restart, StalePublicationSweep every 1 min (off in tests). JSON via JacksonJsonSerializer, no __TypeId__ header (Modulith enable-json off — its converter forces type headers). Tests: OutboxTests ×2 (exactly one keyed message; broker paused → FAILED publication → resubmit → exactly one). Shared Kafka Testcontainer via spring.factories. mizan-api verify: 108/108 green, exit 0.
+
+### [2026-10-26] B2 DONE — Story 3.2 analyzer worker (uncommitted)
+ContractAnalyzer: ChatModel called directly (no template engine — braces in contracts), system prompt per fr/ar/ary, contract in <contract> block with closing tag defused, native structured output (outputSchema), OutputValidator limits, invalid answer retried once then InvalidOutputException; tokens summed across attempts. Model + max tokens set per request from mizan.analyzer.* (MIZAN_AI_MODEL/_MAX_TOKENS). SDK max-retries 0, timeout 5 min. Listener publishes analysis-completed (sync send). DefaultErrorHandler: 3 retries exp back-off (2/6/18 s), InvalidOutputException not retried; recoverer publishes analysis-failed (reason invalid-output | model-unavailable) then DLT contract.analysis-requested.DLT; unreadable messages → DLT as raw bytes. Metrics mizan.analysis.outcomes / .tokens. Tests: 33 green (Prompts, OutputValidator, ContractAnalyzer, AnalysisFlowTests ×4 over Testcontainers Kafka). Live test (tag live, excluded by default): PASS on claude-opus-5-5, 1358 in / 1823 out, 5 flags, ~$0.04.
+
+### [2026-10-26] B3 DONE — Story 3.3 idempotent apply (uncommitted)
+AnalysisResultListener (completed/failed topics, per-listener JSON type, ErrorHandlingDeserializer) → AnalysisResultService: one conditional JPQL UPDATE (id + contract_id + status IN PENDING/ANALYZING, version+1) is the idempotency guard; flags saved via new ClauseFlag entity in model order (blank correction → NULL); 0 rows → logged and dropped. DefaultErrorHandler FixedBackOff(1 s ×3) then skip. API also declares result topics (idempotent). Tests AnalysisResultTests ×3 (duplicate applied once, late result can't overwrite FAILED, unknown/wrong-contract/unreadable dropped and partition not blocked). OutboxTests crash case relaxed to at-least-once (paused-broker buffered send was replayed → real duplicate; ADR-4). Full reactor verify green: API 111, analyzer 33.
+
+### [2026-10-26] COMMIT — 3d1a344 B1–B3 checkpoint on feature/s3-analysis (not pushed)
+
+### [2026-10-26] B4.1 DONE — per-user daily spend budget (API)
+SpendBudget checks at upload (before scan/parse): today's (Africa/Casablanca) analyses tokens × prices ≥ MIZAN_AI_DAILY_BUDGET_USD (0.50) → 429 urn:mizan:problem:budget-exceeded, audited. Prices MIZAN_AI_INPUT/OUTPUT_USD_PER_MTOK (4/20, Opus 5.5). Clock bean. fr/ar messages + PROBLEM_SLUGS. Tests: SpendBudgetTests ×5, web upload spec row; web 83/83.
+
+### [2026-10-26] B4.2 DONE — system prompt caching
+AnthropicCacheOptions SYSTEM_ONLY (5 min TTL). Input tokens reported = input + cache read + cache write (Spring AI promptTokens excludes cache). Live check on Haiku 5.5 (PromptCacheLiveTests, tag live): 1st call write=1049, 2nd read=1049 → prefix caches. Opus economics: ~$0.004 saved per hit, ~$0.001 extra per write.
+
+### [2026-10-26] B4.3 DONE — Kafka wire contract tests
+docs/schemas/kafka/analysis-{requested,completed,failed}.v1.schema.json (JSON Schema 2020-12, generated by victools from the analyzer's records). WireSchemas helper (same in both apps) asserts each side's records generate exactly the committed schema; -Dschemas.write=true rewrites after an intended change. API 4 tests (incl. negative: renamed field fails), analyzer 3.
+
+### [2026-10-26] B4.4 DONE — admin dead-letter list + retry
+contracts: public AnalysisRetry (statuses, retry FAILED→PENDING + republish via outbox from stored text; deleted contract → not found), Analysis.retry(). admin: DeadLetterReader (assign/seek, no group, no commit; ids/language/error from kafka_dlt-* headers; never the text; newest 100), GET /api/v1/admin/dead-letters, POST /api/v1/admin/analyses/{id}/retry (202 | 404 analysis-not-found | 409 analysis-not-failed), audited. Web: realmRoles() from access token → AuthService.isAdmin, adminGuard, /admin/dead-letters page (table, status chip, retry, fr/ar), admin nav link. Tests: DeadLetterTests ×5 (incl. 403 for users, no text leak), StalePublicationSweepTests, web +11 (94). Lint/format/build clean.
+
+### [2026-10-26] B4 DONE — full reactor verify green: API 126, analyzer 37, web 94; line coverage 96.5% (gate 80%).
+
+### [2026-10-26] VERIFY — security review of sprint diff: no HIGH/MEDIUM findings
+Checked admin authz (403 tests), DLT view never returns text, Kafka deser (no type headers, fixed default types), result UPDATE scoped by id+contract_id, JPQL params, prompt built without templates, outbox completion-mode delete, secrets only via env, logs ids-only. Notes below the bar → risks.md.
+
+### [2026-10-26] DOCS — ADR-6 amended (no sampling params, ChatModel + outputSchema, per-request model, caching); architecture §5 adds DLT + schema files.
+
+### [2026-10-26] VERIFY — E2E on the real stack + VIDEO_RECORDED
+Stack (apps+mail) found 3 deploy bugs no unit test could: API had no KAFKA_BOOTSTRAP_SERVERS in compose; Modulith CREATE SCHEMA as mizan_app (→ hikari.schema); analyzer auto-created a 1-partition request topic (→ declared in analyzer, allow.auto.create.topics=false). New e2e/analysis-and-admin.spec.ts: real Opus analysis → history "Terminée" in ~30 s (opt-in E2E_CLAUDE=1; 1165/1549 tokens ≈ $0.036), admin link/route only for admins (role granted via Keycloak admin API). 4/4 passed with E2E_CLAUDE, 3 passed + 1 skipped without (CI). VIDEO_RECORDED .recordings/v0.3-2026-10-26.webm (70 s: sign-up/login, upload/history/delete, analysis completes, admin DLT screen); end frames checked. Final verify: API 126, analyzer 37, web 94, lint/format/build clean, coverage 96.5%.
+
+### [2026-10-26] PUSH — feature/s3-analysis @ 5895e41 (3d1a344, 5895e41). CI monitoring started.
+
+### [2026-10-26] CI RED — PR run 40327310364 job "stack" failed; diagnosing (other jobs green).
+
+### [2026-10-26] CI — runs 40327173235 (push) / 40327310364 (PR): all jobs green except stack (Trivy, base-image CVE). Fix pushed. Note: gh run watch exit code was unreliable here; judge by run conclusion.
+
+### [2026-10-26] CI GREEN — 469cc39: push 40330206272 + PR 40330462126, 6/6 jobs success. SHIP done for Sprint 3 (PR #11 open, awaiting owner merge).
+
+### [2026-10-26] RETROSPECTIVE — Sprint 3
+- **Went well**: the live test and the real compose stack caught 4 bugs no stub/Testcontainers test could (wrong model, CREATE SCHEMA privilege, missing Kafka env, 1-partition topic); judging every run by exit code/conclusion; jar inspection (javap) answered library questions without guessing.
+- **Went badly**: bash heredocs with apostrophes/backslashes failed 3 times (wasted turns); `gh run watch` exit code looked green on a red run; drift check first attempted by breaking compile.
+- **Change for Sprint 4**: write files with the Write tool, never heredocs with quotes; read CI conclusion via `gh run view --json`; run the compose stack once per sprint before VERIFY, not only at recording time; tests should run as the least-privilege DB user.

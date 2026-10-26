@@ -75,8 +75,8 @@ Quota increments use `INSERT … ON CONFLICT (owner_sub, usage_day) DO UPDATE SE
 | Migration File | Description | Reversible |
 |---|---|---|
 | V1__contracts_analyses_flags.sql | contracts, analyses, clause_flags + indexes | Yes (drop in reverse order) |
-| V2__daily_usage.sql | quota table | Yes |
-| V3__modulith_event_publication.sql | Spring Modulith JDBC event publication table (from the library's schema) | Yes |
+| V2__modulith_event_publication.sql | Spring Modulith JDBC event publication table (from the library's schema; Sprint 3) | Yes |
+| V3__daily_usage.sql | quota table (Sprint 4) | Yes |
 
 Flyway, run by `mizan-api` at startup, schema `mizan`. Keycloak manages its own schema.
 
@@ -85,7 +85,7 @@ Flyway, run by `mizan-api` at startup, schema `mizan`. Keycloak manages its own 
 |---|---|---|
 | History | `WHERE owner_sub = ? AND (created_at, id) < (?, ?) ORDER BY created_at DESC, id DESC LIMIT 21` | idx_contracts_owner_created |
 | Contract detail | `WHERE id = ? AND owner_sub = ?` + latest analysis + flags | PK, idx_analyses_contract, idx_flags_analysis |
-| Apply analysis result | `UPDATE analyses SET … WHERE id = ? AND status = 'ANALYZING'` | PK |
+| Apply analysis result | `UPDATE analyses SET … WHERE id = ? AND contract_id = ? AND status IN ('PENDING','ANALYZING')` | PK |
 | Stuck jobs (> 10 min ANALYZING) | `WHERE status = 'ANALYZING' AND requested_at < ?` | idx_analyses_status_requested |
 | Admin stats | `GROUP BY date(requested_at), status` / `GROUP BY risk_level` | idx_analyses_status_requested |
 

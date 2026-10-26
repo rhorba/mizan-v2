@@ -13,6 +13,11 @@
   <artifactId>mizan-analyzer</artifactId>
   <name>Mizan Analyzer</name>
 
+  <properties>
+    <!-- Live run: ./mvnw -pl mizan-analyzer test -Dgroups=live -Dsurefire.excludedGroups= -->
+    <surefire.excludedGroups>live</surefire.excludedGroups>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -33,6 +38,16 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-testcontainers</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers-kafka</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.tngtech.archunit</groupId>
       <artifactId>archunit-junit5</artifactId>
       <scope>test</scope>
@@ -44,6 +59,14 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <!-- Tests tagged "live" call the real model and cost money; excluded unless asked. -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <excludedGroups>${surefire.excludedGroups}</excludedGroups>
+        </configuration>
       </plugin>
     </plugins>
   </build>

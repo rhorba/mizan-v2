@@ -7,7 +7,7 @@ Full rebuild of [mizan-ma](https://github.com/rhorba/mizan-ma) on a 2026 enterpr
 Java 25 · Spring Boot 4 · Angular 22 · Apache Kafka (transactional outbox) · Spring AI ·
 OpenTelemetry · PostgreSQL · Kubernetes (k3s) on Oracle Cloud, provisioned with Terraform.
 
-**Status:** Sprint 2 — contract upload (validated, virus-scanned, text only), history and delete. Analysis arrives in Sprint 3. Design docs in `docs/`, pinned versions in ADR-8 (`docs/architecture-mizan-v2.md`).
+**Status:** Sprint 3 — uploads are analyzed by Claude (Opus 5.5 by default) through a Kafka outbox and the `mizan-analyzer` worker; results are applied once, with a per-user daily spend budget and an admin screen to retry failed analyses (`/admin/dead-letters`). The analysis view and live status arrive in Sprint 4. Design docs in `docs/`, pinned versions in ADR-8 (`docs/architecture-mizan-v2.md`).
 
 ## Build
 
@@ -44,6 +44,8 @@ Web app and sign-in (stack running with `--profile apps --profile mail`):
 cd mizan-web && npm ci && npm start         # http://localhost:4200 — sign up, verify via Mailpit
 scripts/make-admin.sh you@example.com       # from the repo root: admin role + TOTP at next login
 cd mizan-web && npx playwright test         # E2E: sign-up … logout; upload, history, delete (E2E_AV=1 with ClamAV)
+# E2E_CLAUDE=1 adds one real analysis (needs ANTHROPIC_API_KEY in .env, a few cents on Opus)
+cd mizan-analyzer && ../mvnw test -Dgroups=live -Dsurefire.excludedGroups=   # live model tests, same key
 ```
 
 Sprint recordings are kept locally in `.recordings/` (git-ignored) and, for every CI run, in the `e2e-videos-and-traces` artifact.

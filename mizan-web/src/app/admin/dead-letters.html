@@ -1,0 +1,73 @@
+<section class="dead-letters" aria-labelledby="dlt-title">
+  <header class="head">
+    <h1 id="dlt-title">{{ 'admin.deadLetters.title' | transloco }}</h1>
+    <button mat-button type="button" (click)="load()" [disabled]="loading()">
+      {{ 'admin.deadLetters.refresh' | transloco }}
+    </button>
+  </header>
+  <p class="intro">{{ 'admin.deadLetters.intro' | transloco }}</p>
+
+  @if (failed()) {
+    <p class="error" role="alert">{{ 'admin.deadLetters.loadFailed' | transloco }}</p>
+  } @else if (empty()) {
+    <p class="empty">{{ 'admin.deadLetters.empty' | transloco }}</p>
+  } @else if (loading() && !loaded()) {
+    <p class="loading" aria-live="polite">{{ 'admin.deadLetters.loading' | transloco }}</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <caption class="visually-hidden">
+          {{
+            'admin.deadLetters.title' | transloco
+          }}
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">{{ 'admin.deadLetters.col.failedAt' | transloco }}</th>
+            <th scope="col">{{ 'admin.deadLetters.col.analysis' | transloco }}</th>
+            <th scope="col">{{ 'admin.deadLetters.col.language' | transloco }}</th>
+            <th scope="col">{{ 'admin.deadLetters.col.error' | transloco }}</th>
+            <th scope="col">{{ 'admin.deadLetters.col.status' | transloco }}</th>
+            <th scope="col">
+              <span class="visually-hidden">{{ 'admin.deadLetters.col.action' | transloco }}</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (l of letters(); track l.partition + '-' + l.offset) {
+            <tr>
+              <td>{{ formatDate(l.failedAt) }}</td>
+              <td>
+                <code [title]="l.analysisId ?? ''">{{ shortId(l.analysisId) }}</code>
+              </td>
+              <td>{{ l.language ?? '—' }}</td>
+              <td class="error-cell" dir="ltr">{{ l.error }}</td>
+              <td>
+                @if (l.status; as status) {
+                  <app-status-chip [status]="status" />
+                } @else {
+                  <span class="gone">{{
+                    (l.analysisId ? 'admin.deadLetters.deleted' : 'admin.deadLetters.unreadable')
+                      | transloco
+                  }}</span>
+                }
+              </td>
+              <td>
+                @if (canRetry(l)) {
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    [disabled]="retrying().has(l.analysisId!)"
+                    (click)="retry(l)"
+                  >
+                    {{ 'admin.deadLetters.retry' | transloco }}
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

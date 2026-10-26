@@ -1,4 +1,13 @@
 spring:
+  kafka:
+    listener:
+      # Contexts stay cached and share one broker: only AnalysisFlowTests consumes.
+      auto-startup: false
   ai:
     anthropic:
       api-key: test-key-not-used
+mizan:
+  analyzer:
+    retry:
+      initial-interval: PT0.1S # keep the 3-retry path fast in tests
+      multiplier: 1

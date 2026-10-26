@@ -12,6 +12,8 @@ export class AuthService {
 
   readonly isAuthenticated = signal(false);
   readonly email = signal<string | null>(null);
+  /** UX only (shows the admin link and guards its route); the API enforces the role. */
+  readonly isAdmin = signal(false);
 
   async init(): Promise<void> {
     const origin = window.location.origin;
@@ -86,5 +88,24 @@ export class AuthService {
     this.isAuthenticated.set(this.oauth.hasValidAccessToken());
     const claims = this.oauth.getIdentityClaims() as { email?: string } | null;
     this.email.set(claims?.email ?? null);
+    this.isAdmin.set(
+      this.isAuthenticated() && realmRoles(this.oauth.getAccessToken()).includes('admin'),
+    );
+  }
+}
+
+/** Keycloak realm roles from an access token (the claim the API reads too); [] if unreadable. */
+export function realmRoles(accessToken: string | null | undefined): string[] {
+  try {
+    const payload = accessToken?.split('.')[1];
+    if (!payload) {
+      return [];
+    }
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const claims = JSON.parse(atob(base64)) as { realm_access?: { roles?: unknown } };
+    const roles = claims.realm_access?.roles;
+    return Array.isArray(roles) ? roles.filter((r): r is string => typeof r === 'string') : [];
+  } catch {
+    return [];
   }
 }

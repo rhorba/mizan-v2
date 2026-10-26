@@ -28,3 +28,15 @@ docker/keycloak/trivyignore.yaml: this CVE only, Keycloak image only (CI --ignor
 
 ### [2026-10-23] DECISION — ClamAV configured-but-down = fail-closed (503)
 Owner chose "skip scanning" when no scanner is configured. When MIZAN_CLAMAV_HOST IS set and clamd is unreachable, uploads are refused with 503 scanner-unavailable rather than silently unscanned (an explicit opt-in must not degrade silently). Flagged to owner for confirmation.
+
+### [2026-10-26] DECISION — Analyzer model: claude-opus-5-5 (owner choice)
+Options shown: Haiku 5.5 (~$0.002/analysis), Sonnet 5.5 (~$0.035), Opus 5.5 (~$0.07, more with always-on thinking). Owner picked Opus 5.5. Org spend cap $3/month is the hard ceiling. Model + max tokens via env (MIZAN_AI_MODEL, MIZAN_AI_MAX_TOKENS).
+
+### [2026-10-26] DECISION — ADR-6 amendment: no temperature
+Claude API rejects temperature/top_p/top_k since 2026-10-21; Opus 5.5 also rejects disabled thinking. Analyzer sends neither; depth controlled by effort only.
+
+### [2026-10-26] DECISION — Live Claude test is opt-in
+Stub ChatModel in all automated tests; one test tagged `live` runs only when ANTHROPIC_API_KEY is set (never in CI).
+
+### [2026-10-26] DECISION — Sprint 3 approach: 🔴 COMPREHENSIVE (owner choice)
+🟡 (outbox→Kafka, analyzer w/ structured output + 3 retries + DLT, idempotent apply, prompt-injection guard + output validation, fr/ar/en prompts, schemaVersion, model/token capture, OTel metrics, crash-after-commit test) + per-user daily cost budget in analyzer, system-prompt caching, admin DLT replay screen, Kafka schema contract tests. Est. 5–6 days vs 4-day sprint → overrun risk logged.

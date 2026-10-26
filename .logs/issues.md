@@ -24,3 +24,23 @@ Repo lives in a OneDrive-synced folder; deleting freshly emptied target/ dirs fa
 ### [2026-10-23] BLOCKER — CI stack job: Keycloak image ca-certificates CVE-2026-114406 (CRITICAL)
 Fixed package (2026.2.92_v9.0.319-90.3.el9_8) exists only in RHEL subscription repos; UBI repos still ship 2025.2.80; no Keycloak > 26.8.1 yet. dnf --installroot patch stage tried → installs the same vulnerable version → reverted. Awaiting user decision (accept with expiry vs alternatives).
 Second failure (e2e: ng serve TS2304 'vi' in src/testing) fixed: tsconfig.app.json excludes src/testing/**.
+
+### [2026-10-26] ISSUE (resolved) — Modulith 2.1.2 enable-json uses ByteArrayJacksonJsonMessageConverter which always writes __TypeId__ headers, ignoring spring.json.add.type.headers. Fixed by enable-json=false + JacksonJsonSerializer.
+
+### [2026-10-26] ISSUE (resolved) — Live run used claude-haiku-4-5 instead of Opus
+Per-call AnthropicChatOptions (outputSchema) did not inherit spring.ai chat defaults → Spring AI default model. Caught only by the live test. Fix: model + max tokens set on every request from mizan.analyzer.*; unit test asserts prompt options carry the model.
+
+### [2026-10-26] ISSUE (resolved) — spring-kafka 4 default DLT name is "<topic>-dlt"
+Architecture §5 names contract.analysis-requested.DLT; destination resolver set explicitly.
+
+### [2026-10-26] ISSUE (fixed) — compose mizan-api had no KAFKA_BOOTSTRAP_SERVERS
+In the apps profile the API would default to localhost:9092 inside its container and never reach Kafka. Added kafka:29092, budget env passthrough, and MIZAN_AI_MODEL/_MAX_TOKENS for the analyzer. Found while preparing the E2E recording.
+
+### [2026-10-26] ISSUE (fixed) — API crashed in compose: Modulith tried CREATE SCHEMA as mizan_app
+spring.modulith.events.jdbc.schema=mizan triggers Modulith's schema initializer (CREATE SCHEMA IF NOT EXISTS) → "permission denied" for the least-privilege user. Tests ran as superuser so never saw it. Fix: remove the property, set spring.datasource.hikari.schema=mizan. Found by the E2E stack.
+
+### [2026-10-26] ISSUE (fixed) — Analyzer auto-created a 1-partition request topic when it started first
+Consumer auto-creation made contract.analysis-requested with 1 partition; after the API expanded it to 3, the analyzer only saw partition 0 until a metadata refresh (≤5 min). Fix: analyzer declares the request topic too; both consumers set allow.auto.create.topics=false.
+
+### [2026-10-26] ISSUE (fixed) — CI "stack" red: CVE-2026-111497 (HIGH) in brotli-libs of the pinned Temurin JRE Alpine image
+Newly published, unrelated to Sprint 3 code (main would fail too). Alpine has 1.2.1-r0: runtime stage now runs `apk upgrade --no-cache brotli-libs` until the Temurin digest is bumped. Local Trivy (CI image + flags): api 0, analyzer 0, keycloak 0 (with its ignorefile).

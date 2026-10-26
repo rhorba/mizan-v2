@@ -1,5 +1,6 @@
 package ma.mizan.api.contracts;
 
+import java.time.Clock;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -11,8 +12,18 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import tools.jackson.databind.json.JsonMapper;
 
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties({UploadProperties.class, AntivirusProperties.class})
+@EnableConfigurationProperties({
+  UploadProperties.class,
+  AntivirusProperties.class,
+  BudgetProperties.class
+})
 class ContractsWebConfig {
+
+  /** "Today" for the spend budget; replaced in tests. */
+  @Bean
+  Clock clock() {
+    return Clock.systemUTC();
+  }
 
   /** After Spring Security (order -100), so the subject is known; before MVC parses multipart. */
   @Bean

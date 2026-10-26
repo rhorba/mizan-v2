@@ -94,4 +94,18 @@ class Analysis {
   Instant requestedAt() {
     return requestedAt;
   }
+
+  /** Admin retry of a dead-lettered analysis: back to PENDING with every result field cleared. */
+  void retry() {
+    if (status != AnalysisStatus.FAILED) {
+      throw new IllegalStateException("only a FAILED analysis can be retried");
+    }
+    status = AnalysisStatus.PENDING;
+    failureReason = null;
+    summary = null;
+    model = null;
+    inputTokens = null;
+    outputTokens = null;
+    completedAt = null;
+  }
 }
