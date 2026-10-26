@@ -43,3 +43,12 @@ Backend (aggregate, no exclusions): lines 99 %, branches 91 % (110 tests incl. T
 ### [2026-10-26] COVERAGE — Sprint 3 B4: lines 96.5% (api 96.4%, analyzer 96.8%); web 94 tests
 
 ### [2026-10-26] COST — Live Claude spend this sprint ≈ $0.09 (Opus ×2 ≈ $0.08, Haiku 4.5 + Haiku 5.5 cache check < $0.01). Cap $3/month.
+
+### [2026-10-26] SPRINT_SNAPSHOT — Sprint 3 (goal: outbox → Kafka, Claude analyzer, idempotent results)
+- **Planned stories**: 3 (3.1 M, 3.2 L, 3.3 M) + 🔴 extras (budget, caching, wire contracts, DLT screen) — **Completed**: all — Dropped: 0; finished in 1 day vs 5–6 estimated
+- **Tests**: API 126 (+16), analyzer 37 (+34), web 94 (+12), E2E 4 (+2, 1 opt-in real Claude); coverage lines 96.5 %
+- **CI**: first push red only on Trivy (new base-image CVE, not sprint code) → fixed → 6/6 green (push + PR #11)
+- **Defects caught by our own checks before ship**: 11 — wrong model (Haiku 4.5 fallback, live test), DLT topic name, Modulith __TypeId__ headers, at-least-once duplicate in crash test, test format-string %, compose API without Kafka, Modulith CREATE SCHEMA as mizan_app, 1-partition topic auto-create, heredoc/escaping ×3 — all fixed
+- **Security**: review of sprint diff: 0 HIGH/MEDIUM; admin 403 tests; DLT view never returns text; Trivy/Semgrep/Gitleaks green
+- **Cost**: live Claude ≈ $0.13 total this sprint (Opus ×3 incl. E2E) of $3/month cap
+- **Decisions**: model claude-opus-5-5 (owner), no sampling params, live tests opt-in, budget in API, results accepted while PENDING/ANALYZING, V2/V3 migration swap

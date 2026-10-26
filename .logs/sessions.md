@@ -22,3 +22,8 @@ Watch: Keycloak CVE exception expires 2026-11-30; local cold-start margin; repo 
 
 ### [2026-10-26] SESSION_START — Sprint 3 kickoff
 Resumed from Sprint 2 SESSION_END. PR #10 merged 2026-10-23, main CI green @ b90e4bc. ANTHROPIC_API_KEY collected (in .env), org spend cap $3/month. Target: Stories 3.1 outbox→Kafka, 3.2 analyzer (Spring AI), 3.3 idempotent apply. Phase: UNDERSTAND.
+
+### [2026-10-26] SESSION_END — Sprint 3 complete (PR #11 open, CI green)
+Done: Claude API key + $3/month org cap; Sprint 3 🔴 on feature/s3-analysis (3d1a344, 5895e41, 469cc39): outbox→Kafka, analyzer (Opus 5.5, structured output, caching, retries/DLT), idempotent results, per-user daily budget, Kafka schema contracts, admin DLT retry screen; E2E incl. real analysis; video v0.3; CI 6/6 green.
+Next: owner merges PR #11 → confirm main CI green → Sprint 4 (3.4 SSE live status incl. PENDING→ANALYZING, 4.1 analysis view, 5.1 quota + daily_usage — fold in spend that survives deletion and failed-analysis tokens, 4.3, 5.2).
+Watch: Keycloak CVE exception expires 2026-11-30; brotli-libs patch line in Dockerfile until Temurin digest bump; Kafka retention for topics carrying contract text before preprod; live spend ≈ $0.13 of $3.

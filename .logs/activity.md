@@ -351,3 +351,10 @@ Stack (apps+mail) found 3 deploy bugs no unit test could: API had no KAFKA_BOOTS
 ### [2026-10-26] CI RED — PR run 40327310364 job "stack" failed; diagnosing (other jobs green).
 
 ### [2026-10-26] CI — runs 40327173235 (push) / 40327310364 (PR): all jobs green except stack (Trivy, base-image CVE). Fix pushed. Note: gh run watch exit code was unreliable here; judge by run conclusion.
+
+### [2026-10-26] CI GREEN — 469cc39: push 40330206272 + PR 40330462126, 6/6 jobs success. SHIP done for Sprint 3 (PR #11 open, awaiting owner merge).
+
+### [2026-10-26] RETROSPECTIVE — Sprint 3
+- **Went well**: the live test and the real compose stack caught 4 bugs no stub/Testcontainers test could (wrong model, CREATE SCHEMA privilege, missing Kafka env, 1-partition topic); judging every run by exit code/conclusion; jar inspection (javap) answered library questions without guessing.
+- **Went badly**: bash heredocs with apostrophes/backslashes failed 3 times (wasted turns); `gh run watch` exit code looked green on a red run; drift check first attempted by breaking compile.
+- **Change for Sprint 4**: write files with the Write tool, never heredocs with quotes; read CI conclusion via `gh run view --json`; run the compose stack once per sprint before VERIFY, not only at recording time; tests should run as the least-privilege DB user.
