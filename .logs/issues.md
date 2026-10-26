@@ -46,3 +46,6 @@ Consumer auto-creation made contract.analysis-requested with 1 partition; after 
 Newly published, unrelated to Sprint 3 code (main would fail too). Alpine has 1.2.1-r0: runtime stage now runs `apk upgrade --no-cache brotli-libs` until the Temurin digest is bumped. Local Trivy (CI image + flags): api 0, analyzer 0, keycloak 0 (with its ignorefile).
 
 ### [2026-10-26] ISSUE (fixed) — "v1 messages read as 0" was false: Jackson 3 fails on missing primitive int. Failed tokens are Integer (null → 0) so a not-yet-redeployed analyzer still applies.
+
+### [2026-10-26] ISSUE (fixed) — Web worker heap OOM hid a red run ("103 passed", exit 1)
+vi fake timers + advanceTimersByTime looped Angular's test scheduler → worker crash (exit 134). Fix: injectable POLL_MS, real timers at 20 ms. Also found: switchMap polling cancels in-flight requests (→ exhaustMap); resource.value() throws in error state (→ hasValue guard); a test-provider insert silently missed (edit scripts now assert matches).

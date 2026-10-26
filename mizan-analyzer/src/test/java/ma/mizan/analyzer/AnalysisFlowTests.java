@@ -74,6 +74,10 @@ class AnalysisFlowTests {
     assertThat(completed.get("outputTokens").asInt()).isEqualTo(200);
     assertThat(model.prompts()).hasSize(1);
     assertThat(records(AnalysisFailed.TOPIC, contractId, Duration.ofSeconds(1))).isEmpty();
+    // Story 3.4: announced before the model call.
+    JsonNode started = single(AnalysisStarted.TOPIC, contractId);
+    assertThat(started.get("analysisId").asString()).isEqualTo(analysisId.toString());
+    assertThat(started.get("startedAt").isString()).isTrue();
   }
 
   @Test

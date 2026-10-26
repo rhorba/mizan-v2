@@ -5,9 +5,6 @@
     @let c = contract.value();
     <header class="head">
       <h1 dir="auto">{{ c.fileName }}</h1>
-      @if (c.analysis; as a) {
-        <app-status-chip [status]="a.status" />
-      }
     </header>
     <p class="meta">
       {{ 'detail.meta' | transloco: { pages: c.pageCount } }}
@@ -15,7 +12,12 @@
         · {{ 'upload.languages.' + a.language | transloco }}
       }
     </p>
-    <p class="next">{{ 'detail.pending' | transloco }}</p>
+    @if (status(); as s) {
+      <app-analysis-stepper [status]="s" />
+      <p class="next" [class.failed]="s === 'FAILED'">
+        {{ 'detail.' + s.toLowerCase() | transloco }}
+      </p>
+    }
   } @else if (notFound()) {
     <h1>{{ 'detail.notFound' | transloco }}</h1>
   } @else if (contract.error()) {

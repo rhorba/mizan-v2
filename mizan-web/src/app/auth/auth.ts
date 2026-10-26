@@ -55,6 +55,11 @@ export class AuthService {
     this.oauth.logOut();
   }
 
+  /** For requests HttpClient does not make (the fetch-based status stream). */
+  accessToken(): string {
+    return this.oauth.getAccessToken();
+  }
+
   /** The PKCE verifier and nonce are single-use; drop them and the RFC 9207 iss parameter. */
   private forgetCallback(): void {
     this.storage.removeItem('PKCE_verifier');

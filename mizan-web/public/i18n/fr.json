@@ -98,10 +98,20 @@
   "detail": {
     "back": "Mes contrats",
     "meta": "{{pages}} page(s)",
-    "pending": "L'analyse est en file d'attente. Elle arrive avec la prochaine version de Mizan ; ce contrat est bien enregistré.",
+    "pending": "Votre contrat est en file d'attente ; l'analyse commence dans un instant.",
     "notFound": "Contrat introuvable.",
     "error": "Impossible de charger ce contrat.",
-    "loading": "Chargement…"
+    "loading": "Chargement…",
+    "stepper": {
+      "label": "Progression de l'analyse",
+      "pending": "En attente",
+      "analyzing": "Analyse en cours",
+      "complete": "Terminée",
+      "failed": "Échec"
+    },
+    "analyzing": "Claude lit votre contrat. Cela prend souvent moins d'une minute ; cette page se met à jour toute seule.",
+    "complete": "L'analyse est terminée.",
+    "failed": "L'analyse a échoué. Elle ne compte pas dans vos analyses du jour ; vous pouvez réessayer plus tard."
   },
   "status": {
     "PENDING": "En attente",

@@ -5,6 +5,7 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /** Contract endpoints (Architecture §5). The owner is always the token's subject. */
 @RestController
@@ -23,9 +25,12 @@ import org.springframework.web.multipart.MultipartFile;
 class ContractController {
 
   private final ContractUploadService uploads;
+  private final StatusStreams streams;
   private final ContractQueryService queries;
 
-  ContractController(ContractUploadService uploads, ContractQueryService queries) {
+  ContractController(
+      ContractUploadService uploads, ContractQueryService queries, StatusStreams streams) {
+    this.streams = streams;
     this.uploads = uploads;
     this.queries = queries;
   }
@@ -78,6 +83,16 @@ class ContractController {
   ContractView get(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
     ContractQueryService.Entry entry = queries.get(jwt.getSubject(), id);
     return ContractView.of(entry.contract(), entry.latest());
+  }
+
+  /**
+   * Story 3.4 / ADR-7: status changes of this contract's analyses as Server-Sent Events. Owner
+   * checked like every contract endpoint (404 otherwise); the current status is sent first.
+   */
+  @GetMapping(path = "/{id}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  SseEmitter events(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+    ContractQueryService.Entry entry = queries.get(jwt.getSubject(), id);
+    return streams.open(id, AnalysisView.of(entry.latest()));
   }
 
   @DeleteMapping("/{id}")

@@ -45,6 +45,11 @@ class AnalyzerKafkaConfig {
   }
 
   @Bean
+  NewTopic analysisStartedTopic() {
+    return TopicBuilder.name(AnalysisStarted.TOPIC).partitions(3).replicas(1).build();
+  }
+
+  @Bean
   NewTopic analysisCompletedTopic() {
     return TopicBuilder.name(AnalysisCompleted.TOPIC).partitions(3).replicas(1).build();
   }

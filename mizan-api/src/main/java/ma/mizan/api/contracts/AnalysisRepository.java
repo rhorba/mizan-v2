@@ -65,4 +65,16 @@ interface AnalysisRepository extends Repository<Analysis, UUID> {
       @Param("contractId") UUID contractId,
       @Param("reason") String reason,
       @Param("completedAt") Instant completedAt);
+
+  /** Story 3.4: only a PENDING analysis moves forward; a late or repeated "started" is a no-op. */
+  @Modifying(clearAutomatically = true, flushAutomatically = true)
+  @Query(
+      """
+      update Analysis a
+         set a.status = ma.mizan.api.contracts.AnalysisStatus.ANALYZING,
+             a.version = a.version + 1
+       where a.id = :id and a.contract.id = :contractId
+         and a.status = ma.mizan.api.contracts.AnalysisStatus.PENDING
+      """)
+  int markAnalyzing(@Param("id") UUID id, @Param("contractId") UUID contractId);
 }

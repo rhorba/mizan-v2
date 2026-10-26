@@ -1,5 +1,6 @@
 package ma.mizan.api.contracts;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -8,6 +9,7 @@ final class AnalysisResults {
 
   static final String COMPLETED_TOPIC = "contract.analysis-completed";
   static final String FAILED_TOPIC = "contract.analysis-failed";
+  static final String STARTED_TOPIC = "contract.analysis-started";
 
   private AnalysisResults() {}
 
@@ -44,4 +46,7 @@ final class AnalysisResults {
       return outputTokens == null ? 0 : outputTokens;
     }
   }
+
+  /** Schema version 1 (Story 3.4): the analyzer picked the request up. */
+  record Started(int schemaVersion, UUID analysisId, UUID contractId, Instant startedAt) {}
 }

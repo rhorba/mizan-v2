@@ -25,6 +25,17 @@ class AnalysisMessagingConfig {
   }
 
   @Bean
+  NewTopic analysisStartedTopic() {
+    return TopicBuilder.name(AnalysisResults.STARTED_TOPIC).partitions(3).replicas(1).build();
+  }
+
+  /** Story 3.4: status broadcast between API instances (each consumes it all). */
+  @Bean
+  NewTopic analysisStatusTopic() {
+    return TopicBuilder.name(AnalysisStatusChanged.TOPIC).partitions(3).replicas(1).build();
+  }
+
+  @Bean
   NewTopic analysisFailedTopic() {
     return TopicBuilder.name(AnalysisResults.FAILED_TOPIC).partitions(3).replicas(1).build();
   }

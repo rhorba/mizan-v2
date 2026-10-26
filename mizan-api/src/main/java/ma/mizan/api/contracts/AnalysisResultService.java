@@ -3,9 +3,11 @@ package ma.mizan.api.contracts;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.UUID;
 import ma.mizan.api.quota.DailyUsage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,11 +29,27 @@ class AnalysisResultService {
   private final AnalysisRepository analyses;
   private final ClauseFlagRepository flags;
   private final DailyUsage usage;
+  private final ApplicationEventPublisher events;
 
-  AnalysisResultService(AnalysisRepository analyses, ClauseFlagRepository flags, DailyUsage usage) {
+  AnalysisResultService(
+      AnalysisRepository analyses,
+      ClauseFlagRepository flags,
+      DailyUsage usage,
+      ApplicationEventPublisher events) {
     this.analyses = analyses;
     this.flags = flags;
     this.usage = usage;
+    this.events = events;
+  }
+
+  /** Story 3.4: PENDING to ANALYZING; false when late, repeated, unknown or deleted. */
+  @Transactional
+  boolean start(AnalysisResults.Started started) {
+    if (analyses.markAnalyzing(started.analysisId(), started.contractId()) == 0) {
+      return false;
+    }
+    statusChanged(started.analysisId(), started.contractId(), AnalysisStatus.ANALYZING);
+    return true;
   }
 
   /** Returns false when the message was dropped. */
@@ -68,6 +86,7 @@ class AnalysisResultService {
               flag.explanation(),
               blankToNull(flag.suggestedCorrection())));
     }
+    statusChanged(result.analysisId(), result.contractId(), AnalysisStatus.COMPLETE);
     AUDIT.info(
         "action=analysis.complete analysis={} contract={} flags={} model={} inputTokens={}"
             + " outputTokens={}",
@@ -95,12 +114,18 @@ class AnalysisResultService {
     String owner = applied.contract().ownerSub();
     usage.refund(owner, applied.requestedAt());
     usage.recordTokens(owner, applied.requestedAt(), result.billedInput(), result.billedOutput());
+    statusChanged(result.analysisId(), result.contractId(), AnalysisStatus.FAILED);
     AUDIT.info(
         "action=analysis.fail analysis={} contract={} reason={}",
         result.analysisId(),
         result.contractId(),
         result.reason());
     return true;
+  }
+
+  /** Through the outbox: broadcast only if this transaction commits (ADR-2). */
+  private void statusChanged(UUID analysisId, UUID contractId, AnalysisStatus status) {
+    events.publishEvent(AnalysisStatusChanged.of(analysisId, contractId, status));
   }
 
   private static void dropped(String kind, Object analysisId) {

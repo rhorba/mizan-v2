@@ -11,6 +11,7 @@ export function fakeAuth(signedIn = false, admin = false) {
     login: vi.fn(),
     register: vi.fn(),
     logout: vi.fn(),
+    accessToken: vi.fn(() => 'test-token'),
   };
   return { fake, provider: { provide: AuthService, useValue: fake } };
 }
