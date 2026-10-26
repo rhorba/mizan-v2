@@ -21,8 +21,10 @@ class ContractUploadService {
   private final ContractRepository contracts;
   private final AnalysisRepository analyses;
   private final ApplicationEventPublisher events;
+  private final SpendBudget budget;
 
   ContractUploadService(
+      SpendBudget budget,
       MalwareScanner scanner,
       PdfInspector inspector,
       ContractRepository contracts,
@@ -33,10 +35,13 @@ class ContractUploadService {
     this.contracts = contracts;
     this.analyses = analyses;
     this.events = events;
+    this.budget = budget;
   }
 
   @Transactional
   Analysis upload(String ownerSub, String fileName, byte[] bytes, Language language) {
+    // Cheapest refusal first: no scan or parse for a user with no budget left.
+    budget.check(ownerSub);
     // Scan before any parser touches the bytes.
     scanner.check(ownerSub, bytes);
     PdfInspector.Inspection pdf = inspector.inspect(bytes);

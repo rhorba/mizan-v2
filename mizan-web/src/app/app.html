@@ -15,6 +15,15 @@
           ariaCurrentWhenActive="page"
           >{{ 'shell.contracts' | transloco }}</a
         >
+        @if (auth.isAdmin()) {
+          <a
+            mat-button
+            routerLink="/admin/dead-letters"
+            routerLinkActive="active"
+            ariaCurrentWhenActive="page"
+            >{{ 'shell.admin' | transloco }}</a
+          >
+        }
       </nav>
     }
     <span class="spacer"></span>

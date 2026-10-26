@@ -39,3 +39,7 @@ Backend (aggregate, no exclusions): lines 99 %, branches 91 % (110 tests incl. T
 - **Decisions**: ClamAV absent = skip+warn (owner), configured-but-down = 503 (accepted); keyset index adds id DESC
 
 ### [2026-10-26] COST — Live Claude spend so far ~$0.05 (1 Haiku 4.5 call by mistake, 1 Opus 5.5 call 1358/1823 tokens). Cap $3/month.
+
+### [2026-10-26] COVERAGE — Sprint 3 B4: lines 96.5% (api 96.4%, analyzer 96.8%); web 94 tests
+
+### [2026-10-26] COST — Live Claude spend this sprint ≈ $0.09 (Opus ×2 ≈ $0.08, Haiku 4.5 + Haiku 5.5 cache check < $0.01). Cap $3/month.

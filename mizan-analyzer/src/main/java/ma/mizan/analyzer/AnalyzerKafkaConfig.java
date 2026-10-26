@@ -35,6 +35,15 @@ class AnalyzerKafkaConfig {
   private static final Logger LOG = LoggerFactory.getLogger(AnalyzerKafkaConfig.class);
   static final int RETRIES = 3;
 
+  /**
+   * Also declared by mizan-api (idempotent). Declaring it here too means the analyzer never
+   * auto-creates a 1-partition topic when it starts first and then misses the other partitions.
+   */
+  @Bean
+  NewTopic analysisRequestedTopic() {
+    return TopicBuilder.name(AnalysisRequest.TOPIC).partitions(3).replicas(1).build();
+  }
+
   @Bean
   NewTopic analysisCompletedTopic() {
     return TopicBuilder.name(AnalysisCompleted.TOPIC).partitions(3).replicas(1).build();

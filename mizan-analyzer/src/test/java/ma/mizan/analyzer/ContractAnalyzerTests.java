@@ -6,8 +6,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.springframework.ai.anthropic.AnthropicCacheStrategy;
 import org.springframework.ai.anthropic.AnthropicChatOptions;
 import org.springframework.ai.chat.messages.MessageType;
+import org.springframework.ai.chat.metadata.DefaultUsage;
 import org.springframework.ai.chat.prompt.Prompt;
 
 /** Story 3.2 at unit level: one call, structured output, "invalid output twice" ends it. */
@@ -55,6 +57,17 @@ class ContractAnalyzerTests {
     assertThat(options.getTemperature()).isNull();
     assertThat(options.getTopP()).isNull();
     assertThat(options.getTopK()).isNull();
+    assertThat(options.getCacheOptions().getStrategy())
+        .isEqualTo(AnthropicCacheStrategy.SYSTEM_ONLY);
+  }
+
+  @Test
+  void cachedInputTokensCountTowardsInput() {
+    assertThat(ContractAnalyzer.inputTokens(new DefaultUsage(100, 50, 150, null, 600L, 0L)))
+        .isEqualTo(700);
+    assertThat(ContractAnalyzer.inputTokens(new DefaultUsage(100, 50, 150, null, null, 600L)))
+        .isEqualTo(700);
+    assertThat(ContractAnalyzer.inputTokens(new DefaultUsage(null, 50))).isZero();
   }
 
   @Test

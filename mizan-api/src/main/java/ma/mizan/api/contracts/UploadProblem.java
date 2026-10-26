@@ -23,7 +23,11 @@ enum UploadProblem {
   SCANNER_UNAVAILABLE(
       "scanner-unavailable",
       HttpStatus.SERVICE_UNAVAILABLE,
-      "The virus scan is unavailable. Try again later.");
+      "The virus scan is unavailable. Try again later."),
+  BUDGET_EXCEEDED(
+      "budget-exceeded",
+      HttpStatus.TOO_MANY_REQUESTS,
+      "Today's analysis budget is used up. Try again tomorrow.");
 
   private final String slug;
   private final HttpStatus status;

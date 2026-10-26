@@ -123,6 +123,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <!-- Kafka wire contract tests (docs/schemas/kafka); the analyzer gets it via Spring AI -->
+      <groupId>com.github.victools</groupId>
+      <artifactId>jsonschema-generator</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.tngtech.archunit</groupId>
       <artifactId>archunit-junit5</artifactId>
       <scope>test</scope>

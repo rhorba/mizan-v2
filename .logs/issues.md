@@ -32,3 +32,12 @@ Per-call AnthropicChatOptions (outputSchema) did not inherit spring.ai chat defa
 
 ### [2026-10-26] ISSUE (resolved) — spring-kafka 4 default DLT name is "<topic>-dlt"
 Architecture §5 names contract.analysis-requested.DLT; destination resolver set explicitly.
+
+### [2026-10-26] ISSUE (fixed) — compose mizan-api had no KAFKA_BOOTSTRAP_SERVERS
+In the apps profile the API would default to localhost:9092 inside its container and never reach Kafka. Added kafka:29092, budget env passthrough, and MIZAN_AI_MODEL/_MAX_TOKENS for the analyzer. Found while preparing the E2E recording.
+
+### [2026-10-26] ISSUE (fixed) — API crashed in compose: Modulith tried CREATE SCHEMA as mizan_app
+spring.modulith.events.jdbc.schema=mizan triggers Modulith's schema initializer (CREATE SCHEMA IF NOT EXISTS) → "permission denied" for the least-privilege user. Tests ran as superuser so never saw it. Fix: remove the property, set spring.datasource.hikari.schema=mizan. Found by the E2E stack.
+
+### [2026-10-26] ISSUE (fixed) — Analyzer auto-created a 1-partition request topic when it started first
+Consumer auto-creation made contract.analysis-requested with 1 partition; after the API expanded it to 3, the analyzer only saw partition 0 until a metadata refresh (≤5 min). Fix: analyzer declares the request topic too; both consumers set allow.auto.create.topics=false.

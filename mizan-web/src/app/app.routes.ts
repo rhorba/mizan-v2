@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './auth/auth-guard';
+import { adminGuard, authGuard } from './auth/auth-guard';
 
 export const routes: Routes = [
   {
@@ -25,6 +25,11 @@ export const routes: Routes = [
           import('./contracts/detail/contract-detail').then((m) => m.ContractDetail),
       },
     ],
+  },
+  {
+    path: 'admin/dead-letters',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () => import('./admin/dead-letters').then((m) => m.DeadLetters),
   },
   { path: '**', redirectTo: '' },
 ];

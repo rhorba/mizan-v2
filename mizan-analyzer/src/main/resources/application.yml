@@ -22,6 +22,8 @@ spring:
         spring.json.use.type.headers: false
         # A model call plus 3 back-off retries can take minutes; stay in the group meanwhile.
         max.poll.interval.ms: 900000
+        # Topics come from NewTopic beans with the right partition count, never from a consumer.
+        allow.auto.create.topics: false
     producer:
       acks: all
       value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer

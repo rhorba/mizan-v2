@@ -13,3 +13,12 @@ UBI9 ca-certificates CVE-2026-114406 (CRITICAL, distrust eMudhra intermediate) a
 Fresh-volume runs: 75, 81, 98, 148 (host busy: Playwright install), 81, 87 s. Keycloak's silent schema creation (≈30 s, 73 s under load) dominates. CI: 58 s. Mitigation if it bites: Keycloak DB on tmpfs for local, or pre-seeded volume. Watch in CI stack job.
 
 ### [2026-10-26] RISK — Sprint 3 scope (🔴) estimated 5–6 days vs 4-day capacity; may spill into Sprint 4. Mitigation: replay screen last, can move to Sprint 4.
+
+### [2026-10-26] RISK — Spend budget resets if the user deletes today's contracts
+Analyses cascade-delete with contracts, so deleting lowers today's spend. Org cap $3/month bounds the damage. Fix with daily_usage (Story 5.1): record tokens/cost there, not derived from analyses.
+
+### [2026-10-26] RISK — Tokens of failed analyses are not counted in the spend budget
+analysis-failed (schema v1) carries no token counts, so the 2 billed attempts of an invalid-output failure don't reach analyses.input/output_tokens. Small (bounded by the $3 cap). Fix with a v2 failed message or with daily_usage (Story 5.1).
+
+### [2026-10-26] RISK — Contract text outlives deletion in Kafka topics
+analysis-requested and .DLT keep text until retention (compose 24 h). Set retention.ms on these topics for preprod (Sprint 5–6 infra). Also Jackson parse errors may quote ≤500 chars of a malformed payload in analyzer logs / DLT headers (not attacker-reachable).

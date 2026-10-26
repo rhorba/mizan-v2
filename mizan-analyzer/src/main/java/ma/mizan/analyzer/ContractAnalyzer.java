@@ -3,6 +3,8 @@ package ma.mizan.analyzer;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ai.anthropic.AnthropicCacheOptions;
+import org.springframework.ai.anthropic.AnthropicCacheStrategy;
 import org.springframework.ai.anthropic.AnthropicChatOptions;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -61,10 +63,15 @@ class ContractAnalyzer {
       ChatResponse response = chatModel.call(prompt);
       // Wasted attempts are still billed: count them so the budget (Story 3.2/4.1) sees them.
       Usage usage = response.getMetadata().getUsage();
-      inputTokens += tokens(usage.getPromptTokens());
+      inputTokens += inputTokens(usage);
       outputTokens += tokens(usage.getCompletionTokens());
       try {
         AnalysisOutput output = OutputValidator.check(parse(response));
+        LOG.debug(
+            "analysis={} cacheRead={} cacheWrite={}",
+            request.analysisId(),
+            usage.getCacheReadInputTokens(),
+            usage.getCacheWriteInputTokens());
         return new Result(output, response.getMetadata().getModel(), inputTokens, outputTokens);
       } catch (InvalidOutputException e) {
         LOG.warn(
@@ -88,7 +95,26 @@ class ContractAnalyzer {
         .model(model)
         .maxTokens(maxTokens)
         .outputSchema(CONVERTER.getJsonSchema())
+        // The system prompt (~600 tokens) is the same for every contract in a language and for
+        // the retry of an unusable answer; Opus 5.5 caches prefixes from 512 tokens (5 min TTL).
+        .cacheOptions(
+            AnthropicCacheOptions.builder().strategy(AnthropicCacheStrategy.SYSTEM_ONLY).build())
         .build();
+  }
+
+  /**
+   * Input billed for one call. The API reports cache writes and reads apart from input_tokens; all
+   * three count (writes cost 1.25x, reads 0.05x: counting both at 1x keeps the budget simple and
+   * close).
+   */
+  static int inputTokens(Usage usage) {
+    long cached =
+        longValue(usage.getCacheReadInputTokens()) + longValue(usage.getCacheWriteInputTokens());
+    return Math.toIntExact(tokens(usage.getPromptTokens()) + cached);
+  }
+
+  private static long longValue(Long value) {
+    return value == null ? 0 : value;
   }
 
   private static AnalysisOutput parse(ChatResponse response) {

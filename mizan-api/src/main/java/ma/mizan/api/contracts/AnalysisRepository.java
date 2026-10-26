@@ -3,6 +3,7 @@ package ma.mizan.api.contracts;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -12,6 +13,10 @@ import org.springframework.data.repository.query.Param;
 interface AnalysisRepository extends Repository<Analysis, UUID> {
 
   Analysis save(Analysis analysis);
+
+  Optional<Analysis> findById(UUID id);
+
+  List<Analysis> findByIdIn(Collection<UUID> ids);
 
   List<Analysis> findByContractIdOrderByRequestedAtDesc(UUID contractId);
 
@@ -60,4 +65,14 @@ interface AnalysisRepository extends Repository<Analysis, UUID> {
       @Param("contractId") UUID contractId,
       @Param("reason") String reason,
       @Param("completedAt") Instant completedAt);
+
+  /** Tokens of the owner's analyses requested since {@code since} (SpendBudget). */
+  @Query(
+      """
+      select new ma.mizan.api.contracts.TokenSpend(
+               coalesce(sum(a.inputTokens), 0), coalesce(sum(a.outputTokens), 0))
+        from Analysis a
+       where a.contract.ownerSub = :ownerSub and a.requestedAt >= :since
+      """)
+  TokenSpend spendSince(@Param("ownerSub") String ownerSub, @Param("since") Instant since);
 }

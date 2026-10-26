@@ -10,7 +10,8 @@
     "nav": "Navigation principale",
     "contracts": "Mes contrats",
     "login": "Se connecter",
-    "logout": "Se déconnecter"
+    "logout": "Se déconnecter",
+    "admin": "Administration"
   },
   "landing": {
     "eyebrow": "Analyse de contrats · Maroc",
@@ -85,6 +86,7 @@
       "malware-detected": "L'analyse antivirus a bloqué ce fichier.",
       "scanner-unavailable": "L'analyse antivirus est indisponible. Réessayez plus tard.",
       "rate-limited": "Trop d'envois en peu de temps.",
+      "budget-exceeded": "Le budget d'analyse du jour est épuisé. Réessayez demain.",
       "contract-not-found": "Contrat introuvable.",
       "generic": "L'envoi a échoué. Vérifiez votre connexion et réessayez."
     },
@@ -104,5 +106,30 @@
     "ANALYZING": "Analyse en cours",
     "COMPLETE": "Terminée",
     "FAILED": "Échec"
+  },
+  "admin": {
+    "deadLetters": {
+      "title": "Analyses en échec (DLT)",
+      "intro": "Demandes d'analyse arrivées dans la file des messages morts après échec. Le texte des contrats n'est jamais affiché.",
+      "refresh": "Actualiser",
+      "loading": "Chargement…",
+      "loadFailed": "Impossible de lire la file des messages morts.",
+      "empty": "Aucune analyse en échec. Tout va bien.",
+      "col": {
+        "failedAt": "Échec le",
+        "analysis": "Analyse",
+        "language": "Langue",
+        "error": "Erreur",
+        "status": "Statut actuel",
+        "action": "Action"
+      },
+      "deleted": "Contrat supprimé",
+      "unreadable": "Message illisible",
+      "retry": "Relancer",
+      "retried": "Analyse relancée : elle repasse en attente.",
+      "notFound": "Cette analyse n'existe plus (contrat supprimé).",
+      "notFailed": "Cette analyse n'est plus en échec ; la liste est actualisée.",
+      "retryFailed": "La relance a échoué. Réessayez."
+    }
   }
 }

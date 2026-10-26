@@ -17,6 +17,11 @@ spring:
     url: jdbc:postgresql://localhost:5435/mizan
     username: mizan_app
     password: ${MIZAN_DB_PASSWORD:}
+    hikari:
+      # Plain JDBC (Modulith's event_publication) resolves to schema "mizan". Setting
+      # spring.modulith.events.jdbc.schema instead makes Modulith run CREATE SCHEMA, which
+      # mizan_app may not do.
+      schema: mizan
   flyway:
     schemas: mizan
     default-schema: mizan
@@ -37,6 +42,7 @@ spring:
       properties:
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
         spring.json.use.type.headers: false # each listener sets its own value type
+        allow.auto.create.topics: false # topics come from NewTopic beans (3 partitions)
     producer:
       acks: all
       value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
@@ -48,8 +54,6 @@ spring:
     events:
       kafka:
         enable-json: false # its message converter always adds __TypeId__; the serializer above does JSON
-      jdbc:
-        schema: mizan # table created by Flyway V2, not by the library
       # Events carry contract text: drop completed publications so a deleted contract leaves no copy.
       completion-mode: delete
       republish-outstanding-events-on-restart: true
@@ -70,5 +74,10 @@ mizan:
     daily-per-user: ${MIZAN_QUOTA_DAILY_PER_USER:3}
   upload:
     uploads-per-minute: ${MIZAN_UPLOADS_PER_MINUTE:10}
+  budget:
+    # Per-user daily model spend; prices default to Claude Opus 5.5 ($ per million tokens).
+    daily-usd: ${MIZAN_AI_DAILY_BUDGET_USD:0.50}
+    input-usd-per-mtok: ${MIZAN_AI_INPUT_USD_PER_MTOK:4}
+    output-usd-per-mtok: ${MIZAN_AI_OUTPUT_USD_PER_MTOK:20}
   antivirus:
     host: ${MIZAN_CLAMAV_HOST:} # empty = scanning disabled (warning at start-up)
