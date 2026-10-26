@@ -37,3 +37,5 @@ Backend (aggregate, no exclusions): lines 99 %, branches 91 % (110 tests incl. T
 - **Defects caught by our own checks before ship**: 14 (unscoped test query, fake FileList, deep-link return, retry disabled, 0.0 Mo, phone toolbar overflow, upload spec not running + misread result, Enforcer only in aggregator, parallel m2 race, real RLO char in source, Semgrep socket findings ×3, test regex escaping, meaningless self-comparing assertion) — all fixed
 - **Security**: live EICAR blocked by real ClamAV; IDOR suite auto-discovers endpoints; open-redirect guard on login return path; 0 open SAST/secret/vuln findings
 - **Decisions**: ClamAV absent = skip+warn (owner), configured-but-down = 503 (accepted); keyset index adds id DESC
+
+### [2026-10-26] COST — Live Claude spend so far ~$0.05 (1 Haiku 4.5 call by mistake, 1 Opus 5.5 call 1358/1823 tokens). Cap $3/month.

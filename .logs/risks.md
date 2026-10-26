@@ -11,3 +11,5 @@ UBI9 ca-certificates CVE-2026-114406 (CRITICAL, distrust eMudhra intermediate) a
 
 ### [2026-10-23] RISK — local cold-start margin under the 120 s target
 Fresh-volume runs: 75, 81, 98, 148 (host busy: Playwright install), 81, 87 s. Keycloak's silent schema creation (≈30 s, 73 s under load) dominates. CI: 58 s. Mitigation if it bites: Keycloak DB on tmpfs for local, or pre-seeded volume. Watch in CI stack job.
+
+### [2026-10-26] RISK — Sprint 3 scope (🔴) estimated 5–6 days vs 4-day capacity; may spill into Sprint 4. Mitigation: replay screen last, can move to Sprint 4.

@@ -303,3 +303,21 @@ Found and fixed during VERIFY: (1) Enforcer convergence failed only in coverage-
 ### [2026-10-23] PUSH + PR #10 (feature/s2-upload → main) — checks:      10 pass       4 pending 
 
 ### [2026-10-23] PR #10 unblocked — code-scanning bot opened 3 review threads for Semgrep unencrypted-socket (reported despite nosemgrep); branch rule requires conversation resolution. Alerts 3/4/5 dismissed as won't fix with written justification (clamd plain TCP in-network; loopback test doubles), threads resolved. No rule weakened.
+
+### [2026-10-26] SETUP — Claude API key `mizan-v2-dev-2` created (expires 2026-11-25), stored in gitignored .env (ANTHROPIC_API_KEY). Auth verified (count_tokens → credit-balance error, not auth error). Org monthly spend limit set to $3. Unused key `mizan-v2-dev` left to expire. Credits: $0 — user to top up.
+
+### [2026-10-26] SETUP — Credits added by user. Live test call to claude-haiku-5-5 succeeded (21 in / 7 out tokens). Claude API ready; $3/month cap active.
+
+### [2026-10-26] PLAN — Sprint 3 (🔴) on feature/s3-analysis, awaiting owner approval
+B1 outbox→Kafka (3.1, ~4h) · B2 analyzer core (3.2, ~6h) · B3 idempotent apply (3.3, ~3h) · B4 🔴 extras: per-user daily cost budget enforced in API at publish (MIZAN_AI_DAILY_BUDGET_USD, default $0.50), system-prompt caching, schema contract tests, admin DLT replay screen (first to slip) (~7h) · B5 verify/ship (~3h). Total ~23h. Languages fr/ar/ary (not en). Budget moved analyzer→API (analyzer stateless) — pending owner OK.
+
+### [2026-10-26] APPROVED — Sprint 3 plan approved by owner (incl. budget in API). EXECUTE B1 started. HANDOFF Scrum Master → Backend Dev.
+
+### [2026-10-26] B1 DONE — Story 3.1 outbox → Kafka (feature/s3-analysis, uncommitted)
+Deps: modulith-starter-jdbc, modulith-events-kafka, starter-kafka; Flyway V2 event_publication (schema mizan). AnalysisRequested (schemaVersion 1, @Externalized key=contractId) published in upload tx. Topic contract.analysis-requested (3 partitions). completion-mode delete (no contract text left in registry), republish on restart, StalePublicationSweep every 1 min (off in tests). JSON via JacksonJsonSerializer, no __TypeId__ header (Modulith enable-json off — its converter forces type headers). Tests: OutboxTests ×2 (exactly one keyed message; broker paused → FAILED publication → resubmit → exactly one). Shared Kafka Testcontainer via spring.factories. mizan-api verify: 108/108 green, exit 0.
+
+### [2026-10-26] B2 DONE — Story 3.2 analyzer worker (uncommitted)
+ContractAnalyzer: ChatModel called directly (no template engine — braces in contracts), system prompt per fr/ar/ary, contract in <contract> block with closing tag defused, native structured output (outputSchema), OutputValidator limits, invalid answer retried once then InvalidOutputException; tokens summed across attempts. Model + max tokens set per request from mizan.analyzer.* (MIZAN_AI_MODEL/_MAX_TOKENS). SDK max-retries 0, timeout 5 min. Listener publishes analysis-completed (sync send). DefaultErrorHandler: 3 retries exp back-off (2/6/18 s), InvalidOutputException not retried; recoverer publishes analysis-failed (reason invalid-output | model-unavailable) then DLT contract.analysis-requested.DLT; unreadable messages → DLT as raw bytes. Metrics mizan.analysis.outcomes / .tokens. Tests: 33 green (Prompts, OutputValidator, ContractAnalyzer, AnalysisFlowTests ×4 over Testcontainers Kafka). Live test (tag live, excluded by default): PASS on claude-opus-5-5, 1358 in / 1823 out, 5 flags, ~$0.04.
+
+### [2026-10-26] B3 DONE — Story 3.3 idempotent apply (uncommitted)
+AnalysisResultListener (completed/failed topics, per-listener JSON type, ErrorHandlingDeserializer) → AnalysisResultService: one conditional JPQL UPDATE (id + contract_id + status IN PENDING/ANALYZING, version+1) is the idempotency guard; flags saved via new ClauseFlag entity in model order (blank correction → NULL); 0 rows → logged and dropped. DefaultErrorHandler FixedBackOff(1 s ×3) then skip. API also declares result topics (idempotent). Tests AnalysisResultTests ×3 (duplicate applied once, late result can't overwrite FAILED, unknown/wrong-contract/unreadable dropped and partition not blocked). OutboxTests crash case relaxed to at-least-once (paused-broker buffered send was replayed → real duplicate; ADR-4). Full reactor verify green: API 111, analyzer 33.
