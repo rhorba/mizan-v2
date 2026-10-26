@@ -3,6 +3,7 @@ package ma.mizan.api.contracts;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import ma.mizan.api.quota.DailyUsage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -25,10 +26,12 @@ class AnalysisResultService {
 
   private final AnalysisRepository analyses;
   private final ClauseFlagRepository flags;
+  private final DailyUsage usage;
 
-  AnalysisResultService(AnalysisRepository analyses, ClauseFlagRepository flags) {
+  AnalysisResultService(AnalysisRepository analyses, ClauseFlagRepository flags, DailyUsage usage) {
     this.analyses = analyses;
     this.flags = flags;
+    this.usage = usage;
   }
 
   /** Returns false when the message was dropped. */
@@ -47,6 +50,12 @@ class AnalysisResultService {
       dropped("completed", result.analysisId());
       return false;
     }
+    Analysis applied = analyses.findById(result.analysisId()).orElseThrow();
+    usage.recordTokens(
+        applied.contract().ownerSub(),
+        applied.requestedAt(),
+        result.inputTokens(),
+        result.outputTokens());
     List<AnalysisResults.Flag> received = result.flags() == null ? List.of() : result.flags();
     for (int position = 0; position < received.size(); position++) {
       AnalysisResults.Flag flag = received.get(position);
@@ -81,6 +90,11 @@ class AnalysisResultService {
       dropped("failed", result.analysisId());
       return false;
     }
+    // Story 5.1: a FAILED analysis refunds its unit; the tokens it burned still count.
+    Analysis applied = analyses.findById(result.analysisId()).orElseThrow();
+    String owner = applied.contract().ownerSub();
+    usage.refund(owner, applied.requestedAt());
+    usage.recordTokens(owner, applied.requestedAt(), result.billedInput(), result.billedOutput());
     AUDIT.info(
         "action=analysis.fail analysis={} contract={} reason={}",
         result.analysisId(),

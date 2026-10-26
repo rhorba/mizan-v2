@@ -23,3 +23,5 @@ Keyset pagination (🔴 Sprint 2) orders by (created_at, id); index is (owner_su
 
 ### [2026-10-26] CORRECTION — Results apply while status IN (PENDING, ANALYZING)
 Nothing sets ANALYZING yet (analyzer emits no "started" event). Story 3.3 guard = "not yet terminal" via one conditional UPDATE. The PENDING→ANALYZING step moves to Story 3.4 (SSE stepper), where it is needed. docs/database access pattern updated.
+
+### [2026-10-26] CORRECTION — Global cap via a per-day "*" row upsert instead of SUM (SUM races under READ COMMITTED). docs/database §3 updated.

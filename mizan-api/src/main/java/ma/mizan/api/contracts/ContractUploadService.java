@@ -1,5 +1,7 @@
 package ma.mizan.api.contracts;
 
+import ma.mizan.api.quota.DailyUsage;
+import ma.mizan.api.quota.QuotaExceededException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -21,10 +23,10 @@ class ContractUploadService {
   private final ContractRepository contracts;
   private final AnalysisRepository analyses;
   private final ApplicationEventPublisher events;
-  private final SpendBudget budget;
+  private final DailyUsage quota;
 
   ContractUploadService(
-      SpendBudget budget,
+      DailyUsage quota,
       MalwareScanner scanner,
       PdfInspector inspector,
       ContractRepository contracts,
@@ -35,16 +37,18 @@ class ContractUploadService {
     this.contracts = contracts;
     this.analyses = analyses;
     this.events = events;
-    this.budget = budget;
+    this.quota = quota;
   }
 
   @Transactional
   Analysis upload(String ownerSub, String fileName, byte[] bytes, Language language) {
-    // Cheapest refusal first: no scan or parse for a user with no budget left.
-    budget.check(ownerSub);
+    // Cheapest refusal first: no scan or parse once a cap or the spend budget is reached.
+    withQuota(() -> quota.check(ownerSub));
     // Scan before any parser touches the bytes.
     scanner.check(ownerSub, bytes);
     PdfInspector.Inspection pdf = inspector.inspect(bytes);
+    // Atomic unit (Story 5.1), in this transaction: any later failure gives it back.
+    withQuota(() -> quota.reserve(ownerSub));
     Contract contract =
         contracts.save(
             new Contract(ownerSub, FileNames.sanitize(fileName), pdf.pageCount(), pdf.text()));
@@ -58,5 +62,18 @@ class ContractUploadService {
         pdf.pageCount(),
         language.code());
     return analysis;
+  }
+
+  private static void withQuota(Runnable call) {
+    try {
+      call.run();
+    } catch (QuotaExceededException e) {
+      throw new UploadRejectedException(
+          switch (e.reason()) {
+            case USER_CAP -> UploadProblem.QUOTA_EXCEEDED;
+            case GLOBAL_CAP -> UploadProblem.GLOBAL_QUOTA_EXCEEDED;
+            case BUDGET -> UploadProblem.BUDGET_EXCEEDED;
+          });
+    }
   }
 }

@@ -40,3 +40,9 @@ Stub ChatModel in all automated tests; one test tagged `live` runs only when ANT
 
 ### [2026-10-26] DECISION — Sprint 3 approach: 🔴 COMPREHENSIVE (owner choice)
 🟡 (outbox→Kafka, analyzer w/ structured output + 3 retries + DLT, idempotent apply, prompt-injection guard + output validation, fr/ar/en prompts, schemaVersion, model/token capture, OTel metrics, crash-after-commit test) + per-user daily cost budget in analyzer, system-prompt caching, admin DLT replay screen, Kafka schema contract tests. Est. 5–6 days vs 4-day sprint → overrun risk logged.
+
+### [2026-10-26] DECISION — Sprint 4 caps and usage data (owner)
+Per-user cap 5/day (PRD value; was 3), global cap 20/day (MIZAN_QUOTA_DAILY_GLOBAL, sized to the $3/month org cap). daily_usage records tokens too, so the spend budget survives contract deletion and counts failed analyses (analysis-failed gains token counts → schema v2).
+
+### [2026-10-26] DECISION — Sprint 4 approach: 🔴 COMPREHENSIVE (owner)
+🟡 (all 5 stories, SSE + 3 s polling fallback, analysis-started message from analyzer sets ANALYZING, analysis-failed v2 with tokens, view with sort/filter/expand/copy/RTL, re-analyze tabs, admin stats, E2E) + admin charts (14-day trend, risk split), axe accessibility audit on new pages, multi-instance SSE via Kafka fan-out. Est. ~6 days vs 4.5.

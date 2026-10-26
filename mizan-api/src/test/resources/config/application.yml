@@ -7,6 +7,9 @@ spring:
   flyway:
     create-schemas: true
 mizan:
+  quota: # tests upload often as the same user; QuotaTests sets the real caps
+    daily-per-user: 1000
+    daily-global: 1000
   upload:
     uploads-per-minute: 1000 # tests upload often; UploadDefencesTests sets its own limit
   events:

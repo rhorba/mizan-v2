@@ -65,14 +65,4 @@ interface AnalysisRepository extends Repository<Analysis, UUID> {
       @Param("contractId") UUID contractId,
       @Param("reason") String reason,
       @Param("completedAt") Instant completedAt);
-
-  /** Tokens of the owner's analyses requested since {@code since} (SpendBudget). */
-  @Query(
-      """
-      select new ma.mizan.api.contracts.TokenSpend(
-               coalesce(sum(a.inputTokens), 0), coalesce(sum(a.outputTokens), 0))
-        from Analysis a
-       where a.contract.ownerSub = :ownerSub and a.requestedAt >= :since
-      """)
-  TokenSpend spendSince(@Param("ownerSub") String ownerSub, @Param("since") Instant since);
 }

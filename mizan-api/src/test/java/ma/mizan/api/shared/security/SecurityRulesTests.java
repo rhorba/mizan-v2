@@ -30,7 +30,7 @@ class SecurityRulesTests {
     assertThat(mvc.get().uri("/api/v1/me/quota").with(jwt().authorities(USER)))
         .hasStatusOk()
         .bodyJson()
-        .isLenientlyEqualTo("{\"limit\":3,\"used\":0,\"remaining\":3}");
+        .isLenientlyEqualTo("{\"limit\":1000,\"used\":0}"); // test config caps
   }
 
   @Test

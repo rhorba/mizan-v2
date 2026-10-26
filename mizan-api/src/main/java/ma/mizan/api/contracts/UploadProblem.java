@@ -27,7 +27,15 @@ enum UploadProblem {
   BUDGET_EXCEEDED(
       "budget-exceeded",
       HttpStatus.TOO_MANY_REQUESTS,
-      "Today's analysis budget is used up. Try again tomorrow.");
+      "Today's analysis budget is used up. Try again tomorrow."),
+  QUOTA_EXCEEDED(
+      "quota-exceeded",
+      HttpStatus.TOO_MANY_REQUESTS,
+      "You have used today's analyses. Try again tomorrow."),
+  GLOBAL_QUOTA_EXCEEDED(
+      "global-quota-exceeded",
+      HttpStatus.TOO_MANY_REQUESTS,
+      "The service reached today's analysis limit. Try again tomorrow.");
 
   private final String slug;
   private final HttpStatus status;

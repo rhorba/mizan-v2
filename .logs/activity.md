@@ -358,3 +358,13 @@ Stack (apps+mail) found 3 deploy bugs no unit test could: API had no KAFKA_BOOTS
 - **Went well**: the live test and the real compose stack caught 4 bugs no stub/Testcontainers test could (wrong model, CREATE SCHEMA privilege, missing Kafka env, 1-partition topic); judging every run by exit code/conclusion; jar inspection (javap) answered library questions without guessing.
 - **Went badly**: bash heredocs with apostrophes/backslashes failed 3 times (wasted turns); `gh run watch` exit code looked green on a red run; drift check first attempted by breaking compile.
 - **Change for Sprint 4**: write files with the Write tool, never heredocs with quotes; read CI conclusion via `gh run view --json`; run the compose stack once per sprint before VERIFY, not only at recording time; tests should run as the least-privilege DB user.
+
+### [2026-10-26] PLAN — Sprint 4 (🔴) on feature/s4-results, awaiting owner approval
+B1 caps+usage (V3 daily_usage w/ tokens, atomic upsert per-user 5 / global 20, refund on FAILED, budget from daily_usage, analysis-failed v2 w/ tokens) ~5h · B2 live status (analysis-started → ANALYZING, contract.analysis-status broadcast w/ per-instance group, SSE endpoint owner-checked, fetch-based stream reader (no token in URL), stepper, 3 s polling fallback) ~7h · B3 analysis view ~5h · B4 re-analyze tabs ~3h · B5 admin stats + SVG charts ~5h · B6 axe audit, verify, video v0.4, ship ~4h. Total ~29h.
+
+### [2026-10-26] CI — main @ 6f000f1 (merge of PR #11) green, run 40332252736. Sprint 3 fully closed.
+
+### [2026-10-26] APPROVED — Sprint 4 plan approved by owner. EXECUTE B1 started. HANDOFF Scrum Master → DBA + Backend Dev.
+
+### [2026-10-26] B1 DONE — Story 5.1 caps + usage (feature/s4-results, uncommitted)
+V3 daily_usage (count + input/output tokens; owner '*' = global row). quota module public API DailyUsage: check (pre-scan), reserve (global then user conditional upserts, in upload tx → refused files give the unit back), refund on FAILED, recordTokens on complete/fail (day of request, Casablanca); spend budget now reads daily_usage (survives deletion). /me/quota real (remaining also bounded by global). Problems quota-exceeded / global-quota-exceeded (fr/ar). analysis-failed v2 with tokens (analyzer carries tokens of invalid attempts; API accepts v1 without them — Jackson 3 rejects missing primitives, caught by test). Caps 5/20 in env, compose passthrough. Tests: DailyCapsTests ×7 incl. 10 parallel uploads at 4 → exactly 1×202 + 9×429; flow test asserts v2 tokens. Verify: API 128, analyzer 37, web 96; lint/format clean.

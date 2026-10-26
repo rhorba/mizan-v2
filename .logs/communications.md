@@ -19,3 +19,5 @@ Datasource defaults OK (SPRING_DATASOURCE_URL jdbc:postgresql://localhost:5435/m
 ### [2026-10-23] B4 → B5: owner replied "go" without objecting to fail-closed when ClamAV is configured but down; treated as accepted (can be revisited).
 
 ### [2026-10-26] Sprint 3 UNDERSTAND: owner wants spend kept under $3/month (cap set in Console). Prefers I act directly ("just do it"). Paid/credential steps stay with the owner.
+
+### [2026-10-26] Sprint 4 UNDERSTAND: owner picked per-user 5, global 20, tokens in daily_usage.

@@ -87,6 +87,10 @@ class AnalysisFlowTests {
     JsonNode failed = single(AnalysisFailed.TOPIC, contractId);
     assertThat(failed.get("analysisId").asString()).isEqualTo(analysisId.toString());
     assertThat(failed.get("reason").asString()).isEqualTo("invalid-output");
+    // Schema v2: both unusable attempts were billed (1000 in / 200 out each).
+    assertThat(failed.get("schemaVersion").asInt()).isEqualTo(2);
+    assertThat(failed.get("inputTokens").asInt()).isEqualTo(2000);
+    assertThat(failed.get("outputTokens").asInt()).isEqualTo(400);
     assertThat(single(AnalysisRequest.DLT, contractId).get("analysisId").asString())
         .isEqualTo(analysisId.toString());
     // Not retried by Kafka: only the analyzer's own two attempts.
@@ -104,8 +108,9 @@ class AnalysisFlowTests {
 
     send(contractId, request(UUID.randomUUID(), contractId, "ary"));
 
-    assertThat(single(AnalysisFailed.TOPIC, contractId).get("reason").asString())
-        .isEqualTo("model-unavailable");
+    JsonNode failed = single(AnalysisFailed.TOPIC, contractId);
+    assertThat(failed.get("reason").asString()).isEqualTo("model-unavailable");
+    assertThat(failed.get("inputTokens").asInt()).isZero(); // outages bill nothing
     assertThat(single(AnalysisRequest.DLT, contractId)).isNotNull();
     assertThat(model.prompts()).hasSize(1 + AnalyzerKafkaConfig.RETRIES);
   }

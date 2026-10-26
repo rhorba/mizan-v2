@@ -24,5 +24,24 @@ final class AnalysisResults {
   record Flag(
       String clauseText, RiskLevel riskLevel, String explanation, String suggestedCorrection) {}
 
-  record Failed(int schemaVersion, UUID analysisId, UUID contractId, String reason) {}
+  /**
+   * Schema version 2 adds the tokens billed before failing. Boxed so a version 1 message (no token
+   * fields, e.g. from an analyzer not yet redeployed) still applies: missing counts as 0.
+   */
+  record Failed(
+      int schemaVersion,
+      UUID analysisId,
+      UUID contractId,
+      String reason,
+      Integer inputTokens,
+      Integer outputTokens) {
+
+    long billedInput() {
+      return inputTokens == null ? 0 : inputTokens;
+    }
+
+    long billedOutput() {
+      return outputTokens == null ? 0 : outputTokens;
+    }
+  }
 }

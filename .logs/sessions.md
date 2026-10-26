@@ -27,3 +27,6 @@ Resumed from Sprint 2 SESSION_END. PR #10 merged 2026-10-23, main CI green @ b90
 Done: Claude API key + $3/month org cap; Sprint 3 🔴 on feature/s3-analysis (3d1a344, 5895e41, 469cc39): outbox→Kafka, analyzer (Opus 5.5, structured output, caching, retries/DLT), idempotent results, per-user daily budget, Kafka schema contracts, admin DLT retry screen; E2E incl. real analysis; video v0.3; CI 6/6 green.
 Next: owner merges PR #11 → confirm main CI green → Sprint 4 (3.4 SSE live status incl. PENDING→ANALYZING, 4.1 analysis view, 5.1 quota + daily_usage — fold in spend that survives deletion and failed-analysis tokens, 4.3, 5.2).
 Watch: Keycloak CVE exception expires 2026-11-30; brotli-libs patch line in Dockerfile until Temurin digest bump; Kafka retention for topics carrying contract text before preprod; live spend ≈ $0.13 of $3.
+
+### [2026-10-26] SESSION_START — Sprint 4 kickoff
+PR #11 merged (6f000f1); main CI running. Target Sprint 4 (→ Nov 20): 3.4 SSE live status, 4.1 analysis view, 5.1 caps + daily_usage, 4.3 re-analyze, 5.2 admin stats. Phase: UNDERSTAND.

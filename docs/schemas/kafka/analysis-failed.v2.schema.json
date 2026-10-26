@@ -10,6 +10,12 @@
       "type" : "string",
       "format" : "uuid"
     },
+    "inputTokens" : {
+      "type" : "integer"
+    },
+    "outputTokens" : {
+      "type" : "integer"
+    },
     "reason" : {
       "type" : "string"
     },

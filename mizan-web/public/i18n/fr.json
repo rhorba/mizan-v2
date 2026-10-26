@@ -87,6 +87,8 @@
       "scanner-unavailable": "L'analyse antivirus est indisponible. Réessayez plus tard.",
       "rate-limited": "Trop d'envois en peu de temps.",
       "budget-exceeded": "Le budget d'analyse du jour est épuisé. Réessayez demain.",
+      "quota-exceeded": "Vous avez utilisé vos analyses du jour. Réessayez demain.",
+      "global-quota-exceeded": "Le service a atteint sa limite d'analyses du jour. Réessayez demain.",
       "contract-not-found": "Contrat introuvable.",
       "generic": "L'envoi a échoué. Vérifiez votre connexion et réessayez."
     },

@@ -42,6 +42,8 @@ export const PROBLEM_SLUGS = [
   'scanner-unavailable',
   'rate-limited',
   'budget-exceeded',
+  'quota-exceeded',
+  'global-quota-exceeded',
   'contract-not-found',
 ] as const;
 export type ProblemSlug = (typeof PROBLEM_SLUGS)[number];

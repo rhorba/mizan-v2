@@ -82,7 +82,7 @@ class ContractAnalyzer {
         last = e;
       }
     }
-    throw last;
+    throw new InvalidOutputException(last.getMessage(), inputTokens, outputTokens);
   }
 
   /**

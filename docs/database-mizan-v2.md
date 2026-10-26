@@ -53,13 +53,15 @@ CREATE TABLE clause_flags (
 );
 
 CREATE TABLE daily_usage (
-  owner_sub   VARCHAR(64) NOT NULL,
-  usage_day   DATE        NOT NULL,
-  analyses    INT         NOT NULL DEFAULT 0 CHECK (analyses >= 0),
+  owner_sub     VARCHAR(64) NOT NULL,   -- '*' = the global row of the day
+  usage_day     DATE        NOT NULL,   -- Africa/Casablanca day of the request
+  analyses      INT         NOT NULL DEFAULT 0 CHECK (analyses >= 0),
+  input_tokens  BIGINT      NOT NULL DEFAULT 0 CHECK (input_tokens >= 0),
+  output_tokens BIGINT      NOT NULL DEFAULT 0 CHECK (output_tokens >= 0),
   PRIMARY KEY (owner_sub, usage_day)
 );
 ```
-Quota increments use `INSERT … ON CONFLICT (owner_sub, usage_day) DO UPDATE SET analyses = daily_usage.analyses + 1 WHERE daily_usage.analyses < :cap RETURNING analyses` — atomic, no race. The global cap is `SUM(analyses) WHERE usage_day = today`, checked in the same transaction.
+Quota increments use `INSERT … ON CONFLICT (owner_sub, usage_day) DO UPDATE SET analyses = daily_usage.analyses + 1 WHERE daily_usage.analyses < :cap RETURNING analyses` — atomic, no race. The global cap uses the same upsert on the day's `'*'` row, taken **first** in the same transaction (fixed lock order, no deadlock); a `SUM` would let two parallel requests both pass at cap − 1 (Sprint 4 correction). A FAILED analysis decrements both rows (refund); token counts are added on completion and failure, so spend survives contract deletion.
 
 ## 4. Index Strategy
 | Table | Index Name | Columns | Query Pattern |
