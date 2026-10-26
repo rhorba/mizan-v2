@@ -345,3 +345,9 @@ Checked admin authz (403 tests), DLT view never returns text, Kafka deser (no ty
 
 ### [2026-10-26] VERIFY — E2E on the real stack + VIDEO_RECORDED
 Stack (apps+mail) found 3 deploy bugs no unit test could: API had no KAFKA_BOOTSTRAP_SERVERS in compose; Modulith CREATE SCHEMA as mizan_app (→ hikari.schema); analyzer auto-created a 1-partition request topic (→ declared in analyzer, allow.auto.create.topics=false). New e2e/analysis-and-admin.spec.ts: real Opus analysis → history "Terminée" in ~30 s (opt-in E2E_CLAUDE=1; 1165/1549 tokens ≈ $0.036), admin link/route only for admins (role granted via Keycloak admin API). 4/4 passed with E2E_CLAUDE, 3 passed + 1 skipped without (CI). VIDEO_RECORDED .recordings/v0.3-2026-10-26.webm (70 s: sign-up/login, upload/history/delete, analysis completes, admin DLT screen); end frames checked. Final verify: API 126, analyzer 37, web 94, lint/format/build clean, coverage 96.5%.
+
+### [2026-10-26] PUSH — feature/s3-analysis @ 5895e41 (3d1a344, 5895e41). CI monitoring started.
+
+### [2026-10-26] CI RED — PR run 40327310364 job "stack" failed; diagnosing (other jobs green).
+
+### [2026-10-26] CI — runs 40327173235 (push) / 40327310364 (PR): all jobs green except stack (Trivy, base-image CVE). Fix pushed. Note: gh run watch exit code was unreliable here; judge by run conclusion.
