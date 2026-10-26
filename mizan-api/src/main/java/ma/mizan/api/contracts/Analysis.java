@@ -95,6 +95,18 @@ class Analysis {
     return requestedAt;
   }
 
+  String summary() {
+    return summary;
+  }
+
+  String failureReason() {
+    return failureReason;
+  }
+
+  Instant completedAt() {
+    return completedAt;
+  }
+
   /** Admin retry of a dead-lettered analysis: back to PENDING with every result field cleared. */
   void retry() {
     if (status != AnalysisStatus.FAILED) {

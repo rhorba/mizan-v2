@@ -30,3 +30,8 @@ Watch: Keycloak CVE exception expires 2026-11-30; brotli-libs patch line in Dock
 
 ### [2026-10-26] SESSION_START — Sprint 4 kickoff
 PR #11 merged (6f000f1); main CI running. Target Sprint 4 (→ Nov 20): 3.4 SSE live status, 4.1 analysis view, 5.1 caps + daily_usage, 4.3 re-analyze, 5.2 admin stats. Phase: UNDERSTAND.
+
+### [2026-10-26] SESSION_END — Sprint 4 in progress (B1–B3 done, on feature/s4-results, not pushed)
+Done: B1 caps + daily_usage (4b2a088), B2 live status SSE (2d08b50), B3 analysis view (this commit). Verify green: API 135, analyzer 38, web 115.
+Next: B4 re-analyze in another language (Story 4.3, tabs, quota unit + budget), B5 admin stats + SVG charts (5.2), B6 axe audit, real-stack E2E + video v0.4, security review, push, CI, PR. Stop condition per risk log: fan-out/charts first to slip.
+Watch: live Claude spend ≈ $0.13 of $3; Keycloak CVE exception expires 2026-11-30; brotli-libs Dockerfile patch; Kafka retention for text topics before preprod; owner should rotate the API key pasted in chat (expires 2026-11-25).

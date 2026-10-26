@@ -51,6 +51,42 @@ class ContractController {
 
   record HistoryView(List<ContractView> items, String nextCursor) {}
 
+  /** Story 4.1: an analysis with its result. Model and token counts stay internal. */
+  record ResultView(
+      UUID id,
+      Language language,
+      AnalysisStatus status,
+      String summary,
+      String failureReason,
+      Instant requestedAt,
+      Instant completedAt,
+      List<FlagView> flags) {
+    static ResultView of(ContractQueryService.Result r) {
+      Analysis a = r.analysis();
+      return new ResultView(
+          a.id(),
+          a.language(),
+          a.status(),
+          a.summary(),
+          a.failureReason(),
+          a.requestedAt(),
+          a.completedAt(),
+          r.flags().stream().map(FlagView::of).toList());
+    }
+  }
+
+  record FlagView(
+      int position,
+      String clauseText,
+      RiskLevel riskLevel,
+      String explanation,
+      String suggestedCorrection) {
+    static FlagView of(ClauseFlag f) {
+      return new FlagView(
+          f.position(), f.clauseText(), f.riskLevel(), f.explanation(), f.suggestedCorrection());
+    }
+  }
+
   /** FR-2/FR-3: 202 because the analysis itself happens asynchronously (Epic 3). */
   @PostMapping(consumes = "multipart/form-data")
   ResponseEntity<ContractView> upload(
@@ -93,6 +129,12 @@ class ContractController {
   SseEmitter events(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
     ContractQueryService.Entry entry = queries.get(jwt.getSubject(), id);
     return streams.open(id, AnalysisView.of(entry.latest()));
+  }
+
+  @GetMapping("/{id}/analyses/{analysisId}")
+  ResultView analysis(
+      @AuthenticationPrincipal Jwt jwt, @PathVariable UUID id, @PathVariable UUID analysisId) {
+    return ResultView.of(queries.result(jwt.getSubject(), id, analysisId));
   }
 
   @DeleteMapping("/{id}")

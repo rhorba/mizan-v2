@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 /** Non-upload problems of the contracts API; same URN scheme as {@link UploadProblem}. */
 enum ContractProblem {
   NOT_FOUND("contract-not-found", HttpStatus.NOT_FOUND, "No such contract."),
+  ANALYSIS_NOT_FOUND("analysis-not-found", HttpStatus.NOT_FOUND, "No such analysis."),
   BAD_CURSOR("bad-cursor", HttpStatus.BAD_REQUEST, "The history cursor is not valid.");
 
   private final String slug;

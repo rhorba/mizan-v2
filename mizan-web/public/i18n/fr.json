@@ -143,5 +143,30 @@
       "notFailed": "Cette analyse n'est plus en échec ; la liste est actualisée.",
       "retryFailed": "La relance a échoué. Réessayez."
     }
+  },
+  "result": {
+    "summary": "Résumé",
+    "flags": "Clauses à surveiller",
+    "filterLabel": "Filtrer par niveau de risque",
+    "filter": {
+      "ALL": "Toutes ({{count}})",
+      "HIGH": "Élevé ({{count}})",
+      "MEDIUM": "Moyen ({{count}})",
+      "LOW": "Faible ({{count}})"
+    },
+    "risk": {
+      "HIGH": "Élevé",
+      "MEDIUM": "Moyen",
+      "LOW": "Faible"
+    },
+    "clause": "Clause",
+    "why": "Pourquoi c’est risqué",
+    "suggested": "Formulation proposée",
+    "copy": "Copier",
+    "copied": "Formulation copiée.",
+    "copyFailed": "Copie impossible ; sélectionnez le texte à la main.",
+    "noFlags": "Aucune clause à risque relevée dans ce contrat.",
+    "notice": "Analyse informative — pas un avis juridique. Pour un enjeu important, consultez un professionnel.",
+    "loadError": "Impossible de charger le résultat."
   }
 }

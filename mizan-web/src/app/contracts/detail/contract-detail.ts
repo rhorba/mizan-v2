@@ -15,16 +15,23 @@ import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { filter, takeWhile } from 'rxjs';
-import { AnalysisStatus, ContractSummary, ContractsApi, problemSlug } from '../contracts-api';
+import {
+  AnalysisResult,
+  AnalysisStatus,
+  ContractSummary,
+  ContractsApi,
+  problemSlug,
+} from '../contracts-api';
+import { AnalysisResultView } from './analysis-result';
 import { AnalysisStepper } from './analysis-stepper';
 import { StatusEvent, StatusStream } from './status-stream';
 
 const FINAL: ReadonlySet<AnalysisStatus> = new Set(['COMPLETE', 'FAILED']);
 
-/** The contract page: where the analysis is, live (Story 3.4); results arrive with Story 4.1. */
+/** The contract page: where the analysis is, live (Story 3.4), then its result (Story 4.1). */
 @Component({
   selector: 'app-contract-detail',
-  imports: [AnalysisStepper, MatButtonModule, RouterLink, TranslocoPipe],
+  imports: [AnalysisResultView, AnalysisStepper, MatButtonModule, RouterLink, TranslocoPipe],
   templateUrl: './contract-detail.html',
   styleUrl: './contract-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -55,6 +62,19 @@ export class ContractDetail {
     return pushed?.analysisId === analysis.id ? pushed.status : analysis.status;
   });
 
+  /**
+   * Story 4.1: the result, loaded once the analysis is COMPLETE. Keyed on a URL string so the
+   * contract reload that follows completion (a new analysis object, same id) does not fetch the
+   * result a second time.
+   */
+  private readonly resultUrl = computed(() => {
+    const analysis = this.analysis();
+    return analysis && this.status() === 'COMPLETE'
+      ? this.api.analysisUrl(this.id(), analysis.id)
+      : undefined;
+  });
+  readonly result = httpResource<AnalysisResult>(() => this.resultUrl());
+
   private watching: string | null = null;
 
   constructor() {
@@ -78,7 +98,7 @@ export class ContractDetail {
       .subscribe((event) => {
         this.live.set(event);
         if (FINAL.has(event.status)) {
-          this.contract.reload(); // fetch the result (Story 4.1)
+          this.contract.reload(); // the final status, and with it the result (Story 4.1)
         }
       });
   }

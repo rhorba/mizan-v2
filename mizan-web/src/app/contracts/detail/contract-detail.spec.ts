@@ -78,10 +78,27 @@ describe('ContractDetail', () => {
     expect(el.querySelector('.next')?.textContent).toContain('Claude lit votre contrat');
 
     events.next({ analysisId: 'a-1', status: 'COMPLETE' });
-    fixture.detectChanges(); // the reload request is pending now (whenStable would wait on it)
+    fixture.detectChanges();
+    // Both start at once: the contract reload and (Story 4.1) the result of that analysis.
     http.expectOne(URL).flush(contract('COMPLETE'));
-    await fixture.whenStable();
+    http.expectOne(`${URL}/analyses/a-1`).flush({
+      id: 'a-1',
+      language: 'fr',
+      status: 'COMPLETE',
+      summary: 'Résumé du contrat.',
+      failureReason: null,
+      requestedAt: '',
+      completedAt: '',
+      flags: [],
+    });
+    // Resources publish their value a tick after the response (whenStable hangs here instead).
+    await new Promise((resolve) => setTimeout(resolve));
+    fixture.detectChanges();
+    http.verify(); // nothing else was requested
     expect(current(el)).toBe('Terminée');
+    expect(el.querySelector('app-analysis-result .summary')?.textContent).toContain(
+      'Résumé du contrat.',
+    );
     expect(events.observed).toBe(false); // stopped listening
     expect(stream.watch).toHaveBeenCalledTimes(1);
   });

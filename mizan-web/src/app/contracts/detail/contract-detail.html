@@ -14,9 +14,20 @@
     </p>
     @if (status(); as s) {
       <app-analysis-stepper [status]="s" />
-      <p class="next" [class.failed]="s === 'FAILED'">
-        {{ 'detail.' + s.toLowerCase() | transloco }}
-      </p>
+      @if (s !== 'COMPLETE') {
+        <p class="next" [class.failed]="s === 'FAILED'">
+          {{ 'detail.' + s.toLowerCase() | transloco }}
+        </p>
+      } @else if (result.hasValue()) {
+        <app-analysis-result [result]="result.value()" />
+      } @else if (result.error()) {
+        <p class="error">{{ 'result.loadError' | transloco }}</p>
+        <button mat-button type="button" (click)="result.reload()">
+          {{ 'contracts.retry' | transloco }}
+        </button>
+      } @else {
+        <p class="loading">{{ 'detail.loading' | transloco }}</p>
+      }
     }
   } @else if (notFound()) {
     <h1>{{ 'detail.notFound' | transloco }}</h1>

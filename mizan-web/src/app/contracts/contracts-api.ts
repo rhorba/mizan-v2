@@ -13,6 +13,29 @@ export interface AnalysisSummary {
   requestedAt: string;
 }
 
+export type RiskLevel = 'HIGH' | 'MEDIUM' | 'LOW';
+
+/** One risky clause (Story 4.1); suggestedCorrection is null when none is proposed. */
+export interface ClauseFlag {
+  position: number;
+  clauseText: string;
+  riskLevel: RiskLevel;
+  explanation: string;
+  suggestedCorrection: string | null;
+}
+
+/** GET /api/v1/contracts/{id}/analyses/{analysisId} */
+export interface AnalysisResult {
+  id: string;
+  language: AnalysisLanguage;
+  status: AnalysisStatus;
+  summary: string | null;
+  failureReason: string | null;
+  requestedAt: string;
+  completedAt: string | null;
+  flags: ClauseFlag[];
+}
+
 export interface ContractSummary {
   id: string;
   fileName: string;
@@ -81,6 +104,10 @@ export class ContractsApi {
 
   url(id: string): string {
     return `${this.base}/${encodeURIComponent(id)}`;
+  }
+
+  analysisUrl(contractId: string, analysisId: string): string {
+    return `${this.url(contractId)}/analyses/${encodeURIComponent(analysisId)}`;
   }
 
   delete(id: string): Observable<void> {

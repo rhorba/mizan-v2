@@ -16,6 +16,8 @@ interface AnalysisRepository extends Repository<Analysis, UUID> {
 
   Optional<Analysis> findById(UUID id);
 
+  Optional<Analysis> findByIdAndContractId(UUID id, UUID contractId);
+
   List<Analysis> findByIdIn(Collection<UUID> ids);
 
   List<Analysis> findByContractIdOrderByRequestedAtDesc(UUID contractId);

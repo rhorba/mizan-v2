@@ -49,3 +49,5 @@ Newly published, unrelated to Sprint 3 code (main would fail too). Alpine has 1.
 
 ### [2026-10-26] ISSUE (fixed) — Web worker heap OOM hid a red run ("103 passed", exit 1)
 vi fake timers + advanceTimersByTime looped Angular's test scheduler → worker crash (exit 134). Fix: injectable POLL_MS, real timers at 20 ms. Also found: switchMap polling cancels in-flight requests (→ exhaustMap); resource.value() throws in error state (→ hasValue guard); a test-provider insert silently missed (edit scripts now assert matches).
+
+### [2026-10-26] ISSUE (fixed) — result fetched twice after completion: httpResource re-ran on a new analysis object with the same URL; now keyed on a computed URL string. Also: @angular/animations is not installed (Angular 22 Material needs none).

@@ -18,10 +18,13 @@ class ContractQueryService {
 
   private final ContractRepository contracts;
   private final AnalysisRepository analyses;
+  private final ClauseFlagRepository flags;
 
-  ContractQueryService(ContractRepository contracts, AnalysisRepository analyses) {
+  ContractQueryService(
+      ContractRepository contracts, AnalysisRepository analyses, ClauseFlagRepository flags) {
     this.contracts = contracts;
     this.analyses = analyses;
+    this.flags = flags;
   }
 
   /** A contract with its most recent analysis (null only if none exists). */
@@ -57,6 +60,22 @@ class ContractQueryService {
     List<Analysis> all = analyses.findByContractIdOrderByRequestedAtDesc(contract.id());
     return new Entry(contract, all.isEmpty() ? null : all.getFirst());
   }
+
+  /** Story 4.1: one analysis of an owned contract, with its flags in the model's order. */
+  @Transactional(readOnly = true)
+  Result result(String ownerSub, UUID contractId, UUID analysisId) {
+    Contract contract =
+        contracts
+            .findByIdAndOwnerSub(contractId, ownerSub)
+            .orElseThrow(() -> new ContractProblemException(ContractProblem.NOT_FOUND));
+    Analysis analysis =
+        analyses
+            .findByIdAndContractId(analysisId, contract.id())
+            .orElseThrow(() -> new ContractProblemException(ContractProblem.ANALYSIS_NOT_FOUND));
+    return new Result(analysis, flags.findByAnalysisIdOrderByPosition(analysis.id()));
+  }
+
+  record Result(Analysis analysis, List<ClauseFlag> flags) {}
 
   @Transactional
   void delete(String ownerSub, UUID id) {

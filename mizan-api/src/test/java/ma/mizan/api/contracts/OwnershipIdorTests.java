@@ -38,11 +38,13 @@ class OwnershipIdorTests {
   RequestMappingHandlerMapping mappings;
 
   UUID aliceContract;
+  UUID aliceAnalysis;
 
   @BeforeEach
   void aliceOwnsAContract() {
     jdbc.sql("DELETE FROM mizan.contracts").update();
     aliceContract = UUID.randomUUID();
+    aliceAnalysis = UUID.randomUUID();
     jdbc.sql(
             "INSERT INTO mizan.contracts (id, owner_sub, file_name, page_count, text_content)"
                 + " VALUES (?, 'alice', 'alice.pdf', 1, 'confidential clause')")
@@ -50,8 +52,8 @@ class OwnershipIdorTests {
         .update();
     jdbc.sql(
             "INSERT INTO mizan.analyses (id, contract_id, language, status)"
-                + " VALUES (gen_random_uuid(), ?, 'fr', 'PENDING')")
-        .param(aliceContract)
+                + " VALUES (?, ?, 'fr', 'PENDING')")
+        .params(aliceAnalysis, aliceContract)
         .update();
   }
 
@@ -61,7 +63,12 @@ class OwnershipIdorTests {
     assertThat(endpoints).as("discovered endpoints").isNotEmpty();
 
     for (Map.Entry<HttpMethod, String> endpoint : endpoints) {
-      String uri = endpoint.getValue().replace("{id}", aliceContract.toString());
+      // Alice's real ids: the strongest case. A new path variable fails loudly until added here.
+      String uri =
+          endpoint
+              .getValue()
+              .replace("{id}", aliceContract.toString())
+              .replace("{analysisId}", aliceAnalysis.toString());
       var response =
           mvc.perform(
               org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request(

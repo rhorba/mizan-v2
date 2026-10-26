@@ -1,0 +1,127 @@
+.result {
+  display: grid;
+  gap: var(--mz-sp-lg);
+  margin-block-start: var(--mz-sp-lg);
+}
+
+// docs/ui: summary left, flags right on desktop (logical, so it mirrors in RTL).
+@media (min-width: 1025px) {
+  .result {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    align-items: start;
+  }
+}
+
+h2 {
+  margin: 0 0 var(--mz-sp-sm);
+  color: var(--mz-primary);
+  font-size: var(--mz-fs-lg);
+}
+
+.summary p {
+  line-height: 1.7;
+}
+
+.notice {
+  padding: var(--mz-sp-sm) var(--mz-sp-md);
+  border-inline-start: 3px solid var(--mz-accent);
+  color: var(--mz-text-muted);
+  font-size: var(--mz-fs-sm);
+}
+
+.filters {
+  margin-block-end: var(--mz-sp-md);
+}
+
+mat-panel-title {
+  display: flex;
+  align-items: center;
+  gap: var(--mz-sp-sm);
+  min-inline-size: 0;
+}
+
+.clause-title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+// Risk is a word plus a shape, never colour alone (docs/ui §2).
+.risk {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: var(--mz-fs-sm);
+  font-weight: 700;
+}
+
+.shape {
+  inline-size: 10px;
+  block-size: 10px;
+  background: currentColor;
+}
+
+.high {
+  color: var(--mz-risk-high);
+
+  .shape {
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  }
+}
+
+.medium {
+  color: var(--mz-risk-medium);
+
+  .shape {
+    transform: rotate(45deg) scale(0.8);
+  }
+}
+
+.low {
+  color: var(--mz-risk-low);
+
+  .shape {
+    border-radius: 50%;
+  }
+}
+
+.details {
+  margin: 0;
+
+  dt {
+    margin-block-start: var(--mz-sp-sm);
+    color: var(--mz-text-muted);
+    font-size: var(--mz-fs-sm);
+    font-weight: 600;
+  }
+
+  dd {
+    margin: var(--mz-sp-xs) 0 0;
+    line-height: 1.6;
+  }
+}
+
+blockquote {
+  margin: 0;
+  padding-inline-start: var(--mz-sp-md);
+  border-inline-start: 3px solid var(--mz-rule);
+}
+
+.suggestion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--mz-sp-sm);
+
+  blockquote {
+    flex: 1 1 20rem;
+  }
+}
+
+.no-flags {
+  color: var(--mz-text-muted);
+}
