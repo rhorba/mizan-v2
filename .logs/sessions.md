@@ -38,3 +38,8 @@ Watch: live Claude spend ≈ $0.13 of $3; Keycloak CVE exception expires 2026-11
 
 ### [2026-10-27] SESSION_START — Sprint 4 resume (B4)
 Resumed from SESSION_END 2026-10-26: B1–B3 committed (4b2a088, 2d08b50, ed4e412), not pushed. Plan approved. Target: B4 Story 4.3 re-analyze in another language, then B5, B6. Phase: UNDERSTAND (resumption).
+
+### [2026-10-27] SESSION_END — Sprint 4 complete (PR #12 merged, main green)
+Done: B4 re-analyze tabs (d6e9e61), B5 admin stats + daily chart + PostgreSQL-decides-the-day tz fix (408085d), B6 axe audit, SSE stream cap, real-stack E2E, docs, video v0.4 (96fea4b). Branch CI 6/6 (push + PR), main 7038726 6/6. Coverage 97.0% backend / 98.1% web. Live Claude spend ≈ $0.42 of $3 total.
+Next: owner merges chore/sprint-4-close (logs only) → Sprint 5 (→ Nov 27): 6.1 tracing/metrics/logs, 6.2, 7.1. Needs SONAR_TOKEN at UNDERSTAND; later OCI + host + SMTP (Sprints 5–6).
+Watch: owner to rotate the API key pasted in chat (expires 2026-11-25); Keycloak CVE exception expires 2026-11-30; JDK tzdata (drop the DailyUsage#dayOf note once the JDK ships ≥ 2026c); brotli-libs Dockerfile patch; Kafka retention for text topics before preprod; stop mizan-analyzer before non-Claude E2E runs. Local stack still up (analyzer stopped).

@@ -406,3 +406,14 @@ Fixed MEDIUM: no cap on open SSE streams — one account could hold thousands of
 ### [2026-10-27] VERIFY — real-stack E2E + accessibility + VIDEO_RECORDED
 New e2e/results-and-stats.spec.ts: (opt-in E2E_CLAUDE) upload → stepper reaches Terminée via SSE alone → result (summary, note, flags) → axe fr → re-analyze in Arabic → 2nd tab selected, menu gone while running → Terminée live → RTL result → axe ar → French tab ltr → history Terminée; (always) axe WCAG 2.2 AA on history, upload, pending contract, admin stats fr+ar, keyboard tooltip, table view. axe found 1 serious: aria-label on rects inside svg role=img (children presentational → days unreachable) → svg role=group, day hit targets role=img, marks/ticks aria-hidden; pinned in unit spec. Sprint 3 Claude test folded into the new spec (it reloaded instead of following live). Results: Claude test PASS (run 1, 2 real calls); other 4 PASS after fixing stale B1/B2 assertions (cap 3→5 in fr/ar/API, stepper instead of chip); analyzer stopped for non-Claude runs. @axe-core/playwright 4.13.0 (exact, >2 weeks old).
 VIDEO_RECORDED .recordings/v0.4-2026-10-27.webm (122 s, VP9): sign-up/quota (fr/ar), upload/history/delete, live status → result → Arabic tab, accessibility + admin statistics fr/ar, admin access + DLT. Frames checked at 45/60/94–104 s.
+
+### [2026-10-27] PUSH — feature/s4-results @ 96fea4b (4b2a088, 2d08b50, ed4e412, d6e9e61, 408085d, 96fea4b). CI monitoring started.
+
+### [2026-10-27] RETROSPECTIVE — Sprint 4
+- **Went well**: tests that pin real-world facts paid off — the 00:30 Casablanca boundary case exposed stale JDK tzdata no unit test of Java alone could; rendering the charts and looking at them (light/dark/ar/375 px) found 3 defects the specs passed; the palette validator replaced taste with numbers; axe found a real screen-reader dead end; the parallel-request tests (caps, re-analysis) proved the locks.
+- **Went badly**: B1/B2 changed user-visible behavior (cap 3→5, stepper) without touching the E2E specs, so 3 stale assertions waited until B6; local E2E silently billed Claude for every upload; Python text-mode writes on Windows produced CRLF (one format failure); one more bash heredoc quoting failure despite the Sprint 3 lesson.
+- **Change for Sprint 5**: when a batch changes something a user sees, grep e2e/ for it in the same batch; stop mizan-analyzer before non-Claude E2E runs (documented in playwright.config.ts); write helper scripts with the Write tool and open files with newline='' in Python; keep running the real stack once per sprint before VERIFY (it caught 4 more issues this time).
+
+### [2026-10-27] CI GREEN — 96fea4b: push 40491946975 + PR 40491995107, all jobs success. PR #12 merged by owner (7038726); main CI 40493460823 in progress.
+
+### [2026-10-27] CI GREEN — main @ 7038726 (merge of PR #12), run 40493460823, 6/6 jobs success. Sprint 4 fully closed.
