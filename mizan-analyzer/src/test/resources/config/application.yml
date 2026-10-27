@@ -1,0 +1,4 @@
+# Every analyzer test, whatever its profile.
+# Story 6.1: no metrics push from tests (the default would target localhost:4318, i.e. a local
+# Grafana if one runs). Traces and logs export nowhere unless OTEL_EXPORTER_OTLP_ENDPOINT is set.
+management.otlp.metrics.export.enabled: false

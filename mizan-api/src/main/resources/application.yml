@@ -34,6 +34,11 @@ spring:
       hibernate.default_schema: mizan
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    # Story 6.1: the trace continues through Kafka (traceparent header) in both directions.
+    template:
+      observation-enabled: true
+    listener:
+      observation-enabled: true
     consumer:
       group-id: mizan-api
       auto-offset-reset: earliest
@@ -59,6 +64,11 @@ spring:
       republish-outstanding-events-on-restart: true
 
 management:
+  # Story 6.1: every analysis is traced (demo traffic); export goes to OTEL_EXPORTER_OTLP_ENDPOINT,
+  # which Boot maps to traces, metrics and logs. Without it (tests, IDE) nothing is exported.
+  tracing:
+    sampling:
+      probability: 1.0
   endpoints:
     web:
       exposure:

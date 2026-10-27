@@ -417,3 +417,19 @@ VIDEO_RECORDED .recordings/v0.4-2026-10-27.webm (122 s, VP9): sign-up/quota (fr/
 ### [2026-10-27] CI GREEN — 96fea4b: push 40491946975 + PR 40491995107, all jobs success. PR #12 merged by owner (7038726); main CI 40493460823 in progress.
 
 ### [2026-10-27] CI GREEN — main @ 7038726 (merge of PR #12), run 40493460823, 6/6 jobs success. Sprint 4 fully closed.
+
+### [2026-10-27] UNDERSTAND — Sprint 5
+State: no tracing deps/config in api/analyzer (compose already sets OTEL_EXPORTER_OTLP_ENDPOINT, runs grafana/otel-lgtm 0.37.0, unused); no Sonar job in CI; no infra/. Tooling: Terraform 1.11.4 (native `oci` backend needs >= 1.12 → upgrade), no OCI CLI/config, ~/.ssh/id_ed25519.pub present. Inputs needed from owner: SonarCloud org + project + SONAR_TOKEN (GitHub secret); OCI region, tenancy/user/compartment OCIDs, API key fingerprint + private key path, Object Storage namespace, owner IP for SSH. Risks: A1 capacity in home region; Modulith externalization may drop trace context (after-commit, other thread); browser→API trace needs OTel web SDK + CORS on OTLP.
+
+### [2026-10-27] HANDOFF DevOps (brainstorm) → Scrum Master (plan)
+Context: options chosen (6.1 🔴, 6.2, 7.1 🟡). Need: batches. Constraints: owner inputs gate B4/B5; apply only on owner OK.
+
+### [2026-10-27] PLAN — Sprint 5 (feature/s5-observability), awaiting owner approval
+B1 backend tracing + Loki logs + no-text test ~5h · B2 browser OTel (traceparent to API only, CORS) ~3h · B3 metrics (tokens, outcomes, p95, lag) + Grafana dashboard + 4 alert rules as code + real-stack trace proof ~5h · B4 SonarCloud job + gate (needs keys/secret) ~2h · B5 Terraform bootstrap + main (net, SG, A1, reserved IP, k3s cloud-init, AD retry) + fmt/validate/Trivy IaC; apply only on OK ~6h · B6 verify/docs/video v0.5/ship ~3h. Total ~24h vs 3.5 days. Slip order: B3 dashboards/alerts first.
+
+### [2026-10-27] APPROVED — Sprint 5 plan approved by owner. EXECUTE B1 started on feature/s5-observability. HANDOFF Scrum Master → DevOps + Backend Dev.
+
+### [2026-10-27] B1 progress — backend tracing + logs (uncommitted)
+spring-boot-starter-opentelemetry (Boot 4.1.2, OTel 1.62.0) in api + analyzer; opentelemetry-logback-appender-1.0 2.28.1-alpha (the release built on API 1.62.0; newer ones pull 1.63+), OTEL appender in logback-spring.xml + LogExport install bean; sampling 1.0; Kafka template + listener observation on; Spring AI log-prompt/completion/error-logging explicitly false. Boot maps OTEL_EXPORTER_OTLP_* (compose already sets it). Found by test: outbox send started a NEW trace — Modulith DelegatingEventExternalizer is @ApplicationModuleListener (@Async) → ContextPropagatingTaskDecorator bean. Found by enforcer: OTel OkHttp 5 sender vs Anthropic OkHttp 4 (okio 3.16 vs 3.6) → excluded, opentelemetry-exporter-sender-jdk instead (no third-party HTTP client). Tests: api TracingTests x2 (upload request + audit log + outbox send + traceparent header one trace; apply joins analyzer trace; no contract text / file name / Bearer in any span or log), analyzer TracingTests (trace continues request → completed header; no text). Model-call span (Spring AI) only exists with the real model → proven on the real stack in B3.
+
+### [2026-10-27] B1 DONE — backend tracing + logs. Also: OutboxTests now asserts the only header is traceparent (still no __TypeId__); metrics push off in tests via config/application.yml in both apps (default targets localhost:4318); analyzer TracingTests robust to other tests' leftover requests (filter by trace id, anySatisfy). Verify: mvn verify green, API 151 + analyzer 39 (clean report dirs; earlier sprint counts included stale reports), 0 OTLP push lines in test logs.

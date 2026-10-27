@@ -14,6 +14,9 @@ mizan:
     uploads-per-minute: 1000 # tests upload often; UploadDefencesTests sets its own limit
   events:
     resend-stale: false # OutboxTests drive resubmission explicitly
+# Story 6.1: no metrics push from tests (the default would target localhost:4318, i.e. a local
+# Grafana if one runs). Traces and logs export nowhere unless OTEL_EXPORTER_OTLP_ENDPOINT is set.
+management.otlp.metrics.export.enabled: false
 spring.kafka.producer.properties:
   # Fail fast when OutboxTests pauses the broker (defaults wait 60-120 s).
   max.block.ms: 3000
