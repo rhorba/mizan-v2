@@ -54,3 +54,14 @@ Backend (aggregate, no exclusions): lines 99 %, branches 91 % (110 tests incl. T
 - **Decisions**: model claude-opus-5-5 (owner), no sampling params, live tests opt-in, budget in API, results accepted while PENDING/ANALYZING, V2/V3 migration swap
 
 ### [2026-10-27] COVERAGE — Sprint 4: lines 97.0% (api 96.9%, analyzer 97.1%); web lines 98.1% / branches 94.3% (only app.routes.ts < 90%: lazy loadComponent arrows, covered by E2E). Gate 80% → PASS. Tests: API 154, analyzer 40, web 130.
+
+### [2026-10-27] COST — Live Claude spend this sprint ≈ $0.29 (9 Opus analyses: 2 opt-in E2E calls + 7 unintended, from E2E uploads while the local analyzer had the key; see issues.md). Running total ≈ $0.42 of the $3/month cap.
+
+### [2026-10-27] SPRINT_SNAPSHOT — Sprint 4 (goal: live status, results, re-analysis, quotas, admin statistics)
+- **Planned stories**: 5 (3.4, 4.1, 4.3, 5.1, 5.2) + 🔴 extras (admin charts, axe audit, multi-instance SSE fan-out) — **Completed**: all — Dropped: 0; ~2 days vs 4.5 planned (estimate ~29 h)
+- **Tests**: API 154 (+28), analyzer 40 (+3), web 130 (+36), E2E 5 (+1 net: +2 new, Sprint 3 Claude test folded in; 1 opt-in real Claude, axe audit runs in CI); coverage lines 97.0 % backend, 98.1 % web
+- **CI**: see the PUSH / CI entries in activity.md (PR #12)
+- **Defects caught by our own checks before ship**: 12 — JDK tzdata drift (quota day 1 h early, every env), red/green chart CVD failure, chart text scaling (19 px desktop / 4 px phone), detached risk values, style budget, svg role=img hiding focusable days (axe), unbounded SSE streams (security review), tab choice hiding a result behind a later failure, re-analysis double click (lock), 3 stale E2E assertions from B1/B2, local E2E uploads billed — all fixed or mitigated
+- **Security**: review of sprint diff: 1 MEDIUM (SSE stream cap) fixed; 0 HIGH; admin 403/401 + no-PII tests on stats; IDOR suite now posts valid bodies
+- **Accessibility**: axe WCAG 2.2 AA clean on history, upload, contract (pending, result fr, result ar tab), admin statistics fr/ar
+- **Decisions**: PostgreSQL decides the day (owner); chart palette from the validated reference status set; risk split single-hue; re-analysis rules (409s, FAILED re-requestable); 10 streams per user
