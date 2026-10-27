@@ -52,3 +52,5 @@ Backend (aggregate, no exclusions): lines 99 %, branches 91 % (110 tests incl. T
 - **Security**: review of sprint diff: 0 HIGH/MEDIUM; admin 403 tests; DLT view never returns text; Trivy/Semgrep/Gitleaks green
 - **Cost**: live Claude ≈ $0.13 total this sprint (Opus ×3 incl. E2E) of $3/month cap
 - **Decisions**: model claude-opus-5-5 (owner), no sampling params, live tests opt-in, budget in API, results accepted while PENDING/ANALYZING, V2/V3 migration swap
+
+### [2026-10-27] COVERAGE — Sprint 4: lines 97.0% (api 96.9%, analyzer 97.1%); web lines 98.1% / branches 94.3% (only app.routes.ts < 90%: lazy loadComponent arrows, covered by E2E). Gate 80% → PASS. Tests: API 154, analyzer 40, web 130.

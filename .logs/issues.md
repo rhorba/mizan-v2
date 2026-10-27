@@ -59,3 +59,11 @@ IANA tzdata 2026c (2026-07-08) moved Morocco to permanent UTC+00 from 2026-09-20
 
 ### [2026-10-27] ISSUE — 10 analyses stuck in PENDING on the local stack (requested 2026-10-23)
 Seen on /admin while checking B5. Likely Sprint 2 E2E data from before the analyzer existed (no publication to resubmit), but unverified. Status: OPEN — check in B6 VERIFY (event_publication rows? analyzer logs?) before calling it dev-data only.
+
+### [2026-10-27] ISSUE CLOSED — stuck PENDING ×10: created 2026-10-23 13:58 within 4 s by one E2E user (Sprint 2 paging test), before V2 outbox existed (installed 2026-10-26) → never requested. Dev data, not a pipeline bug; event_publication empty. Local rows left as is.
+
+### [2026-10-27] ISSUE — local E2E uploads billed real Claude calls
+With ANTHROPIC_API_KEY in .env the analyzer analyzes every E2E upload, not only E2E_CLAUDE tests (spec comments claimed otherwise). Today: 9 analyses, 10 367 in / 12 651 out tokens ≈ $0.29 (cap $3/month). Mitigation: playwright.config documents stopping mizan-analyzer for non-Claude runs (CI has no key). Status: MITIGATED (doc + practice); a stack profile without the analyzer could make it automatic — deferred (YAGNI until it bites again).
+
+### [2026-10-27] ISSUE — stale E2E assertions from B1/B2 caught by the real-stack run
+sign-up spec still expected the Sprint 1 cap (3) in UI and API; upload spec read a status chip the contract page no longer has (stepper since B2) and asserted PENDING where the live page moves on. Unit suites could not see these; nothing was pushed, so CI never ran them. Fixed.

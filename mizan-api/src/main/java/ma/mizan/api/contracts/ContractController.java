@@ -164,7 +164,8 @@ class ContractController {
    */
   @GetMapping(path = "/{id}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   SseEmitter events(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
-    return streams.open(id, AnalysisView.of(queries.get(jwt.getSubject(), id).latest()));
+    return streams.open(
+        jwt.getSubject(), id, AnalysisView.of(queries.get(jwt.getSubject(), id).latest()));
   }
 
   @GetMapping("/{id}/analyses/{analysisId}")

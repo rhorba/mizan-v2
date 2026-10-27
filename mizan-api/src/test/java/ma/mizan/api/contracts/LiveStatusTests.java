@@ -109,6 +109,42 @@ class LiveStatusTests {
   }
 
   @Test
+  void oneUserCannotHoldMoreThanTheCapOfOpenStreams() throws Exception {
+    // A user of her own, so streams left open by other tests do not count.
+    String carol = "carol-" + UUID.randomUUID();
+    UUID carolsContract = UUID.randomUUID();
+    jdbc.sql(
+            "INSERT INTO mizan.contracts (id, owner_sub, file_name, page_count, text_content)"
+                + " VALUES (?, ?, 'c.pdf', 1, 'Article 1.')")
+        .params(carolsContract, carol)
+        .update();
+
+    for (int i = 0; i < StatusStreams.MAX_PER_USER; i++) {
+      MvcResult open =
+          mockMvc
+              .perform(get("/api/v1/contracts/{id}/events", carolsContract).with(as(carol)))
+              .andReturn();
+      assertThat(open.getRequest().isAsyncStarted()).as("stream %d", i + 1).isTrue();
+    }
+
+    MvcResult refused =
+        mockMvc
+            .perform(get("/api/v1/contracts/{id}/events", carolsContract).with(as(carol)))
+            .andReturn();
+    assertThat(refused.getRequest().isAsyncStarted()).isFalse();
+    assertThat(refused.getResponse().getStatus()).isEqualTo(429);
+    assertThat(refused.getResponse().getContentAsString())
+        .contains("urn:mizan:problem:too-many-streams");
+
+    // The cap is per user: Alice is not affected by Carol's streams.
+    MvcResult alice =
+        mockMvc
+            .perform(get("/api/v1/contracts/{id}/events", contractId).with(as("alice")))
+            .andReturn();
+    assertThat(alice.getRequest().isAsyncStarted()).isTrue();
+  }
+
+  @Test
   void eachInstanceConsumesTheStatusTopicWithItsOwnGroup() {
     MessageListenerContainer status =
         listeners.getListenerContainers().stream()

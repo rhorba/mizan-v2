@@ -30,3 +30,14 @@ export async function signUpNewUser(
   await expect(page).toHaveURL('http://localhost:4200/contracts');
   return { email, authorization: (await quota).headers()['authorization'] };
 }
+
+/** Signs out and in again, e.g. so a role granted meanwhile is in the new token. */
+export async function signInAgain(page: Page, email: string): Promise<void> {
+  await page.getByRole('button', { name: 'Se déconnecter' }).click();
+  await expect(page).toHaveURL('http://localhost:4200/');
+  await page.getByRole('button', { name: 'Se connecter' }).click();
+  await page.fill('#username', email);
+  await page.fill('#password', PASSWORD);
+  await page.locator('[type=submit]').click();
+  await expect(page).toHaveURL('http://localhost:4200/contracts');
+}

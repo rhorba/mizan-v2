@@ -160,6 +160,10 @@ describe('AdminStats', () => {
     fixture.detectChanges();
     expect(text(el.querySelector('.tooltip'))).toContain('Terminées 3');
     expect(hits[0].getAttribute('aria-label')).toContain('terminées 3, en cours 0, échouées 1');
+    // Children of role=img are hidden from assistive tech: the chart is a group of labelled days.
+    expect(el.querySelector('svg')!.getAttribute('role')).toBe('group');
+    expect(hits[0].getAttribute('role')).toBe('img');
+    expect(el.querySelector('svg g')!.getAttribute('aria-hidden')).toBe('true');
     hits[0].dispatchEvent(new FocusEvent('blur'));
     fixture.detectChanges();
     expect(el.querySelector('.tooltip')).toBeNull();

@@ -28,15 +28,28 @@ class StatusStreams {
   /** Browsers reconnect or fall back to polling after this. */
   static final Duration TIMEOUT = Duration.ofMinutes(5);
 
-  private final Map<UUID, Set<SseEmitter>> byContract = new ConcurrentHashMap<>();
+  /**
+   * Open streams one user may hold (a few tabs on a few contracts). Each holds a connection for up
+   * to {@link #TIMEOUT}, so without a cap one account could exhaust the server's connections.
+   */
+  static final int MAX_PER_USER = 10;
 
-  /** Opens a stream and sends the current status first, so the page cannot miss a change. */
-  SseEmitter open(UUID contractId, ContractController.AnalysisView current) {
+  private final Map<UUID, Set<SseEmitter>> byContract = new ConcurrentHashMap<>();
+  private final Map<String, Set<SseEmitter>> byOwner = new ConcurrentHashMap<>();
+
+  /**
+   * Opens a stream and sends the current status first, so the page cannot miss a change.
+   *
+   * @throws ContractProblemException TOO_MANY_STREAMS when the user already holds {@link
+   *     #MAX_PER_USER}; the page then polls instead
+   */
+  SseEmitter open(String ownerSub, UUID contractId, ContractController.AnalysisView current) {
     SseEmitter emitter = new SseEmitter(TIMEOUT.toMillis());
-    Set<SseEmitter> streams =
-        byContract.computeIfAbsent(contractId, id -> new CopyOnWriteArraySet<>());
-    streams.add(emitter);
-    Runnable remove = () -> remove(contractId, emitter);
+    if (!reserve(ownerSub, emitter)) {
+      throw new ContractProblemException(ContractProblem.TOO_MANY_STREAMS);
+    }
+    byContract.computeIfAbsent(contractId, id -> new CopyOnWriteArraySet<>()).add(emitter);
+    Runnable remove = () -> release(contractId, emitter);
     emitter.onCompletion(remove);
     emitter.onTimeout(remove);
     emitter.onError(e -> remove.run());
@@ -72,7 +85,7 @@ class StatusStreams {
                   try {
                     emitter.send(SseEmitter.event().comment("keep-alive"));
                   } catch (IOException | IllegalStateException gone) {
-                    remove(contractId, emitter);
+                    release(contractId, emitter);
                   }
                 }));
   }
@@ -87,11 +100,37 @@ class StatusStreams {
       emitter.send(SseEmitter.event().name("status").data(view, MediaType.APPLICATION_JSON));
     } catch (IOException | IllegalStateException gone) {
       LOG.debug("Dropping a closed status stream for contract={}", contractId);
-      remove(contractId, emitter);
+      release(contractId, emitter);
     }
   }
 
-  private void remove(UUID contractId, SseEmitter emitter) {
+  /** Adds the stream to the user's set only below the cap, atomically. */
+  private boolean reserve(String ownerSub, SseEmitter emitter) {
+    boolean[] added = {false};
+    byOwner.compute(
+        ownerSub,
+        (owner, streams) -> {
+          Set<SseEmitter> set = streams == null ? new CopyOnWriteArraySet<>() : streams;
+          if (set.size() < MAX_PER_USER) {
+            added[0] = set.add(emitter);
+          }
+          return set.isEmpty() ? null : set;
+        });
+    return added[0];
+  }
+
+  /** Forgets a stream in both indexes; idempotent, so every close path may call it. */
+  private void release(UUID contractId, SseEmitter emitter) {
+    byOwner
+        .keySet()
+        .forEach(
+            owner ->
+                byOwner.computeIfPresent(
+                    owner,
+                    (o, streams) -> {
+                      streams.remove(emitter);
+                      return streams.isEmpty() ? null : streams;
+                    }));
     byContract.computeIfPresent(
         contractId,
         (id, streams) -> {

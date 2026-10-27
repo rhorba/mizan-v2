@@ -63,6 +63,8 @@ CREATE TABLE daily_usage (
 ```
 Quota increments use `INSERT … ON CONFLICT (owner_sub, usage_day) DO UPDATE SET analyses = daily_usage.analyses + 1 WHERE daily_usage.analyses < :cap RETURNING analyses` — atomic, no race. The global cap uses the same upsert on the day's `'*'` row, taken **first** in the same transaction (fixed lock order, no deadlock); a `SUM` would let two parallel requests both pass at cap − 1 (Sprint 4 correction). A FAILED analysis decrements both rows (refund); token counts are added on completion and failure, so spend survives contract deletion.
 
+**Which day** (Sprint 4 correction): PostgreSQL computes it (`(ts AT TIME ZONE 'Africa/Casablanca')::date`), never the JVM. Morocco moved to permanent UTC+0 on 2026-09-20 (IANA tzdata 2026c); the JDK's bundled tzdata lagged (2026a/2026b still said UTC+1), so Java put 23:00–24:00 on the next day. The admin statistics count days in SQL with the same rule. `DayBoundaryTests` pins the boundary.
+
 ## 4. Index Strategy
 | Table | Index Name | Columns | Query Pattern |
 |---|---|---|---|

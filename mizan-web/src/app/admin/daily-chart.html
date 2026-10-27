@@ -17,24 +17,32 @@
     [attr.viewBox]="'0 0 ' + box().w + ' ' + box().h"
     [attr.width]="box().w"
     [attr.height]="box().h"
-    role="img"
+    role="group"
     dir="ltr"
     [attr.aria-label]="'admin.stats.perDay' | transloco"
   >
     @for (tick of ticks(); track tick.value) {
       <line
+        aria-hidden="true"
         class="grid"
         [attr.x1]="box().pad.left"
         [attr.x2]="box().w - box().pad.right"
         [attr.y1]="tick.y"
         [attr.y2]="tick.y"
       />
-      <text class="tick" [attr.x]="box().pad.left - 6" [attr.y]="tick.y" text-anchor="end">
+      <text
+        aria-hidden="true"
+        class="tick"
+        [attr.x]="box().pad.left - 6"
+        [attr.y]="tick.y"
+        text-anchor="end"
+      >
         {{ int(tick.value) }}
       </text>
     }
     @for (c of columns(); track c.day; let i = $index) {
-      <g [class.dim]="hovered() !== null && hovered() !== i">
+      <!-- Marks and ticks are drawn for the eye; each day's hit target carries its words. -->
+      <g aria-hidden="true" [class.dim]="hovered() !== null && hovered() !== i">
         @for (seg of c.segments; track seg.series) {
           @if (seg.path; as d) {
             <path [class]="'mark ' + seg.series" [attr.d]="d" />
@@ -50,12 +58,19 @@
         }
       </g>
       @if (labelled().has(i)) {
-        <text class="tick" [attr.x]="c.x + bar() / 2" [attr.y]="baseline + 18" text-anchor="middle">
+        <text
+          aria-hidden="true"
+          class="tick"
+          [attr.x]="c.x + bar() / 2"
+          [attr.y]="baseline + 18"
+          text-anchor="middle"
+        >
           {{ shortDay(c.day) }}
         </text>
       }
       <rect
         class="hit"
+        role="img"
         tabindex="0"
         [attr.x]="box().pad.left + i * slot()"
         [attr.y]="box().pad.top"
@@ -78,6 +93,7 @@
       />
     }
     <line
+      aria-hidden="true"
       class="axis"
       [attr.x1]="box().pad.left"
       [attr.x2]="box().w - box().pad.right"

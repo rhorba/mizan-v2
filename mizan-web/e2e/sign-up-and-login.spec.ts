@@ -62,7 +62,7 @@ test('visitor signs up, verifies the e-mail, sees the quota, and logs out', asyn
     await page.fill('#password-confirm', PASSWORD);
     await page.locator('[type=submit]').click();
     await expect(page).toHaveURL('http://localhost:4200/contracts');
-    await expect(page.locator('.quota-chip')).toHaveText("3 analyses restantes aujourd'hui");
+    await expect(page.locator('.quota-chip')).toHaveText("5 analyses restantes aujourd'hui");
   });
 
   const authorization = (await quotaRequest).headers()['authorization'];
@@ -80,7 +80,7 @@ test('visitor signs up, verifies the e-mail, sees the quota, and logs out', asyn
       headers: { Authorization: authorization },
     });
     expect(quota.status()).toBe(200);
-    expect(await quota.json()).toEqual({ limit: 3, used: 0, remaining: 3 });
+    expect(await quota.json()).toEqual({ limit: 5, used: 0, remaining: 5 });
 
     const anonymous = await request.get(`${API_URL}/api/v1/me/quota`);
     expect(anonymous.status()).toBe(401);
@@ -95,7 +95,7 @@ test('visitor signs up, verifies the e-mail, sees the quota, and logs out', asyn
   await step('Arabic: right-to-left with the Arabic plural', async () => {
     await page.getByRole('button', { name: 'Afficher en arabe' }).click();
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-    await expect(page.locator('.quota-chip')).toHaveText('3 تحليلات متبقية اليوم');
+    await expect(page.locator('.quota-chip')).toHaveText('5 تحليلات متبقية اليوم');
   });
 
   await step('logout ends the Keycloak session', async () => {

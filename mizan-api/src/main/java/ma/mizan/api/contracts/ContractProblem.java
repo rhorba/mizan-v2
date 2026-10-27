@@ -15,6 +15,10 @@ enum ContractProblem {
       "already-analyzed",
       HttpStatus.CONFLICT,
       "This contract is already analyzed in that language."),
+  TOO_MANY_STREAMS(
+      "too-many-streams",
+      HttpStatus.TOO_MANY_REQUESTS,
+      "Too many open status streams; the page falls back to polling."),
   BAD_CURSOR("bad-cursor", HttpStatus.BAD_REQUEST, "The history cursor is not valid.");
 
   private final String slug;
