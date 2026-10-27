@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -48,6 +49,28 @@ class ContractController {
           c.id(), c.fileName(), c.pageCount(), c.createdAt(), AnalysisView.of(latest));
     }
   }
+
+  /** GET /{id}: the history fields plus every analysis, newest first (Story 4.3 tabs). */
+  record DetailView(
+      UUID id,
+      String fileName,
+      int pageCount,
+      Instant createdAt,
+      AnalysisView analysis,
+      List<AnalysisView> analyses) {
+    static DetailView of(ContractQueryService.Detail d) {
+      Contract c = d.contract();
+      return new DetailView(
+          c.id(),
+          c.fileName(),
+          c.pageCount(),
+          c.createdAt(),
+          AnalysisView.of(d.latest()),
+          d.analyses().stream().map(AnalysisView::of).toList());
+    }
+  }
+
+  record ReanalyzeRequest(String language) {}
 
   record HistoryView(List<ContractView> items, String nextCursor) {}
 
@@ -116,9 +139,23 @@ class ContractController {
   }
 
   @GetMapping("/{id}")
-  ContractView get(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
-    ContractQueryService.Entry entry = queries.get(jwt.getSubject(), id);
-    return ContractView.of(entry.contract(), entry.latest());
+  DetailView get(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+    return DetailView.of(queries.get(jwt.getSubject(), id));
+  }
+
+  /** FR-7 / Story 4.3: 202 like an upload; the result arrives through the same pipeline. */
+  @PostMapping(path = "/{id}/analyses", consumes = MediaType.APPLICATION_JSON_VALUE)
+  ResponseEntity<AnalysisView> reanalyze(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID id,
+      @RequestBody ReanalyzeRequest request) {
+    Language lang =
+        Language.fromCode(request.language())
+            .orElseThrow(() -> new UploadRejectedException(UploadProblem.BAD_LANGUAGE));
+    Analysis analysis = uploads.reanalyze(jwt.getSubject(), id, lang);
+    return ResponseEntity.accepted()
+        .location(URI.create("/api/v1/contracts/" + id + "/analyses/" + analysis.id()))
+        .body(AnalysisView.of(analysis));
   }
 
   /**
@@ -127,8 +164,7 @@ class ContractController {
    */
   @GetMapping(path = "/{id}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   SseEmitter events(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
-    ContractQueryService.Entry entry = queries.get(jwt.getSubject(), id);
-    return streams.open(id, AnalysisView.of(entry.latest()));
+    return streams.open(id, AnalysisView.of(queries.get(jwt.getSubject(), id).latest()));
   }
 
   @GetMapping("/{id}/analyses/{analysisId}")

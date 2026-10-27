@@ -40,3 +40,27 @@
 .error {
   color: var(--mz-error);
 }
+
+.tabs {
+  margin-block-start: var(--mz-sp-md);
+}
+
+.tab-status {
+  margin-inline-start: var(--mz-sp-xs);
+  color: var(--mz-text-muted);
+}
+
+.reanalyze {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mz-sp-md);
+  margin-block-start: var(--mz-sp-lg);
+  padding-block-start: var(--mz-sp-md);
+  border-block-start: 1px solid var(--mz-rule);
+
+  .note {
+    margin: 0;
+    color: var(--mz-text-muted);
+  }
+}

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
@@ -73,6 +74,9 @@ class OwnershipIdorTests {
           mvc.perform(
               org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request(
                       endpoint.getKey(), uri)
+                  // A well-formed body, so a refusal can only come from the owner check.
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content("{\"language\":\"ar\"}")
                   .with(jwt().jwt(j -> j.subject("bob"))));
       assertThat(response)
           .as("%s %s as bob", endpoint.getKey(), endpoint.getValue())

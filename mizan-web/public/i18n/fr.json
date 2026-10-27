@@ -90,7 +90,9 @@
       "quota-exceeded": "Vous avez utilisé vos analyses du jour. Réessayez demain.",
       "global-quota-exceeded": "Le service a atteint sa limite d'analyses du jour. Réessayez demain.",
       "contract-not-found": "Contrat introuvable.",
-      "generic": "L'envoi a échoué. Vérifiez votre connexion et réessayez."
+      "generic": "L'envoi a échoué. Vérifiez votre connexion et réessayez.",
+      "analysis-in-progress": "Une analyse de ce contrat est déjà en cours. Attendez qu’elle se termine.",
+      "already-analyzed": "Ce contrat est déjà analysé dans cette langue."
     },
     "sizeKb": "{{value}} Ko",
     "sizeMb": "{{value}} Mo"
@@ -111,7 +113,17 @@
     },
     "analyzing": "Claude lit votre contrat. Cela prend souvent moins d'une minute ; cette page se met à jour toute seule.",
     "complete": "L'analyse est terminée.",
-    "failed": "L'analyse a échoué. Elle ne compte pas dans vos analyses du jour ; vous pouvez réessayer plus tard."
+    "failed": "L'analyse a échoué. Elle ne compte pas dans vos analyses du jour ; vous pouvez réessayer plus tard.",
+    "reanalyze": {
+      "button": "Analyser dans une autre langue",
+      "menu": "Langue de la nouvelle analyse",
+      "fr": "Analyser en français",
+      "ar": "Analyser en arabe",
+      "ary": "Analyser en darija",
+      "note": "Une nouvelle analyse compte comme une analyse du jour.",
+      "error": "La demande a échoué. Vérifiez votre connexion et réessayez."
+    },
+    "tabs": "Analyses de ce contrat"
   },
   "status": {
     "PENDING": "En attente",

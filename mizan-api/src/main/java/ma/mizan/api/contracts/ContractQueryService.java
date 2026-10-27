@@ -51,14 +51,20 @@ class ContractQueryService {
     return new Page(entries, next);
   }
 
+  /** A contract with every analysis, newest first (Story 4.3 tabs). */
+  record Detail(Contract contract, List<Analysis> analyses) {
+    Analysis latest() {
+      return analyses.isEmpty() ? null : analyses.getFirst();
+    }
+  }
+
   @Transactional(readOnly = true)
-  Entry get(String ownerSub, UUID id) {
+  Detail get(String ownerSub, UUID id) {
     Contract contract =
         contracts
             .findByIdAndOwnerSub(id, ownerSub)
             .orElseThrow(() -> new ContractProblemException(ContractProblem.NOT_FOUND));
-    List<Analysis> all = analyses.findByContractIdOrderByRequestedAtDesc(contract.id());
-    return new Entry(contract, all.isEmpty() ? null : all.getFirst());
+    return new Detail(contract, analyses.findByContractIdOrderByRequestedAtDesc(contract.id()));
   }
 
   /** Story 4.1: one analysis of an owned contract, with its flags in the model's order. */

@@ -7,6 +7,14 @@ import org.springframework.http.HttpStatus;
 enum ContractProblem {
   NOT_FOUND("contract-not-found", HttpStatus.NOT_FOUND, "No such contract."),
   ANALYSIS_NOT_FOUND("analysis-not-found", HttpStatus.NOT_FOUND, "No such analysis."),
+  ANALYSIS_IN_PROGRESS(
+      "analysis-in-progress",
+      HttpStatus.CONFLICT,
+      "An analysis of this contract is still running."),
+  ALREADY_ANALYZED(
+      "already-analyzed",
+      HttpStatus.CONFLICT,
+      "This contract is already analyzed in that language."),
   BAD_CURSOR("bad-cursor", HttpStatus.BAD_REQUEST, "The history cursor is not valid.");
 
   private final String slug;

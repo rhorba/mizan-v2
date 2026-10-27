@@ -37,13 +37,17 @@ describe('ContractDetail', () => {
     };
   }
 
-  const contract = (status: string | null) => ({
-    id: 'c-1',
-    fileName: 'a.pdf',
-    pageCount: 1,
-    createdAt: '',
-    analysis: status ? { id: 'a-1', language: 'fr', status, requestedAt: '' } : null,
-  });
+  const contract = (status: string | null) => {
+    const analysis = status ? { id: 'a-1', language: 'fr', status, requestedAt: '' } : null;
+    return {
+      id: 'c-1',
+      fileName: 'a.pdf',
+      pageCount: 1,
+      createdAt: '',
+      analysis,
+      analyses: analysis ? [analysis] : [],
+    };
+  };
   const current = (el: HTMLElement) => el.querySelector('[aria-current=step]')?.textContent?.trim();
 
   it('shows file, pages, language and the pending status', async () => {
@@ -55,6 +59,7 @@ describe('ContractDetail', () => {
       pageCount: 3,
       createdAt: '2026-10-23T10:00:00Z',
       analysis: { id: 'a-1', language: 'ary', status: 'PENDING', requestedAt: '' },
+      analyses: [{ id: 'a-1', language: 'ary', status: 'PENDING', requestedAt: '' }],
     });
     await fixture.whenStable();
     expect(el.querySelector('h1')?.textContent).toBe('عقد كراء.pdf');
@@ -120,6 +125,165 @@ describe('ContractDetail', () => {
     expect(stream.watch).not.toHaveBeenCalled();
   });
 
+  describe('other languages (Story 4.3)', () => {
+    const a = (id: string, language: string, status: string, minute: number) => ({
+      id,
+      language,
+      status,
+      requestedAt: `2026-10-27T10:0${minute}:00Z`,
+    });
+    const withAnalyses = (...newestFirst: ReturnType<typeof a>[]) => ({
+      ...contract(null),
+      analysis: newestFirst[0],
+      analyses: newestFirst,
+    });
+    const result = (id: string, summary: string) => ({
+      id,
+      language: 'fr',
+      status: 'COMPLETE',
+      summary,
+      failureReason: null,
+      requestedAt: '',
+      completedAt: '',
+      flags: [],
+    });
+    const tick = () => new Promise((resolve) => setTimeout(resolve));
+    /** whenStable() would wait for the pending result request: one tick, then render. */
+    const settle = async (fixture: { detectChanges(): void }) => {
+      fixture.detectChanges();
+      await tick();
+      fixture.detectChanges();
+    };
+    const tabLabels = (el: HTMLElement) =>
+      [...el.querySelectorAll('[role=tab]')].map((t) => t.textContent?.replace(/\s+/g, ' ').trim());
+    const menuItems = () => [...document.querySelectorAll<HTMLButtonElement>('[mat-menu-item]')];
+
+    it('shows one tab per language, newest selected, and loads the picked tab’s result', async () => {
+      const { fixture, el, http } = await render();
+      http
+        .expectOne(URL)
+        .flush(
+          withAnalyses(
+            a('a-2', 'ar', 'COMPLETE', 3),
+            a('a-retry', 'fr', 'FAILED', 2),
+            a('a-1', 'fr', 'COMPLETE', 1),
+          ),
+        );
+      await settle(fixture);
+      http.expectOne(`${URL}/analyses/a-2`).flush(result('a-2', 'ملخص'));
+      await tick();
+      fixture.detectChanges();
+
+      // A later failed French retry (admin) never hides the French result; oldest language first.
+      expect(tabLabels(el)).toEqual(['Français', 'العربية']);
+      expect(el.querySelector('[role=tab][aria-selected=true]')?.textContent).toContain('العربية');
+      expect(el.querySelector('.meta')?.textContent).not.toContain('Français');
+      expect(el.querySelector('app-analysis-result .summary')?.textContent).toContain('ملخص');
+
+      el.querySelectorAll<HTMLElement>('[role=tab]')[0].click();
+      fixture.detectChanges();
+      await settle(fixture);
+      http.expectOne(`${URL}/analyses/a-1`).flush(result('a-1', 'Résumé'));
+      await tick();
+      fixture.detectChanges();
+      expect(el.querySelector('app-analysis-result .summary')?.textContent).toContain('Résumé');
+    });
+
+    it('offers the missing languages, starts one, then follows it in a new tab', async () => {
+      const { fixture, el, http } = await render();
+      http.expectOne(URL).flush(contract('COMPLETE'));
+      await settle(fixture);
+      http.expectOne(`${URL}/analyses/a-1`).flush(result('a-1', 'Résumé'));
+      await tick();
+      fixture.detectChanges();
+
+      el.querySelector<HTMLButtonElement>('.reanalyze button')!.click();
+      fixture.detectChanges();
+      expect(menuItems().map((b) => b.textContent?.trim())).toEqual([
+        'Analyser en arabe',
+        'Analyser en darija',
+      ]);
+      menuItems()[0].click();
+
+      const post = http.expectOne({ method: 'POST', url: `${URL}/analyses` });
+      expect(post.request.body).toEqual({ language: 'ar' });
+      post.flush(a('a-2', 'ar', 'PENDING', 2));
+      await settle(fixture);
+      http
+        .expectOne(URL)
+        .flush(withAnalyses(a('a-2', 'ar', 'PENDING', 2), a('a-1', 'fr', 'COMPLETE', 1)));
+      await tick();
+      fixture.detectChanges();
+
+      expect(tabLabels(el)).toEqual(['Français', 'العربية · En attente']);
+      expect(el.querySelector('[role=tab][aria-selected=true]')?.textContent).toContain('العربية');
+      expect(current(el)).toBe('En attente');
+      expect(stream.watch).toHaveBeenCalledWith(URL);
+      // Nothing more to offer while it runs.
+      expect(el.querySelector('.reanalyze')).toBeNull();
+
+      events.next({ analysisId: 'a-2', status: 'ANALYZING' });
+      fixture.detectChanges();
+      expect(tabLabels(el)[1]).toBe('العربية · Analyse en cours');
+    });
+
+    it('shows why a request was refused', async () => {
+      const { fixture, el, http } = await render();
+      http.expectOne(URL).flush(contract('COMPLETE'));
+      await settle(fixture);
+      http.expectOne(`${URL}/analyses/a-1`).flush(result('a-1', 'Résumé'));
+      await tick();
+      fixture.detectChanges();
+
+      el.querySelector<HTMLButtonElement>('.reanalyze button')!.click();
+      fixture.detectChanges();
+      menuItems()[1].click();
+      http
+        .expectOne({ method: 'POST', url: `${URL}/analyses` })
+        .flush(
+          { type: 'urn:mizan:problem:quota-exceeded', status: 429 },
+          { status: 429, statusText: 'Too Many Requests' },
+        );
+      fixture.detectChanges();
+      expect(el.querySelector('[role=alert]')?.textContent).toContain('analyses du jour');
+      expect(el.querySelector<HTMLButtonElement>('.reanalyze button')!.disabled).toBe(false);
+
+      el.querySelector<HTMLButtonElement>('.reanalyze button')!.click();
+      fixture.detectChanges();
+      menuItems()[1].click();
+      http
+        .expectOne({ method: 'POST', url: `${URL}/analyses` })
+        .flush(null, { status: 0, statusText: 'Unknown Error' });
+      fixture.detectChanges();
+      expect(el.querySelector('[role=alert]')?.textContent).toContain('La demande a échoué');
+    });
+
+    it('offers nothing before a first result or once every language is done', async () => {
+      const { fixture, el, http } = await render();
+      http.expectOne(URL).flush(contract('FAILED'));
+      await settle(fixture);
+      expect(el.querySelector('.reanalyze')).toBeNull();
+
+      fixture.componentInstance.contract.reload();
+      await settle(fixture);
+      http
+        .expectOne(URL)
+        .flush(
+          withAnalyses(
+            a('a-3', 'ary', 'COMPLETE', 3),
+            a('a-2', 'ar', 'COMPLETE', 2),
+            a('a-1', 'fr', 'COMPLETE', 1),
+          ),
+        );
+      await settle(fixture);
+      http.expectOne(`${URL}/analyses/a-3`).flush(result('a-3', 'x'));
+      await tick();
+      fixture.detectChanges();
+      expect(tabLabels(el)).toHaveLength(3);
+      expect(el.querySelector('.reanalyze')).toBeNull();
+    });
+  });
+
   it('says "not found" for 404 (foreign or deleted)', async () => {
     const { fixture, el, http } = await render();
     http
@@ -139,9 +303,7 @@ describe('ContractDetail', () => {
     expect(el.querySelector('.error')?.textContent).toContain('Impossible de charger');
     el.querySelector<HTMLButtonElement>('button')!.click();
     fixture.detectChanges();
-    http
-      .expectOne(URL)
-      .flush({ id: 'c-1', fileName: 'a.pdf', pageCount: 1, createdAt: '', analysis: null });
+    http.expectOne(URL).flush(contract(null));
     await fixture.whenStable();
     expect(el.querySelector('h1')?.textContent).toBe('a.pdf');
   });

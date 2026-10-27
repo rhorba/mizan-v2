@@ -8,26 +8,83 @@
     </header>
     <p class="meta">
       {{ 'detail.meta' | transloco: { pages: c.pageCount } }}
-      @if (c.analysis; as a) {
+      @if (tabs().length < 2 && c.analysis; as a) {
         · {{ 'upload.languages.' + a.language | transloco }}
       }
     </p>
-    @if (status(); as s) {
-      <app-analysis-stepper [status]="s" />
-      @if (s !== 'COMPLETE') {
-        <p class="next" [class.failed]="s === 'FAILED'">
-          {{ 'detail.' + s.toLowerCase() | transloco }}
-        </p>
-      } @else if (result.hasValue()) {
-        <app-analysis-result [result]="result.value()" />
-      } @else if (result.error()) {
-        <p class="error">{{ 'result.loadError' | transloco }}</p>
-        <button mat-button type="button" (click)="result.reload()">
-          {{ 'contracts.retry' | transloco }}
-        </button>
-      } @else {
-        <p class="loading">{{ 'detail.loading' | transloco }}</p>
+
+    <ng-template #body>
+      @if (status(); as s) {
+        <app-analysis-stepper [status]="s" />
+        @if (s !== 'COMPLETE') {
+          <p class="next" [class.failed]="s === 'FAILED'">
+            {{ 'detail.' + s.toLowerCase() | transloco }}
+          </p>
+        } @else if (result.hasValue()) {
+          <app-analysis-result [result]="result.value()" />
+        } @else if (result.error()) {
+          <p class="error">{{ 'result.loadError' | transloco }}</p>
+          <button mat-button type="button" (click)="result.reload()">
+            {{ 'contracts.retry' | transloco }}
+          </button>
+        } @else {
+          <p class="loading">{{ 'detail.loading' | transloco }}</p>
+        }
       }
+    </ng-template>
+
+    @if (tabs().length > 1) {
+      <mat-tab-group
+        class="tabs"
+        mat-stretch-tabs="false"
+        [attr.aria-label]="'detail.tabs' | transloco"
+        [selectedIndex]="selectedIndex()"
+        (selectedIndexChange)="select($event)"
+      >
+        @for (a of tabs(); track a.id) {
+          <mat-tab>
+            <ng-template mat-tab-label>
+              {{ 'upload.languages.' + a.language | transloco }}
+              @if (statusOf(a); as s) {
+                @if (s !== 'COMPLETE') {
+                  <span class="tab-status"
+                    >· {{ 'detail.stepper.' + s.toLowerCase() | transloco }}</span
+                  >
+                }
+              }
+            </ng-template>
+            <ng-template matTabContent>
+              <ng-container [ngTemplateOutlet]="body" />
+            </ng-template>
+          </mat-tab>
+        }
+      </mat-tab-group>
+    } @else {
+      <ng-container [ngTemplateOutlet]="body" />
+    }
+
+    @if (offered().length > 0) {
+      <div class="reanalyze">
+        <button
+          mat-stroked-button
+          type="button"
+          [matMenuTriggerFor]="languages"
+          [disabled]="requesting()"
+        >
+          {{ 'detail.reanalyze.button' | transloco }}
+        </button>
+        <p class="note">{{ 'detail.reanalyze.note' | transloco }}</p>
+        <mat-menu #languages="matMenu" [aria-label]="'detail.reanalyze.menu' | transloco">
+          @for (l of offered(); track l) {
+            <button mat-menu-item type="button" (click)="reanalyze(l)">
+              {{ 'detail.reanalyze.' + l | transloco }}
+            </button>
+          }
+        </mat-menu>
+      </div>
+    }
+    @if (requestError(); as key) {
+      <p class="error" role="alert">{{ key | transloco }}</p>
     }
   } @else if (notFound()) {
     <h1>{{ 'detail.notFound' | transloco }}</h1>

@@ -44,6 +44,11 @@ export interface ContractSummary {
   analysis: AnalysisSummary | null;
 }
 
+/** GET /api/v1/contracts/{id}: every analysis too, newest first (Story 4.3). */
+export interface ContractWithAnalyses extends ContractSummary {
+  analyses: AnalysisSummary[];
+}
+
 export interface ContractPage {
   items: ContractSummary[];
   nextCursor: string | null;
@@ -68,6 +73,8 @@ export const PROBLEM_SLUGS = [
   'quota-exceeded',
   'global-quota-exceeded',
   'contract-not-found',
+  'analysis-in-progress',
+  'already-analyzed',
 ] as const;
 export type ProblemSlug = (typeof PROBLEM_SLUGS)[number];
 
@@ -108,6 +115,11 @@ export class ContractsApi {
 
   analysisUrl(contractId: string, analysisId: string): string {
     return `${this.url(contractId)}/analyses/${encodeURIComponent(analysisId)}`;
+  }
+
+  /** Story 4.3: a new analysis of the stored text in another language (202). */
+  reanalyze(id: string, language: AnalysisLanguage): Observable<AnalysisSummary> {
+    return this.http.post<AnalysisSummary>(`${this.url(id)}/analyses`, { language });
   }
 
   delete(id: string): Observable<void> {

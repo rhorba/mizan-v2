@@ -1,5 +1,6 @@
 package ma.mizan.api.contracts;
 
+import java.util.UUID;
 import ma.mizan.api.quota.DailyUsage;
 import ma.mizan.api.quota.QuotaExceededException;
 import org.slf4j.Logger;
@@ -60,6 +61,39 @@ class ContractUploadService {
         contract.id(),
         analysis.id(),
         pdf.pageCount(),
+        language.code());
+    return analysis;
+  }
+
+  /**
+   * FR-7 / Story 4.3: a new analysis of an owned contract in another language, from the stored text
+   * (ADR-5), through the same quota and outbox as an upload. One analysis at a time per contract,
+   * and a language that already has a result is not analyzed again; a failed one may be.
+   */
+  @Transactional
+  Analysis reanalyze(String ownerSub, UUID contractId, Language language) {
+    Contract contract =
+        contracts
+            .lockByIdAndOwnerSub(contractId, ownerSub)
+            .orElseThrow(() -> new ContractProblemException(ContractProblem.NOT_FOUND));
+    for (Analysis existing : analyses.findByContractIdOrderByRequestedAtDesc(contract.id())) {
+      AnalysisStatus status = existing.status();
+      if (status == AnalysisStatus.PENDING || status == AnalysisStatus.ANALYZING) {
+        throw new ContractProblemException(ContractProblem.ANALYSIS_IN_PROGRESS);
+      }
+      if (status == AnalysisStatus.COMPLETE && existing.language() == language) {
+        throw new ContractProblemException(ContractProblem.ALREADY_ANALYZED);
+      }
+    }
+    withQuota(() -> quota.check(ownerSub));
+    withQuota(() -> quota.reserve(ownerSub));
+    Analysis analysis = analyses.save(new Analysis(contract, language));
+    events.publishEvent(AnalysisRequested.of(analysis));
+    AUDIT.info(
+        "action=contract.reanalyze subject={} contract={} analysis={} language={}",
+        ownerSub,
+        contract.id(),
+        analysis.id(),
         language.code());
     return analysis;
   }
