@@ -87,6 +87,23 @@ class SecurityRulesTests {
   }
 
   @Test
+  void corsPreflightAllowsTheBrowsersTraceHeaders() {
+    // Story 6.1: the SPA's upload request carries W3C trace context; a refused preflight would
+    // break the upload itself, not only the trace.
+    assertThat(
+            mvc.options()
+                .uri("/api/v1/contracts")
+                .header(HttpHeaders.ORIGIN, "http://localhost:4200")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST")
+                .header(
+                    HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS,
+                    "authorization, traceparent, tracestate"))
+        .hasStatusOk()
+        .headers()
+        .hasValue(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "http://localhost:4200");
+  }
+
+  @Test
   void corsPreflightRejectsOtherOrigins() {
     assertThat(preflight("https://evil.example")).hasStatus(HttpStatus.FORBIDDEN);
   }
