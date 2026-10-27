@@ -3,8 +3,6 @@ package ma.mizan.api.contracts;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -13,6 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import ma.mizan.api.MizanApiApplication;
+import ma.mizan.api.quota.DailyUsage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,11 +31,10 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult;
 @AutoConfigureMockMvc
 class DailyCapsTests {
 
-  static final ZoneId CASABLANCA = ZoneId.of("Africa/Casablanca");
-
   @Autowired MockMvcTester mvc;
   @Autowired JdbcClient jdbc;
   @Autowired AnalysisResultService results;
+  @Autowired DailyUsage daily;
 
   @BeforeEach
   void cleanDatabase() {
@@ -177,7 +175,7 @@ class DailyCapsTests {
 
   private void setUsage(String owner, int analyses) {
     jdbc.sql("INSERT INTO mizan.daily_usage (owner_sub, usage_day, analyses) VALUES (?, ?, ?)")
-        .params(owner, LocalDate.now(CASABLANCA), analyses)
+        .params(owner, daily.today(), analyses)
         .update();
   }
 

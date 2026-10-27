@@ -154,6 +154,29 @@
       "notFound": "Cette analyse n'existe plus (contrat supprimé).",
       "notFailed": "Cette analyse n'est plus en échec ; la liste est actualisée.",
       "retryFailed": "La relance a échoué. Réessayez."
+    },
+    "stats": {
+      "title": "Statistiques",
+      "today": "Analyses aujourd’hui (tous utilisateurs)",
+      "remaining": "{{count}} restante(s) avant la limite du service",
+      "tokens": "Tokens aujourd’hui",
+      "tokensSplit": "Entrée {{input}} · sortie {{output}}",
+      "spend": "Coût estimé aujourd’hui",
+      "spendNote": "Aux tarifs configurés du modèle",
+      "failureRate": "Taux d’échec",
+      "window": "Sur les 14 derniers jours",
+      "perDay": "Analyses par jour (14 jours)",
+      "series": {
+        "done": "Terminées",
+        "running": "En cours",
+        "failed": "Échouées"
+      },
+      "tooltip": "terminées {{done}}, en cours {{running}}, échouées {{failed}}",
+      "showTable": "Voir les données en tableau",
+      "day": "Jour",
+      "risks": "Clauses relevées par niveau de risque (14 jours)",
+      "note": "Les jours suivent le fuseau Africa/Casablanca. Les contrats supprimés ne figurent plus dans ces chiffres ; les tokens et la limite du jour, si.",
+      "loadFailed": "Impossible de charger les statistiques."
     }
   },
   "result": {

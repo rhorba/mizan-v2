@@ -49,13 +49,15 @@ test('an uploaded contract is analyzed by Claude and shows as complete', async (
   });
 });
 
-test('only admins reach the failed analyses screen', async ({ page, request }) => {
+test('only admins reach the statistics and failed analyses screens', async ({ page, request }) => {
   const step = test.step.bind(test);
   const { email } = await signUpNewUser(page, request);
 
   await step('a regular user has no admin link and is sent back from the page', async () => {
     await expect(page.getByRole('link', { name: 'Administration' })).toHaveCount(0);
     await page.goto('/admin/dead-letters');
+    await expect(page).toHaveURL('http://localhost:4200/contracts');
+    await page.goto('/admin');
     await expect(page).toHaveURL('http://localhost:4200/contracts');
   });
 
@@ -69,7 +71,15 @@ test('only admins reach the failed analyses screen', async ({ page, request }) =
     await page.locator('[type=submit]').click();
     await expect(page).toHaveURL('http://localhost:4200/contracts');
 
+    // Story 5.2: the admin landing page is the statistics overview.
     await page.getByRole('link', { name: 'Administration' }).click();
+    await expect(page).toHaveURL('http://localhost:4200/admin');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Statistiques');
+    await expect(page.locator('.tile')).toHaveCount(4);
+    await expect(page.locator('svg .hit')).toHaveCount(14);
+    await expect(page.locator('[role=alert]')).toHaveCount(0);
+
+    await page.getByRole('link', { name: 'Analyses en échec (DLT)' }).click();
     await expect(page).toHaveURL('http://localhost:4200/admin/dead-letters');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Analyses en échec (DLT)');
     // Either the list or the empty state: both mean the API accepted the admin token.

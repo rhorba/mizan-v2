@@ -55,9 +55,8 @@ class SecurityRulesTests {
 
   @Test
   void adminPassesAdminRule() {
-    // No admin endpoint exists before Story 5.2, so getting past security means 404.
     assertThat(mvc.get().uri("/api/v1/admin/stats").with(jwt().authorities(USER, ADMIN)))
-        .hasStatus(HttpStatus.NOT_FOUND);
+        .hasStatus(HttpStatus.OK);
   }
 
   @Test

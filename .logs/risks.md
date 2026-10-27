@@ -24,3 +24,6 @@ analysis-failed (schema v1) carries no token counts, so the 2 billed attempts of
 analysis-requested and .DLT keep text until retention (compose 24 h). Set retention.ms on these topics for preprod (Sprint 5–6 infra). Also Jackson parse errors may quote ≤500 chars of a malformed payload in analyzer logs / DLT headers (not attacker-reachable).
 
 ### [2026-10-26] RISK — Sprint 4 🔴 ~6 days vs 4.5-day capacity. Mitigation: multi-instance SSE fan-out and charts last; first to move to Sprint 5.
+
+### [2026-10-27] RISK — time-zone data drift between JDK and PostgreSQL
+Two tz databases (JDK tzdb.dat, Alpine tzdata) update on different schedules; any day math split across them can disagree. Mitigation: single source of truth for "which day is it" (decision pending).

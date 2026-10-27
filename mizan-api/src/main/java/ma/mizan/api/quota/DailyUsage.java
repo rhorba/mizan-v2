@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +56,27 @@ public class DailyUsage {
         user.analyses(),
         remaining,
         budget.usd(user.inputTokens(), user.outputTokens()));
+  }
+
+  /** What all users together used today, against the global cap (Story 5.2). */
+  public record Global(
+      int analyses,
+      int cap,
+      int remaining,
+      long inputTokens,
+      long outputTokens,
+      BigDecimal spentUsd) {}
+
+  @Transactional(readOnly = true)
+  public Global globalToday() {
+    Row global = row(GLOBAL, today());
+    return new Global(
+        global.analyses(),
+        limits.dailyGlobal(),
+        Math.max(0, limits.dailyGlobal() - global.analyses()),
+        global.inputTokens(),
+        global.outputTokens(),
+        budget.usd(global.inputTokens(), global.outputTokens()));
   }
 
   /**
@@ -157,12 +180,25 @@ public class DailyUsage {
     return new QuotaExceededException(reason);
   }
 
-  LocalDate today() {
-    return LocalDate.now(clock.withZone(limits.zone()));
+  /** Today where the caps reset (Africa/Casablanca by default). */
+  public LocalDate today() {
+    return dayOf(clock.instant());
   }
 
+  public ZoneId zone() {
+    return limits.zone();
+  }
+
+  /**
+   * The calendar day of an instant in the caps' zone, as PostgreSQL sees it. The database decides,
+   * not the JVM: JDK tzdata lags (25.0.4 still had Morocco at UTC+1 after its 2026-09-20 switch to
+   * UTC+0), and the statistics count days in SQL, so both must use the same rules.
+   */
   LocalDate dayOf(Instant instant) {
-    return instant.atZone(limits.zone()).toLocalDate();
+    return jdbc.sql("SELECT (CAST(? AS timestamptz) AT TIME ZONE ?)::date")
+        .params(instant.atOffset(ZoneOffset.UTC), limits.zone().getId())
+        .query(LocalDate.class)
+        .single();
   }
 
   private record Row(int analyses, long inputTokens, long outputTokens) {

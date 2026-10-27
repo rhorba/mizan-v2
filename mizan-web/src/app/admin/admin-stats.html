@@ -1,0 +1,84 @@
+<section class="stats" aria-labelledby="stats-title">
+  <header class="head">
+    <h1 id="stats-title">{{ 'admin.stats.title' | transloco }}</h1>
+    <div class="actions">
+      <a mat-button routerLink="/admin/dead-letters">{{ 'admin.deadLetters.title' | transloco }}</a>
+      <button mat-button type="button" (click)="stats.reload()" [disabled]="stats.isLoading()">
+        {{ 'admin.deadLetters.refresh' | transloco }}
+      </button>
+    </div>
+  </header>
+
+  @if (stats.hasValue()) {
+    @let s = stats.value();
+    @let t = s.today;
+
+    <ul class="tiles" role="list">
+      <li class="tile">
+        <span class="label">{{ 'admin.stats.today' | transloco }}</span>
+        <span class="value"
+          >{{ int(t.analyses) }} <small>/ {{ int(t.cap) }}</small></span
+        >
+        <span
+          class="meter"
+          role="meter"
+          aria-valuemin="0"
+          [attr.aria-valuemax]="t.cap"
+          [attr.aria-valuenow]="t.analyses"
+          [attr.aria-label]="'admin.stats.today' | transloco"
+          [class.warn]="capUsed() >= 0.8"
+          ><span class="fill" [style.inline-size.%]="capUsed() * 100"></span
+        ></span>
+        <span class="sub">{{
+          'admin.stats.remaining' | transloco: { count: int(t.remaining) }
+        }}</span>
+      </li>
+      <li class="tile">
+        <span class="label">{{ 'admin.stats.tokens' | transloco }}</span>
+        <span class="value">{{ tokens(t.inputTokens + t.outputTokens) }}</span>
+        <span class="sub">{{
+          'admin.stats.tokensSplit'
+            | transloco: { input: tokens(t.inputTokens), output: tokens(t.outputTokens) }
+        }}</span>
+      </li>
+      <li class="tile">
+        <span class="label">{{ 'admin.stats.spend' | transloco }}</span>
+        <span class="value">{{ money(t.spentUsd) }}</span>
+        <span class="sub">{{ 'admin.stats.spendNote' | transloco }}</span>
+      </li>
+      <li class="tile">
+        <span class="label">{{ 'admin.stats.failureRate' | transloco }}</span>
+        <span class="value">{{ s.failureRate === null ? '—' : rate(s.failureRate) }}</span>
+        <span class="sub">{{ 'admin.stats.window' | transloco }}</span>
+      </li>
+    </ul>
+
+    <app-daily-chart [days]="s.days" />
+
+    <figure class="chart">
+      <figcaption>
+        <h2>{{ 'admin.stats.risks' | transloco }}</h2>
+      </figcaption>
+      <ul class="bars" role="list">
+        @for (r of risks; track r) {
+          <li>
+            <span class="bar-label">{{ 'result.risk.' + r | transloco }}</span>
+            <span class="track"
+              ><span class="bar" [style.--share]="riskWidth(s.risks[r]) / 100"></span
+              ><span class="bar-value">{{ int(s.risks[r]) }}</span></span
+            >
+          </li>
+        }
+      </ul>
+    </figure>
+
+    <p class="note">{{ 'admin.stats.note' | transloco }}</p>
+  } @else if (stats.error()) {
+    <p class="error" role="alert">{{ 'admin.stats.loadFailed' | transloco }}</p>
+    <button mat-button type="button" (click)="stats.reload()">
+      {{ 'contracts.retry' | transloco }}
+    </button>
+  } @else {
+    <p class="loading" aria-live="polite">{{ 'admin.deadLetters.loading' | transloco }}</p>
+  }
+</section>

@@ -27,6 +27,11 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'admin',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () => import('./admin/admin-stats').then((m) => m.AdminStats),
+  },
+  {
     path: 'admin/dead-letters',
     canActivate: [authGuard, adminGuard],
     loadComponent: () => import('./admin/dead-letters').then((m) => m.DeadLetters),

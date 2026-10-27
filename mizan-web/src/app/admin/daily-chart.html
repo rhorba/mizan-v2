@@ -1,0 +1,134 @@
+<figcaption>
+  <h2>{{ 'admin.stats.perDay' | transloco }}</h2>
+  @let tot = totals();
+  <ul class="legend" role="list">
+    @for (k of series; track k) {
+      <li>
+        <span class="key" [class]="'key ' + k" aria-hidden="true"></span>
+        {{ 'admin.stats.series.' + k | transloco }}
+        <strong>{{ int(tot[k]) }}</strong>
+      </li>
+    }
+  </ul>
+</figcaption>
+
+<div class="plot" #plot (mouseleave)="hovered.set(null)">
+  <svg
+    [attr.viewBox]="'0 0 ' + box().w + ' ' + box().h"
+    [attr.width]="box().w"
+    [attr.height]="box().h"
+    role="img"
+    dir="ltr"
+    [attr.aria-label]="'admin.stats.perDay' | transloco"
+  >
+    @for (tick of ticks(); track tick.value) {
+      <line
+        class="grid"
+        [attr.x1]="box().pad.left"
+        [attr.x2]="box().w - box().pad.right"
+        [attr.y1]="tick.y"
+        [attr.y2]="tick.y"
+      />
+      <text class="tick" [attr.x]="box().pad.left - 6" [attr.y]="tick.y" text-anchor="end">
+        {{ int(tick.value) }}
+      </text>
+    }
+    @for (c of columns(); track c.day; let i = $index) {
+      <g [class.dim]="hovered() !== null && hovered() !== i">
+        @for (seg of c.segments; track seg.series) {
+          @if (seg.path; as d) {
+            <path [class]="'mark ' + seg.series" [attr.d]="d" />
+          } @else {
+            <rect
+              [class]="'mark ' + seg.series"
+              [attr.x]="c.x"
+              [attr.y]="seg.y"
+              [attr.width]="bar()"
+              [attr.height]="seg.height"
+            />
+          }
+        }
+      </g>
+      @if (labelled().has(i)) {
+        <text class="tick" [attr.x]="c.x + bar() / 2" [attr.y]="baseline + 18" text-anchor="middle">
+          {{ shortDay(c.day) }}
+        </text>
+      }
+      <rect
+        class="hit"
+        tabindex="0"
+        [attr.x]="box().pad.left + i * slot()"
+        [attr.y]="box().pad.top"
+        [attr.width]="slot()"
+        [attr.height]="baseline - box().pad.top"
+        [attr.aria-label]="
+          longDay(c.day) +
+          ' — ' +
+          ('admin.stats.tooltip'
+            | transloco
+              : {
+                  done: int(c.counts.done),
+                  running: int(c.counts.running),
+                  failed: int(c.counts.failed),
+                })
+        "
+        (mouseenter)="hovered.set(i)"
+        (focus)="hovered.set(i)"
+        (blur)="hovered.set(null)"
+      />
+    }
+    <line
+      class="axis"
+      [attr.x1]="box().pad.left"
+      [attr.x2]="box().w - box().pad.right"
+      [attr.y1]="baseline"
+      [attr.y2]="baseline"
+    />
+  </svg>
+
+  @if (hoveredColumn(); as c) {
+    <div
+      class="tooltip"
+      role="status"
+      [style.left.px]="c.x + bar() / 2"
+      [class.flip]="c.x > box().w * 0.6"
+    >
+      <strong>{{ longDay(c.day) }}</strong>
+      @for (k of series; track k) {
+        <span
+          ><span [class]="'key ' + k" aria-hidden="true"></span>
+          {{ 'admin.stats.series.' + k | transloco }} {{ int(c.counts[k]) }}</span
+        >
+      }
+    </div>
+  }
+</div>
+
+<details class="table-view">
+  <summary>{{ 'admin.stats.showTable' | transloco }}</summary>
+  <table>
+    <caption class="visually-hidden">
+      {{
+        'admin.stats.perDay' | transloco
+      }}
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">{{ 'admin.stats.day' | transloco }}</th>
+        @for (k of series; track k) {
+          <th scope="col">{{ 'admin.stats.series.' + k | transloco }}</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (c of columns(); track c.day) {
+        <tr>
+          <th scope="row">{{ longDay(c.day) }}</th>
+          @for (k of series; track k) {
+            <td>{{ int(c.counts[k]) }}</td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+</details>

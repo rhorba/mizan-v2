@@ -51,3 +51,11 @@ Newly published, unrelated to Sprint 3 code (main would fail too). Alpine has 1.
 vi fake timers + advanceTimersByTime looped Angular's test scheduler → worker crash (exit 134). Fix: injectable POLL_MS, real timers at 20 ms. Also found: switchMap polling cancels in-flight requests (→ exhaustMap); resource.value() throws in error state (→ hasValue guard); a test-provider insert silently missed (edit scripts now assert matches).
 
 ### [2026-10-26] ISSUE (fixed) — result fetched twice after completion: httpResource re-ran on a new analysis object with the same URL; now keyed on a computed URL string. Also: @angular/animations is not installed (Angular 22 Material needs none).
+
+### [2026-10-27] ISSUE — JDK tzdata stale for Africa/Casablanca (found by StatsTests day-boundary case)
+IANA tzdata 2026c (2026-07-08) moved Morocco to permanent UTC+00 from 2026-09-20. Local JDK 25.0.3 has tzdb 2026a, runtime image JRE 25.0.4.1 has 2026b: both still apply UTC+1. PostgreSQL 18.6-alpine uses system tzdata 2026e (correct). Impact: DailyUsage "today"/dayOf (Story 5.1 caps, refunds, tokens) start the day at 23:00 UTC instead of 00:00 — 1 h early, in every environment; stats (SQL AT TIME ZONE) disagree with Java for that hour. Status: OPEN, fix approach awaiting owner choice.
+
+### [2026-10-27] ISSUE CLOSED — JDK tzdata drift: DailyUsage.today()/dayOf() and the stats window now use PostgreSQL (tzdata 2026e); DayBoundaryTests pins 2026-10-26T23:30Z → 2026-10-26 and 2026-06-10T23:30Z → 2026-06-11. Tests take "today" from DailyUsage, not LocalDate.now. Follow-up: drop the comment once the JDK ships tzdata ≥ 2026c.
+
+### [2026-10-27] ISSUE — 10 analyses stuck in PENDING on the local stack (requested 2026-10-23)
+Seen on /admin while checking B5. Likely Sprint 2 E2E data from before the analyzer existed (no publication to resubmit), but unverified. Status: OPEN — check in B6 VERIFY (event_publication rows? analyzer logs?) before calling it dev-data only.

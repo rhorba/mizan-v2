@@ -120,8 +120,9 @@ class KeycloakTokenTests {
 
   @Test
   void adminTokenPassesAdminRule() {
+    // A real Keycloak admin token reaches the statistics (Story 5.2).
     assertThat(get("/api/v1/admin/stats", token("mizan", "it-with-audience", "admin@mizan.test")))
-        .hasStatus(HttpStatus.NOT_FOUND);
+        .hasStatus(HttpStatus.OK);
   }
 
   @Test
