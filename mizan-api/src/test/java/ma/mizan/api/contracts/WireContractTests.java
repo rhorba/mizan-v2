@@ -20,7 +20,7 @@ class WireContractTests {
 
   @Test
   void analysisFailedIsReadWithTheSharedSchema() throws Exception {
-    WireSchemas.assertMatches("analysis-failed.v1.schema.json", AnalysisResults.Failed.class);
+    WireSchemas.assertMatches("analysis-failed.v2.schema.json", AnalysisResults.Failed.class);
   }
 
   /** One renamed field, as a careless refactoring would do. */
@@ -29,8 +29,8 @@ class WireContractTests {
   @Test
   void aRenamedFieldBreaksTheContract() {
     assertThatThrownBy(
-            () -> WireSchemas.assertMatches("analysis-failed.v1.schema.json", DriftedFailed.class))
+            () -> WireSchemas.assertMatches("analysis-failed.v2.schema.json", DriftedFailed.class))
         .isInstanceOf(AssertionError.class)
-        .hasMessageContaining("no longer matches analysis-failed.v1.schema.json");
+        .hasMessageContaining("no longer matches analysis-failed.v2.schema.json");
   }
 }

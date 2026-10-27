@@ -87,8 +87,12 @@
       "scanner-unavailable": "L'analyse antivirus est indisponible. Réessayez plus tard.",
       "rate-limited": "Trop d'envois en peu de temps.",
       "budget-exceeded": "Le budget d'analyse du jour est épuisé. Réessayez demain.",
+      "quota-exceeded": "Vous avez utilisé vos analyses du jour. Réessayez demain.",
+      "global-quota-exceeded": "Le service a atteint sa limite d'analyses du jour. Réessayez demain.",
       "contract-not-found": "Contrat introuvable.",
-      "generic": "L'envoi a échoué. Vérifiez votre connexion et réessayez."
+      "generic": "L'envoi a échoué. Vérifiez votre connexion et réessayez.",
+      "analysis-in-progress": "Une analyse de ce contrat est déjà en cours. Attendez qu’elle se termine.",
+      "already-analyzed": "Ce contrat est déjà analysé dans cette langue."
     },
     "sizeKb": "{{value}} Ko",
     "sizeMb": "{{value}} Mo"
@@ -96,10 +100,30 @@
   "detail": {
     "back": "Mes contrats",
     "meta": "{{pages}} page(s)",
-    "pending": "L'analyse est en file d'attente. Elle arrive avec la prochaine version de Mizan ; ce contrat est bien enregistré.",
+    "pending": "Votre contrat est en file d'attente ; l'analyse commence dans un instant.",
     "notFound": "Contrat introuvable.",
     "error": "Impossible de charger ce contrat.",
-    "loading": "Chargement…"
+    "loading": "Chargement…",
+    "stepper": {
+      "label": "Progression de l'analyse",
+      "pending": "En attente",
+      "analyzing": "Analyse en cours",
+      "complete": "Terminée",
+      "failed": "Échec"
+    },
+    "analyzing": "Claude lit votre contrat. Cela prend souvent moins d'une minute ; cette page se met à jour toute seule.",
+    "complete": "L'analyse est terminée.",
+    "failed": "L'analyse a échoué. Elle ne compte pas dans vos analyses du jour ; vous pouvez réessayer plus tard.",
+    "reanalyze": {
+      "button": "Analyser dans une autre langue",
+      "menu": "Langue de la nouvelle analyse",
+      "fr": "Analyser en français",
+      "ar": "Analyser en arabe",
+      "ary": "Analyser en darija",
+      "note": "Une nouvelle analyse compte comme une analyse du jour.",
+      "error": "La demande a échoué. Vérifiez votre connexion et réessayez."
+    },
+    "tabs": "Analyses de ce contrat"
   },
   "status": {
     "PENDING": "En attente",
@@ -130,6 +154,54 @@
       "notFound": "Cette analyse n'existe plus (contrat supprimé).",
       "notFailed": "Cette analyse n'est plus en échec ; la liste est actualisée.",
       "retryFailed": "La relance a échoué. Réessayez."
+    },
+    "stats": {
+      "title": "Statistiques",
+      "today": "Analyses aujourd’hui (tous utilisateurs)",
+      "remaining": "{{count}} restante(s) avant la limite du service",
+      "tokens": "Tokens aujourd’hui",
+      "tokensSplit": "Entrée {{input}} · sortie {{output}}",
+      "spend": "Coût estimé aujourd’hui",
+      "spendNote": "Aux tarifs configurés du modèle",
+      "failureRate": "Taux d’échec",
+      "window": "Sur les 14 derniers jours",
+      "perDay": "Analyses par jour (14 jours)",
+      "series": {
+        "done": "Terminées",
+        "running": "En cours",
+        "failed": "Échouées"
+      },
+      "tooltip": "terminées {{done}}, en cours {{running}}, échouées {{failed}}",
+      "showTable": "Voir les données en tableau",
+      "day": "Jour",
+      "risks": "Clauses relevées par niveau de risque (14 jours)",
+      "note": "Les jours suivent le fuseau Africa/Casablanca. Les contrats supprimés ne figurent plus dans ces chiffres ; les tokens et la limite du jour, si.",
+      "loadFailed": "Impossible de charger les statistiques."
     }
+  },
+  "result": {
+    "summary": "Résumé",
+    "flags": "Clauses à surveiller",
+    "filterLabel": "Filtrer par niveau de risque",
+    "filter": {
+      "ALL": "Toutes ({{count}})",
+      "HIGH": "Élevé ({{count}})",
+      "MEDIUM": "Moyen ({{count}})",
+      "LOW": "Faible ({{count}})"
+    },
+    "risk": {
+      "HIGH": "Élevé",
+      "MEDIUM": "Moyen",
+      "LOW": "Faible"
+    },
+    "clause": "Clause",
+    "why": "Pourquoi c’est risqué",
+    "suggested": "Formulation proposée",
+    "copy": "Copier",
+    "copied": "Formulation copiée.",
+    "copyFailed": "Copie impossible ; sélectionnez le texte à la main.",
+    "noFlags": "Aucune clause à risque relevée dans ce contrat.",
+    "notice": "Analyse informative — pas un avis juridique. Pour un enjeu important, consultez un professionnel.",
+    "loadError": "Impossible de charger le résultat."
   }
 }

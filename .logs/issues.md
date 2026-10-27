@@ -44,3 +44,26 @@ Consumer auto-creation made contract.analysis-requested with 1 partition; after 
 
 ### [2026-10-26] ISSUE (fixed) — CI "stack" red: CVE-2026-111497 (HIGH) in brotli-libs of the pinned Temurin JRE Alpine image
 Newly published, unrelated to Sprint 3 code (main would fail too). Alpine has 1.2.1-r0: runtime stage now runs `apk upgrade --no-cache brotli-libs` until the Temurin digest is bumped. Local Trivy (CI image + flags): api 0, analyzer 0, keycloak 0 (with its ignorefile).
+
+### [2026-10-26] ISSUE (fixed) — "v1 messages read as 0" was false: Jackson 3 fails on missing primitive int. Failed tokens are Integer (null → 0) so a not-yet-redeployed analyzer still applies.
+
+### [2026-10-26] ISSUE (fixed) — Web worker heap OOM hid a red run ("103 passed", exit 1)
+vi fake timers + advanceTimersByTime looped Angular's test scheduler → worker crash (exit 134). Fix: injectable POLL_MS, real timers at 20 ms. Also found: switchMap polling cancels in-flight requests (→ exhaustMap); resource.value() throws in error state (→ hasValue guard); a test-provider insert silently missed (edit scripts now assert matches).
+
+### [2026-10-26] ISSUE (fixed) — result fetched twice after completion: httpResource re-ran on a new analysis object with the same URL; now keyed on a computed URL string. Also: @angular/animations is not installed (Angular 22 Material needs none).
+
+### [2026-10-27] ISSUE — JDK tzdata stale for Africa/Casablanca (found by StatsTests day-boundary case)
+IANA tzdata 2026c (2026-07-08) moved Morocco to permanent UTC+00 from 2026-09-20. Local JDK 25.0.3 has tzdb 2026a, runtime image JRE 25.0.4.1 has 2026b: both still apply UTC+1. PostgreSQL 18.6-alpine uses system tzdata 2026e (correct). Impact: DailyUsage "today"/dayOf (Story 5.1 caps, refunds, tokens) start the day at 23:00 UTC instead of 00:00 — 1 h early, in every environment; stats (SQL AT TIME ZONE) disagree with Java for that hour. Status: OPEN, fix approach awaiting owner choice.
+
+### [2026-10-27] ISSUE CLOSED — JDK tzdata drift: DailyUsage.today()/dayOf() and the stats window now use PostgreSQL (tzdata 2026e); DayBoundaryTests pins 2026-10-26T23:30Z → 2026-10-26 and 2026-06-10T23:30Z → 2026-06-11. Tests take "today" from DailyUsage, not LocalDate.now. Follow-up: drop the comment once the JDK ships tzdata ≥ 2026c.
+
+### [2026-10-27] ISSUE — 10 analyses stuck in PENDING on the local stack (requested 2026-10-23)
+Seen on /admin while checking B5. Likely Sprint 2 E2E data from before the analyzer existed (no publication to resubmit), but unverified. Status: OPEN — check in B6 VERIFY (event_publication rows? analyzer logs?) before calling it dev-data only.
+
+### [2026-10-27] ISSUE CLOSED — stuck PENDING ×10: created 2026-10-23 13:58 within 4 s by one E2E user (Sprint 2 paging test), before V2 outbox existed (installed 2026-10-26) → never requested. Dev data, not a pipeline bug; event_publication empty. Local rows left as is.
+
+### [2026-10-27] ISSUE — local E2E uploads billed real Claude calls
+With ANTHROPIC_API_KEY in .env the analyzer analyzes every E2E upload, not only E2E_CLAUDE tests (spec comments claimed otherwise). Today: 9 analyses, 10 367 in / 12 651 out tokens ≈ $0.29 (cap $3/month). Mitigation: playwright.config documents stopping mizan-analyzer for non-Claude runs (CI has no key). Status: MITIGATED (doc + practice); a stack profile without the analyzer could make it automatic — deferred (YAGNI until it bites again).
+
+### [2026-10-27] ISSUE — stale E2E assertions from B1/B2 caught by the real-stack run
+sign-up spec still expected the Sprint 1 cap (3) in UI and API; upload spec read a status chip the contract page no longer has (stepper since B2) and asserted PENDING where the live page moves on. Unit suites could not see these; nothing was pushed, so CI never ran them. Fixed.

@@ -6,6 +6,19 @@ import org.springframework.http.HttpStatus;
 /** Non-upload problems of the contracts API; same URN scheme as {@link UploadProblem}. */
 enum ContractProblem {
   NOT_FOUND("contract-not-found", HttpStatus.NOT_FOUND, "No such contract."),
+  ANALYSIS_NOT_FOUND("analysis-not-found", HttpStatus.NOT_FOUND, "No such analysis."),
+  ANALYSIS_IN_PROGRESS(
+      "analysis-in-progress",
+      HttpStatus.CONFLICT,
+      "An analysis of this contract is still running."),
+  ALREADY_ANALYZED(
+      "already-analyzed",
+      HttpStatus.CONFLICT,
+      "This contract is already analyzed in that language."),
+  TOO_MANY_STREAMS(
+      "too-many-streams",
+      HttpStatus.TOO_MANY_REQUESTS,
+      "Too many open status streams; the page falls back to polling."),
   BAD_CURSOR("bad-cursor", HttpStatus.BAD_REQUEST, "The history cursor is not valid.");
 
   private final String slug;

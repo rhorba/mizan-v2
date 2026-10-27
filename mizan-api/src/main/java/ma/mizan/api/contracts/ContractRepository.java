@@ -1,9 +1,11 @@
 package ma.mizan.api.contracts;
 
+import jakarta.persistence.LockModeType;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
@@ -15,6 +17,11 @@ interface ContractRepository extends Repository<Contract, UUID> {
   Contract save(Contract contract);
 
   Optional<Contract> findByIdAndOwnerSub(UUID id, String ownerSub);
+
+  /** Story 4.3: holds the row until commit, so two re-analysis requests are checked in turn. */
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT c FROM Contract c WHERE c.id = :id AND c.ownerSub = :owner")
+  Optional<Contract> lockByIdAndOwnerSub(@Param("id") UUID id, @Param("owner") String ownerSub);
 
   /** First history page, newest first (idx_contracts_owner_created). */
   @Query(

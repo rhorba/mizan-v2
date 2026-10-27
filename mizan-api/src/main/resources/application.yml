@@ -71,7 +71,8 @@ mizan:
     audience: mizan-api
     cors-allowed-origins: ${MIZAN_CORS_ALLOWED_ORIGINS:http://localhost:4200}
   quota:
-    daily-per-user: ${MIZAN_QUOTA_DAILY_PER_USER:3}
+    daily-per-user: ${MIZAN_QUOTA_DAILY_PER_USER:5}
+    daily-global: ${MIZAN_QUOTA_DAILY_GLOBAL:20}
   upload:
     uploads-per-minute: ${MIZAN_UPLOADS_PER_MINUTE:10}
   budget:

@@ -122,6 +122,12 @@ describe('Upload', () => {
     ['encrypted', 400, 'Ce PDF est protégé par un mot de passe.'],
     ['malware-detected', 422, "L'analyse antivirus a bloqué ce fichier."],
     ['budget-exceeded', 429, "Le budget d'analyse du jour est épuisé. Réessayez demain."],
+    ['quota-exceeded', 429, 'Vous avez utilisé vos analyses du jour. Réessayez demain.'],
+    [
+      'global-quota-exceeded',
+      429,
+      "Le service a atteint sa limite d'analyses du jour. Réessayez demain.",
+    ],
   ])('maps the %s problem to its message and keeps the file', async (slug, status, message) => {
     const { el, fixture, http, error, component, submitButton } = await render();
     choose(el, pdf());

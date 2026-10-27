@@ -40,3 +40,15 @@ Stub ChatModel in all automated tests; one test tagged `live` runs only when ANT
 
 ### [2026-10-26] DECISION — Sprint 3 approach: 🔴 COMPREHENSIVE (owner choice)
 🟡 (outbox→Kafka, analyzer w/ structured output + 3 retries + DLT, idempotent apply, prompt-injection guard + output validation, fr/ar/en prompts, schemaVersion, model/token capture, OTel metrics, crash-after-commit test) + per-user daily cost budget in analyzer, system-prompt caching, admin DLT replay screen, Kafka schema contract tests. Est. 5–6 days vs 4-day sprint → overrun risk logged.
+
+### [2026-10-26] DECISION — Sprint 4 caps and usage data (owner)
+Per-user cap 5/day (PRD value; was 3), global cap 20/day (MIZAN_QUOTA_DAILY_GLOBAL, sized to the $3/month org cap). daily_usage records tokens too, so the spend budget survives contract deletion and counts failed analyses (analysis-failed gains token counts → schema v2).
+
+### [2026-10-26] DECISION — Sprint 4 approach: 🔴 COMPREHENSIVE (owner)
+🟡 (all 5 stories, SSE + 3 s polling fallback, analysis-started message from analyzer sets ANALYZING, analysis-failed v2 with tokens, view with sort/filter/expand/copy/RTL, re-analyze tabs, admin stats, E2E) + admin charts (14-day trend, risk split), axe accessibility audit on new pages, multi-instance SSE via Kafka fan-out. Est. ~6 days vs 4.5.
+
+### [2026-10-27] DECISION — PostgreSQL is the single source of "which day" (owner choice, tz drift issue)
+DailyUsage.today()/dayOf() ask the DB (ts AT TIME ZONE zone) using the injected Clock instant; stats window bounds computed in SQL too. Rejected: JDK TZUpdater (3 places to maintain), fixed UTC (hides drift), defer.
+
+### [2026-10-27] DECISION — admin chart colors (dataviz validator, both modes)
+14-day stacked columns: done=status-good #0ca30c, in progress=categorical blue #2a78d6 (dark #3987e5), failed=status-critical #d03b3b, stacked done→in progress→failed so red/green never touch: ALL PASS light (#fff) and dark (#1b201e). App text tokens (risk-*/primary) FAIL as fills (lightness band, deutan 5.8) — kept for text only. Risk split: single series (flag counts by level) → one hue (blue), rows labelled in words; the 3-hue risk set failed CVD (protan 5.6).

@@ -2,6 +2,7 @@ package ma.mizan.analyzer;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,17 @@ class AnalysisListener {
 
   @KafkaListener(topics = AnalysisRequest.TOPIC)
   void onRequest(AnalysisRequest request) throws Exception {
+    // Story 3.4: the stepper shows "Analyzing" while the model works (often 20-60 s on Opus).
+    kafka
+        .send(
+            AnalysisStarted.TOPIC,
+            request.contractId().toString(),
+            new AnalysisStarted(
+                AnalysisStarted.SCHEMA_VERSION,
+                request.analysisId(),
+                request.contractId(),
+                Instant.now()))
+        .get(SEND_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
     ContractAnalyzer.Result result = analyzer.analyze(request);
     AnalysisCompleted completed =
         new AnalysisCompleted(

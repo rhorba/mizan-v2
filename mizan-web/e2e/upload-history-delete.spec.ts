@@ -60,14 +60,15 @@ test('upload is validated, lands on its page, shows in the history, and can be d
     contractId = page.url().split('/').pop()!;
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Contrat de prestation.pdf');
     await expect(page.locator('.meta')).toContainText('Darija');
-    await expect(page.locator('app-status-chip')).toHaveText('En attente');
+    // The live status itself is results-and-stats.spec.ts's job; here, the page follows it.
+    await expect(page.locator('app-analysis-stepper [aria-current=step]')).toBeVisible();
   });
 
   await step('the history lists it with its status', async () => {
     await page.getByRole('link', { name: 'Mes contrats' }).first().click();
     const row = page.locator('.history .row').filter({ hasText: 'Contrat de prestation.pdf' });
     await expect(row).toHaveCount(1);
-    await expect(row.locator('app-status-chip')).toHaveText('En attente');
+    await expect(row.locator('app-status-chip')).toBeVisible();
   });
 
   await step('deleting asks for confirmation, then the contract is gone', async () => {

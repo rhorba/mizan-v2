@@ -1,0 +1,63 @@
+@let r = result();
+<div class="result" [attr.dir]="dir()" [attr.lang]="r.language">
+  <section class="summary" aria-labelledby="summary-title">
+    <h2 id="summary-title">{{ 'result.summary' | transloco }}</h2>
+    <p>{{ r.summary }}</p>
+    <p class="notice" role="note">{{ 'result.notice' | transloco }}</p>
+  </section>
+
+  <section class="flags" aria-labelledby="flags-title">
+    <h2 id="flags-title">{{ 'result.flags' | transloco }}</h2>
+
+    @if (r.flags.length) {
+      <mat-chip-listbox
+        class="filters"
+        [attr.aria-label]="'result.filterLabel' | transloco"
+        [value]="filter()"
+        (change)="select($event.value)"
+      >
+        @for (f of filters(); track f) {
+          <mat-chip-option [value]="f" [class]="'filter ' + f.toLowerCase()">
+            {{ 'result.filter.' + f | transloco: { count: counts()[f] } }}
+          </mat-chip-option>
+        }
+      </mat-chip-listbox>
+
+      <mat-accordion multi class="list">
+        @for (flag of visible(); track flag.position) {
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <span [class]="'risk ' + flag.riskLevel.toLowerCase()">
+                  <span class="shape" aria-hidden="true"></span>
+                  {{ 'result.risk.' + flag.riskLevel | transloco }}
+                </span>
+                <span class="clause-title" dir="auto">{{ flag.clauseText }}</span>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <dl class="details">
+              <dt>{{ 'result.clause' | transloco }}</dt>
+              <dd>
+                <blockquote dir="auto">{{ flag.clauseText }}</blockquote>
+              </dd>
+              <dt>{{ 'result.why' | transloco }}</dt>
+              <dd>{{ flag.explanation }}</dd>
+              @if (flag.suggestedCorrection; as suggestion) {
+                <dt>{{ 'result.suggested' | transloco }}</dt>
+                <dd class="suggestion">
+                  <blockquote dir="auto">{{ suggestion }}</blockquote>
+                  <button mat-stroked-button type="button" (click)="copy(flag)">
+                    {{ 'result.copy' | transloco }}
+                  </button>
+                </dd>
+              }
+            </dl>
+          </mat-expansion-panel>
+        }
+      </mat-accordion>
+    } @else {
+      <p class="no-flags">{{ 'result.noFlags' | transloco }}</p>
+    }
+  </section>
+</div>

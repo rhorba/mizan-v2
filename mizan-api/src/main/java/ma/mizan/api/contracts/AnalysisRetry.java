@@ -56,6 +56,8 @@ public class AnalysisRetry {
     }
     analysis.retry();
     events.publishEvent(AnalysisRequested.of(analysis));
+    events.publishEvent(
+        AnalysisStatusChanged.of(analysis.id(), analysis.contract().id(), AnalysisStatus.PENDING));
     AUDIT.info(
         "action=analysis.retry subject={} analysis={} contract={}",
         adminSub,

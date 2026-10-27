@@ -1,5 +1,6 @@
 package ma.mizan.api.contracts;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -8,6 +9,7 @@ final class AnalysisResults {
 
   static final String COMPLETED_TOPIC = "contract.analysis-completed";
   static final String FAILED_TOPIC = "contract.analysis-failed";
+  static final String STARTED_TOPIC = "contract.analysis-started";
 
   private AnalysisResults() {}
 
@@ -24,5 +26,27 @@ final class AnalysisResults {
   record Flag(
       String clauseText, RiskLevel riskLevel, String explanation, String suggestedCorrection) {}
 
-  record Failed(int schemaVersion, UUID analysisId, UUID contractId, String reason) {}
+  /**
+   * Schema version 2 adds the tokens billed before failing. Boxed so a version 1 message (no token
+   * fields, e.g. from an analyzer not yet redeployed) still applies: missing counts as 0.
+   */
+  record Failed(
+      int schemaVersion,
+      UUID analysisId,
+      UUID contractId,
+      String reason,
+      Integer inputTokens,
+      Integer outputTokens) {
+
+    long billedInput() {
+      return inputTokens == null ? 0 : inputTokens;
+    }
+
+    long billedOutput() {
+      return outputTokens == null ? 0 : outputTokens;
+    }
+  }
+
+  /** Schema version 1 (Story 3.4): the analyzer picked the request up. */
+  record Started(int schemaVersion, UUID analysisId, UUID contractId, Instant startedAt) {}
 }

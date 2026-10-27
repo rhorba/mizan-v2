@@ -85,7 +85,7 @@ class KeycloakTokenTests {
     assertThat(get("/api/v1/me/quota", token("mizan", "it-with-audience", "user@mizan.test")))
         .hasStatusOk()
         .bodyJson()
-        .isLenientlyEqualTo("{\"limit\":3,\"remaining\":3}");
+        .isLenientlyEqualTo("{\"limit\":1000,\"used\":0}"); // test config caps
   }
 
   @Test
@@ -120,8 +120,9 @@ class KeycloakTokenTests {
 
   @Test
   void adminTokenPassesAdminRule() {
+    // A real Keycloak admin token reaches the statistics (Story 5.2).
     assertThat(get("/api/v1/admin/stats", token("mizan", "it-with-audience", "admin@mizan.test")))
-        .hasStatus(HttpStatus.NOT_FOUND);
+        .hasStatus(HttpStatus.OK);
   }
 
   @Test

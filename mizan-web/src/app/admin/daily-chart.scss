@@ -1,0 +1,213 @@
+// Fills validated with the dataviz palette checker on the light (#fff) and dark (#1b201e)
+// surfaces (.logs/decisions.md 2026-10-27). Text never wears them.
+:host {
+  --chart-done: #0ca30c;
+  --chart-running: #2a78d6;
+  --chart-failed: #d03b3b;
+
+  display: block;
+  margin: var(--mz-sp-lg) 0 0;
+  padding: var(--mz-sp-md);
+  background: var(--mz-surface);
+  border: 1px solid var(--mz-rule);
+  border-radius: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    --chart-running: #3987e5;
+  }
+}
+
+figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--mz-sp-sm) var(--mz-sp-md);
+}
+
+h2 {
+  margin: 0;
+  font-size: var(--mz-fs-lg);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mz-sp-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--mz-text-muted);
+  font-size: var(--mz-fs-sm);
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  strong {
+    color: var(--mz-text);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.key {
+  display: inline-block;
+  inline-size: 10px;
+  block-size: 10px;
+  border-radius: 2px;
+
+  &.done {
+    background: var(--chart-done);
+  }
+  &.running {
+    background: var(--chart-running);
+  }
+  &.failed {
+    background: var(--chart-failed);
+  }
+}
+
+.plot {
+  position: relative;
+  margin-block-start: var(--mz-sp-md);
+
+  // Drawn at the measured pixel width (no scaling), so text keeps its real size.
+  svg {
+    display: block;
+    max-inline-size: 100%;
+    overflow: visible;
+  }
+}
+
+.grid {
+  stroke: var(--mz-rule);
+  stroke-width: 1;
+}
+
+.axis {
+  stroke: color-mix(in srgb, var(--mz-text) 30%, transparent);
+  stroke-width: 1;
+}
+
+.tick {
+  fill: var(--mz-text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  dominant-baseline: middle;
+}
+
+.mark {
+  &.done {
+    fill: var(--chart-done);
+  }
+  &.running {
+    fill: var(--chart-running);
+  }
+  &.failed {
+    fill: var(--chart-failed);
+  }
+}
+
+g {
+  transition: opacity 120ms ease-out;
+
+  &.dim {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  g {
+    transition: none;
+  }
+}
+
+// The hit target is the whole day slot, larger than the bar.
+.hit {
+  fill: transparent;
+  cursor: default;
+
+  &:focus-visible {
+    outline: none;
+    stroke: var(--mz-primary);
+    stroke-width: 2;
+  }
+}
+
+.tooltip {
+  position: absolute;
+  inset-block-start: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 140px;
+  padding: var(--mz-sp-sm);
+  color: var(--mz-text);
+  font-size: var(--mz-fs-sm);
+  background: var(--mz-surface);
+  border: 1px solid var(--mz-rule);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--mz-text) 12%, transparent);
+  transform: translateX(12px);
+  pointer-events: none;
+
+  &.flip {
+    transform: translateX(calc(-100% - 12px));
+  }
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+.table-view {
+  margin-block-start: var(--mz-sp-md);
+  font-size: var(--mz-fs-sm);
+
+  summary {
+    color: var(--mz-primary);
+    cursor: pointer;
+  }
+
+  table {
+    inline-size: 100%;
+    margin-block-start: var(--mz-sp-sm);
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    padding: var(--mz-sp-xs) var(--mz-sp-sm);
+    text-align: start;
+    border-block-end: 1px solid var(--mz-rule);
+  }
+
+  td {
+    font-variant-numeric: tabular-nums;
+  }
+
+  thead th {
+    color: var(--mz-text-muted);
+    font-weight: 600;
+  }
+
+  tbody th {
+    font-weight: 400;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

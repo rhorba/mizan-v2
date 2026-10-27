@@ -27,4 +27,11 @@ class AnalysisResultListener {
   void onFailed(AnalysisResults.Failed result) {
     results.fail(result);
   }
+
+  @KafkaListener(
+      topics = AnalysisResults.STARTED_TOPIC,
+      properties = "spring.json.value.default.type=ma.mizan.api.contracts.AnalysisResults$Started")
+  void onStarted(AnalysisResults.Started started) {
+    results.start(started);
+  }
 }

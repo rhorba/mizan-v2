@@ -13,12 +13,40 @@ export interface AnalysisSummary {
   requestedAt: string;
 }
 
+export type RiskLevel = 'HIGH' | 'MEDIUM' | 'LOW';
+
+/** One risky clause (Story 4.1); suggestedCorrection is null when none is proposed. */
+export interface ClauseFlag {
+  position: number;
+  clauseText: string;
+  riskLevel: RiskLevel;
+  explanation: string;
+  suggestedCorrection: string | null;
+}
+
+/** GET /api/v1/contracts/{id}/analyses/{analysisId} */
+export interface AnalysisResult {
+  id: string;
+  language: AnalysisLanguage;
+  status: AnalysisStatus;
+  summary: string | null;
+  failureReason: string | null;
+  requestedAt: string;
+  completedAt: string | null;
+  flags: ClauseFlag[];
+}
+
 export interface ContractSummary {
   id: string;
   fileName: string;
   pageCount: number;
   createdAt: string;
   analysis: AnalysisSummary | null;
+}
+
+/** GET /api/v1/contracts/{id}: every analysis too, newest first (Story 4.3). */
+export interface ContractWithAnalyses extends ContractSummary {
+  analyses: AnalysisSummary[];
 }
 
 export interface ContractPage {
@@ -42,7 +70,11 @@ export const PROBLEM_SLUGS = [
   'scanner-unavailable',
   'rate-limited',
   'budget-exceeded',
+  'quota-exceeded',
+  'global-quota-exceeded',
   'contract-not-found',
+  'analysis-in-progress',
+  'already-analyzed',
 ] as const;
 export type ProblemSlug = (typeof PROBLEM_SLUGS)[number];
 
@@ -79,6 +111,15 @@ export class ContractsApi {
 
   url(id: string): string {
     return `${this.base}/${encodeURIComponent(id)}`;
+  }
+
+  analysisUrl(contractId: string, analysisId: string): string {
+    return `${this.url(contractId)}/analyses/${encodeURIComponent(analysisId)}`;
+  }
+
+  /** Story 4.3: a new analysis of the stored text in another language (202). */
+  reanalyze(id: string, language: AnalysisLanguage): Observable<AnalysisSummary> {
+    return this.http.post<AnalysisSummary>(`${this.url(id)}/analyses`, { language });
   }
 
   delete(id: string): Observable<void> {

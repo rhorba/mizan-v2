@@ -130,7 +130,8 @@ class AnalysisResultTests {
 
     jdbc.sql("DELETE FROM mizan.contracts WHERE id = ?").param(contractId).update();
     assertThat(
-            service.fail(new AnalysisResults.Failed(1, analysisId, contractId, "invalid-output")))
+            service.fail(
+                new AnalysisResults.Failed(2, analysisId, contractId, "invalid-output", 0, 0)))
         .isFalse();
   }
 

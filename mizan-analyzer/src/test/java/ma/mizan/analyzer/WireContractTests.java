@@ -17,6 +17,11 @@ class WireContractTests {
 
   @Test
   void analysisFailedIsWrittenWithTheSharedSchema() throws Exception {
-    WireSchemas.assertMatches("analysis-failed.v1.schema.json", AnalysisFailed.class);
+    WireSchemas.assertMatches("analysis-failed.v2.schema.json", AnalysisFailed.class);
+  }
+
+  @Test
+  void analysisStartedIsWrittenWithTheSharedSchema() throws Exception {
+    WireSchemas.assertMatches("analysis-started.v1.schema.json", AnalysisStarted.class);
   }
 }

@@ -1,0 +1,176 @@
+// Chart fills (validated with the dataviz palette checker, light #fff and dark #1b201e surfaces;
+// .logs/decisions.md 2026-10-27). Text never wears these: labels use the text tokens.
+:host {
+  --chart-bar: #2a78d6;
+  --chart-track: color-mix(in srgb, var(--chart-bar) 14%, var(--mz-surface));
+  --chart-warn: #fab219;
+}
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    --chart-bar: #3987e5;
+  }
+}
+
+.stats {
+  max-inline-size: 1100px;
+  margin-inline: auto;
+  padding: var(--mz-sp-xl) var(--mz-sp-md);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mz-sp-md);
+  padding-block-end: var(--mz-sp-md);
+  border-block-end: 3px solid var(--mz-accent);
+
+  h1 {
+    margin: 0;
+    color: var(--mz-primary);
+    font-size: var(--mz-fs-xl);
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mz-sp-sm);
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--mz-sp-md);
+  margin: var(--mz-sp-lg) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mz-sp-xs);
+  padding: var(--mz-sp-md);
+  background: var(--mz-surface);
+  border: 1px solid var(--mz-rule);
+  border-radius: 8px;
+
+  .label {
+    color: var(--mz-text-muted);
+    font-size: var(--mz-fs-sm);
+  }
+
+  .value {
+    color: var(--mz-text);
+    font-size: var(--mz-fs-xl);
+    font-weight: 600;
+
+    small {
+      color: var(--mz-text-muted);
+      font-size: var(--mz-fs-md);
+      font-weight: 400;
+    }
+  }
+
+  .sub {
+    color: var(--mz-text-muted);
+    font-size: var(--mz-fs-sm);
+  }
+}
+
+// Meter: the track is a light step of the fill's own hue, so state reads across the whole bar.
+.meter {
+  display: block;
+  block-size: 8px;
+  overflow: hidden;
+  background: var(--chart-track);
+  border-radius: 4px;
+
+  .fill {
+    display: block;
+    block-size: 100%;
+    background: var(--chart-bar);
+    border-radius: 4px;
+  }
+
+  &.warn .fill {
+    background: var(--chart-warn);
+  }
+}
+
+.chart {
+  margin: var(--mz-sp-lg) 0 0;
+  padding: var(--mz-sp-md);
+  background: var(--mz-surface);
+  border: 1px solid var(--mz-rule);
+  border-radius: 8px;
+
+  figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--mz-sp-sm) var(--mz-sp-md);
+  }
+
+  h2 {
+    margin: 0;
+    font-size: var(--mz-fs-lg);
+  }
+}
+
+.bars {
+  display: grid;
+  gap: var(--mz-sp-sm);
+  margin: var(--mz-sp-md) 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: grid;
+    grid-template-columns: minmax(64px, max-content) 1fr;
+    align-items: center;
+    gap: var(--mz-sp-sm);
+  }
+}
+
+.bar-label {
+  color: var(--mz-text);
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  gap: var(--mz-sp-sm);
+  block-size: 20px;
+}
+
+// Single series: one hue; the row words carry identity. Data end rounded, base square; the
+// value rides at the tip, so the bar leaves room for it.
+.bar {
+  display: block;
+  flex: none;
+  block-size: 100%;
+  inline-size: calc((100% - 6ch) * var(--share, 0));
+  background: var(--chart-bar);
+  border-start-end-radius: 4px;
+  border-end-end-radius: 4px;
+}
+
+.bar-value {
+  color: var(--mz-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.note,
+.loading {
+  color: var(--mz-text-muted);
+  font-size: var(--mz-fs-sm);
+}
+
+.error {
+  color: var(--mz-error);
+}

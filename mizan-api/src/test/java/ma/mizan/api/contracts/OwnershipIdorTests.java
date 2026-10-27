@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
@@ -38,11 +39,13 @@ class OwnershipIdorTests {
   RequestMappingHandlerMapping mappings;
 
   UUID aliceContract;
+  UUID aliceAnalysis;
 
   @BeforeEach
   void aliceOwnsAContract() {
     jdbc.sql("DELETE FROM mizan.contracts").update();
     aliceContract = UUID.randomUUID();
+    aliceAnalysis = UUID.randomUUID();
     jdbc.sql(
             "INSERT INTO mizan.contracts (id, owner_sub, file_name, page_count, text_content)"
                 + " VALUES (?, 'alice', 'alice.pdf', 1, 'confidential clause')")
@@ -50,8 +53,8 @@ class OwnershipIdorTests {
         .update();
     jdbc.sql(
             "INSERT INTO mizan.analyses (id, contract_id, language, status)"
-                + " VALUES (gen_random_uuid(), ?, 'fr', 'PENDING')")
-        .param(aliceContract)
+                + " VALUES (?, ?, 'fr', 'PENDING')")
+        .params(aliceAnalysis, aliceContract)
         .update();
   }
 
@@ -61,11 +64,19 @@ class OwnershipIdorTests {
     assertThat(endpoints).as("discovered endpoints").isNotEmpty();
 
     for (Map.Entry<HttpMethod, String> endpoint : endpoints) {
-      String uri = endpoint.getValue().replace("{id}", aliceContract.toString());
+      // Alice's real ids: the strongest case. A new path variable fails loudly until added here.
+      String uri =
+          endpoint
+              .getValue()
+              .replace("{id}", aliceContract.toString())
+              .replace("{analysisId}", aliceAnalysis.toString());
       var response =
           mvc.perform(
               org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request(
                       endpoint.getKey(), uri)
+                  // A well-formed body, so a refusal can only come from the owner check.
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content("{\"language\":\"ar\"}")
                   .with(jwt().jwt(j -> j.subject("bob"))));
       assertThat(response)
           .as("%s %s as bob", endpoint.getKey(), endpoint.getValue())

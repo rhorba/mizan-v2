@@ -45,6 +45,11 @@ class AnalyzerKafkaConfig {
   }
 
   @Bean
+  NewTopic analysisStartedTopic() {
+    return TopicBuilder.name(AnalysisStarted.TOPIC).partitions(3).replicas(1).build();
+  }
+
+  @Bean
   NewTopic analysisCompletedTopic() {
     return TopicBuilder.name(AnalysisCompleted.TOPIC).partitions(3).replicas(1).build();
   }
@@ -104,6 +109,9 @@ class AnalyzerKafkaConfig {
       return;
     }
     String reason = reason(failure);
+    // Tokens already spent on unusable answers still count (spend budget); outages bill nothing.
+    InvalidOutputException billed =
+        rootCause(failure) instanceof InvalidOutputException invalid ? invalid : null;
     LOG.error(
         "action=analysis.failed analysis={} reason={} cause={}",
         request.analysisId(),
@@ -118,7 +126,9 @@ class AnalyzerKafkaConfig {
                   AnalysisFailed.SCHEMA_VERSION,
                   request.analysisId(),
                   request.contractId(),
-                  reason))
+                  reason,
+                  billed == null ? 0 : billed.inputTokens(),
+                  billed == null ? 0 : billed.outputTokens()))
           .get(AnalysisListener.SEND_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
     } catch (Exception e) {
       // Throwing makes the error handler try the record again, so the failure is not lost.

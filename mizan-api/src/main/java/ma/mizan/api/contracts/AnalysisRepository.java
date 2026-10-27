@@ -16,6 +16,8 @@ interface AnalysisRepository extends Repository<Analysis, UUID> {
 
   Optional<Analysis> findById(UUID id);
 
+  Optional<Analysis> findByIdAndContractId(UUID id, UUID contractId);
+
   List<Analysis> findByIdIn(Collection<UUID> ids);
 
   List<Analysis> findByContractIdOrderByRequestedAtDesc(UUID contractId);
@@ -66,13 +68,15 @@ interface AnalysisRepository extends Repository<Analysis, UUID> {
       @Param("reason") String reason,
       @Param("completedAt") Instant completedAt);
 
-  /** Tokens of the owner's analyses requested since {@code since} (SpendBudget). */
+  /** Story 3.4: only a PENDING analysis moves forward; a late or repeated "started" is a no-op. */
+  @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query(
       """
-      select new ma.mizan.api.contracts.TokenSpend(
-               coalesce(sum(a.inputTokens), 0), coalesce(sum(a.outputTokens), 0))
-        from Analysis a
-       where a.contract.ownerSub = :ownerSub and a.requestedAt >= :since
+      update Analysis a
+         set a.status = ma.mizan.api.contracts.AnalysisStatus.ANALYZING,
+             a.version = a.version + 1
+       where a.id = :id and a.contract.id = :contractId
+         and a.status = ma.mizan.api.contracts.AnalysisStatus.PENDING
       """)
-  TokenSpend spendSince(@Param("ownerSub") String ownerSub, @Param("since") Instant since);
+  int markAnalyzing(@Param("id") UUID id, @Param("contractId") UUID contractId);
 }

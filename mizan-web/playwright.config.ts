@@ -4,6 +4,10 @@ import { defineConfig, devices } from '@playwright/test';
  * E2E against the real local stack: `docker compose --profile apps --profile mail up -d --wait`
  * (Keycloak, API, Mailpit) plus `ng serve`, which Playwright starts unless one is running.
  * Every test is video-recorded; E2E_SLOWMO=150 makes the sprint recording watchable.
+ *
+ * Cost: with ANTHROPIC_API_KEY in .env the analyzer analyzes EVERY upload, not only the opt-in
+ * E2E_CLAUDE tests. Without E2E_CLAUDE, stop it first (`docker compose stop mizan-analyzer`), as in
+ * CI where no key is set: uploads then stay pending and nothing is billed.
  */
 export default defineConfig({
   testDir: 'e2e',
