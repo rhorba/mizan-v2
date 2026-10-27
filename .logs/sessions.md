@@ -46,3 +46,8 @@ Watch: owner to rotate the API key pasted in chat (expires 2026-11-25); Keycloak
 
 ### [2026-10-27] SESSION_START — Sprint 5 kickoff
 Resumed from Sprint 4 SESSION_END. PR #12 + #13 merged, main green @ 7038726 (+ logs). Target Sprint 5 (→ Nov 27): 6.1 end-to-end tracing/metrics/logs, 6.2 SonarCloud quality gate, 7.1 Terraform for OCI. Phase: UNDERSTAND.
+
+### [2026-10-27] SESSION_END — Sprint 5 in progress (B1–B2 done, on feature/s5-observability, not pushed)
+Done: plan approved (6.1 🔴, 6.2, 7.1 🟡). B1 backend tracing + Loki logs (a8ae39b): outbox trace break fixed (ContextPropagatingTaskDecorator), OTLP via JDK sender, no-text tests. B2 browser tracing (f41c039): XHR only, traceparent to API only, lazy chunk (initial 477.8 kB). Verify: API 151, analyzer 39, web 132; lint/format/build clean.
+Next: B3 metrics (tokens, outcomes, p95, lag) + Grafana dashboard + 4 alert rules as code + real-stack proof (one trace browser → api → Kafka → analyzer → model → apply in Tempo, logs in Loki; 1 real Opus call ≈ $0.04; restart mizan-analyzer, rebuild images). Then B4 SonarCloud (needs org key, project key, SONAR_TOKEN secret, Automatic Analysis off), B5 Terraform (needs OCI region, tenancy/user/compartment OCIDs, API key fingerprint + private key path, Object Storage namespace, owner IP; Terraform is a standalone binary at C:	erraform, upgrade to >= 1.12 by verified download, ask before overwrite; apply only on OK), B6 verify/video v0.5/ship.
+Watch: rotate API key pasted in chat (expires 2026-11-25); Keycloak CVE exception expires 2026-11-30; local stack still up with mizan-analyzer stopped; OneDrive repo (mvn clean locks).
