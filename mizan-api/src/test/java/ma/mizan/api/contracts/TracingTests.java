@@ -49,7 +49,10 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult;
     classes = MizanApiApplication.class,
     properties = {
       "management.opentelemetry.tracing.export.schedule-delay=50ms",
-      "management.opentelemetry.logging.export.schedule-delay=50ms"
+      "management.opentelemetry.logging.export.schedule-delay=50ms",
+      // Other cached test contexts consume as "mizan-api" on the same broker; a result could land
+      // in one of them, whose spans this exporter never sees. Own group: every partition, here.
+      "spring.kafka.consumer.group-id=mizan-api-tracing-tests"
     })
 @AutoConfigureMockMvc
 @Import(TracingTests.Exporters.class)
@@ -180,11 +183,17 @@ class TracingTests {
       producer.send(record).get();
     }
 
-    SpanData apply =
-        await()
-            .atMost(Duration.ofSeconds(20))
-            .until(() -> span(SpanKind.CONSUMER, AnalysisResults.COMPLETED_TOPIC), s -> s != null);
-    assertThat(apply.getTraceId()).isEqualTo(traceId);
+    // Its own consumer group also replays other tests' results: look for this message's trace.
+    await()
+        .atMost(Duration.ofSeconds(20))
+        .until(
+            () ->
+                spans.getFinishedSpanItems().stream()
+                    .anyMatch(
+                        s ->
+                            s.getKind() == SpanKind.CONSUMER
+                                && s.getName().contains(AnalysisResults.COMPLETED_TOPIC)
+                                && s.getTraceId().equals(traceId)));
     await()
         .atMost(Duration.ofSeconds(10))
         .untilAsserted(
