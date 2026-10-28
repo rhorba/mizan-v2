@@ -16,6 +16,9 @@ export interface TracingConfig {
 
 /** Escapes a URL prefix for use in a RegExp. */
 function prefix(url: string): RegExp {
+  // Build-time config (environment.ts), never user input, and every metacharacter is escaped: a
+  // literal prefix cannot backtrack. OTel matches only exact strings or RegExps, so a prefix needs one.
+  // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
   return new RegExp('^' + url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
 }
 

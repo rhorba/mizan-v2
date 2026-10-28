@@ -88,3 +88,6 @@ quay.io/keycloak/keycloak:26.8.1 (newest, 2026-10-13) bundles guava 33.6.0-jre; 
 
 ### [2026-10-28] ISSUE (fixed) — Gitleaks flagged my own explanation of the false positive
 The comment in .gitleaksignore and the issues.md note quoted the Sonar project-key line verbatim → 2 new generic-api-key findings (commit 4d281ce). Fingerprints added. Lesson: never quote a flagged line in prose; scan COMMITTED history locally (gitleaks git) before pushing, not the working tree.
+
+### [2026-10-28] ISSUE (fixed) — Semgrep detect-non-literal-regexp in browser-tracing.ts (B2)
+Hidden until now: the security job stopped at Gitleaks before Semgrep ran. `new RegExp('^' + escaped url)` built from build-time environment.ts (not user input), all metacharacters escaped → literal prefix, no backtracking/ReDoS. OTel accepts only exact strings or RegExps. Suppressed with reason + `nosemgrep` (repo convention, as ClamdClient). Local run of CI's exact Semgrep command: 491 rules, 280 files, 0 findings. Lesson: when a job fails at step N, the steps after N are unverified — run the whole job locally before calling it fixed.
