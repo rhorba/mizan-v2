@@ -1,0 +1,4 @@
+# Reviewed false positives only, one fingerprint per line (commit:file:rule:line), with the reason.
+# sonar.projectKey=rhorba_mizan-v2 is the public SonarCloud project id (in every dashboard URL),
+# not a credential; generic-api-key fires on "Key=" + entropy. Reviewed 2026-10-28.
+c73a04d470438f4e43fcbfb174a4ba7e2ca1df84:sonar-project.properties:generic-api-key:4
