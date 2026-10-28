@@ -88,7 +88,7 @@ class AnalyzerKafkaConfig {
 
     ConsumerRecordRecoverer recoverer =
         (record, failure) -> {
-          reportFailed(kafka, record, failure);
+          reportFailed(kafka, meters, record, failure);
           meters.counter("mizan.analysis.outcomes", "outcome", "failed").increment();
           deadLetters.accept(record, failure);
         };
@@ -101,7 +101,10 @@ class AnalyzerKafkaConfig {
   }
 
   private static void reportFailed(
-      KafkaTemplate<Object, Object> kafka, ConsumerRecord<?, ?> record, Exception failure) {
+      KafkaTemplate<Object, Object> kafka,
+      MeterRegistry meters,
+      ConsumerRecord<?, ?> record,
+      Exception failure) {
     if (!(record.value() instanceof AnalysisRequest request)) {
       // Unreadable message: no ids to report; it still goes to the DLT.
       LOG.error(
@@ -133,6 +136,10 @@ class AnalyzerKafkaConfig {
     } catch (Exception e) {
       // Throwing makes the error handler try the record again, so the failure is not lost.
       throw new IllegalStateException("Could not publish analysis-failed", e);
+    }
+    if (billed != null) {
+      meters.counter("mizan.analysis.tokens", "type", "input").increment(billed.inputTokens());
+      meters.counter("mizan.analysis.tokens", "type", "output").increment(billed.outputTokens());
     }
   }
 

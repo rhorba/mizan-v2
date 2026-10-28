@@ -78,6 +78,6 @@ ENTRYPOINT ["java", "-XX:MaxRAMPercentage=70", "-jar", "app.jar"]
 | Traces | Tempo (via otel-lgtm) | — (inspected in demo) |
 | Logs | Loki | > 5 ERROR / 5 min |
 | Metrics | Prometheus | API p95 > 1 s for 10 min; consumer lag > 50 for 10 min; analyses FAILED > 20 % per hour |
-| Cost | Custom metric `mizan.analyses.tokens` | > 80 % of daily global cap |
+| Cost | `mizan.quota.global.used` / `mizan.quota.global.cap` (gauges, mizan-api); tokens in `mizan.analysis.tokens` (dashboard) | > 80 % of daily global cap |
 | Uptime | GitHub Actions cron hitting `/api/actuator/health` every 30 min | 2 consecutive failures → issue opened |
-Grafana alerts notify by email (same SMTP as Keycloak).
+Dashboard and alert rules are code: `docker/grafana/` (mounted into otel-lgtm; see `skills/devops-devsecops/references/observability.md`). Grafana alerts notify by email (same SMTP as Keycloak) once the contact point lands with SMTP in Sprint 6; until then they show under Alerting only.

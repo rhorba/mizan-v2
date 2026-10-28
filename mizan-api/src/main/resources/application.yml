@@ -69,6 +69,11 @@ management:
   tracing:
     sampling:
       probability: 1.0
+  # Story 6.1: buckets for the p95 > 1 s alert (docs/devops §6); 1s is a boundary on purpose.
+  metrics:
+    distribution:
+      slo:
+        http.server.requests: 100ms,250ms,500ms,1s,2500ms,5s
   endpoints:
     web:
       exposure:

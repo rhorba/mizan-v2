@@ -65,3 +65,6 @@ Backend (aggregate, no exclusions): lines 99 %, branches 91 % (110 tests incl. T
 - **Security**: review of sprint diff: 1 MEDIUM (SSE stream cap) fixed; 0 HIGH; admin 403/401 + no-PII tests on stats; IDOR suite now posts valid bodies
 - **Accessibility**: axe WCAG 2.2 AA clean on history, upload, contract (pending, result fr, result ar tab), admin statistics fr/ar
 - **Decisions**: PostgreSQL decides the day (owner); chart palette from the validated reference status set; risk split single-hue; re-analysis rules (409s, FAILED re-requestable); 10 streams per user
+
+### [2026-10-28] Sprint 5 B3 — tests + coverage
+API 154 · analyzer 39 · web 133 · backend line coverage 97.0% · web initial bundle 481.3 kB. Claude spend this session $0.072 (incl. $0.053 unapproved, issues.md); total ≈ $0.51 of $3.

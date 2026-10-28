@@ -67,3 +67,12 @@ With ANTHROPIC_API_KEY in .env the analyzer analyzes every E2E upload, not only 
 
 ### [2026-10-27] ISSUE — stale E2E assertions from B1/B2 caught by the real-stack run
 sign-up spec still expected the Sprint 1 cap (3) in UI and API; upload spec read a status chip the contract page no longer has (stepper since B2) and asserted PENDING where the live page moves on. Unit suites could not see these; nothing was pushed, so CI never ran them. Fixed.
+
+### [2026-10-28] ISSUE (resolved) — OneDrive resurrected 4 files deleted in 4b2a088
+contracts/BudgetProperties, SpendBudget, TokenSpend, SpendBudgetTests reappeared untracked (mtime 2026-10-26 13:38); SpendBudget calls the removed AnalysisRepository.spendSince → would break compile. Moved to session scratchpad (recoverable from 4b2a088^). Watch: re-check `git status` for untracked files at each session start while the repo lives in OneDrive.
+
+### [2026-10-28] ISSUE (fixed) — Browser tracing dead in the real app; upload progress bar never moved
+Angular 22 HttpClient defaults to FetchBackend (XHR needs withXhr()); app.config assumed the pre-22 default ("no withFetch = XHR"). Effect: XHR instrumentation (B2) never saw a request → no traceparent, no mizan-web spans; reportProgress upload events never emitted (Story 2.2 bar stuck since skeleton). B2 unit tests passed because they drive XMLHttpRequest directly and provideHttpClientTesting replaces the backend. Fix: provideHttpClient(withXhr(), withInterceptorsFromDi()); app.config.spec asserts HttpBackend is HttpXhrBackend (red → green). Verified on stack: traceparent on API calls, OTLP 200, mizan-web span parent of mizan-api span.
+
+### [2026-10-28] ISSUE — 2 unapproved real Opus calls ($0.053)
+Before starting mizan-analyzer for the 1 approved proof call, tried to skip 2 leftover 10-27 E2E requests by resetting the group offset; `docker compose exec kafka /opt/kafka/bin/kafka-consumer-groups.sh` (direct exec) failed with "runtime exec failed" and the chain continued (`&&` only guarded the awk pipe). Analyzer billed both: 2262 in / 2205 out ≈ $0.053. Lesson: run Kafka CLI via `sh -c` in that image, and verify the reset (describe group) BEFORE starting the analyzer. Live Claude spend ≈ $0.49 of $3 (incl. approved proof call 1086/728 ≈ $0.019).

@@ -1,7 +1,10 @@
 package ma.mizan.analyzer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -50,6 +53,7 @@ class AnalysisFlowTests {
 
   @Autowired ScriptedChatModel model;
   @Autowired ChatModel chatModel;
+  @Autowired MeterRegistry meters;
 
   @BeforeEach
   void resetModel() {
@@ -59,6 +63,9 @@ class AnalysisFlowTests {
   @Test
   void requestIsAnalyzedOnceAndCompletedIsPublishedWithModelAndTokens() {
     assertThat(chatModel).isSameAs(model);
+    double completedBefore = count("outcome", "completed");
+    double inputBefore = count("type", "input");
+    double outputBefore = count("type", "output");
     UUID analysisId = UUID.randomUUID();
     UUID contractId = UUID.randomUUID();
 
@@ -74,6 +81,15 @@ class AnalysisFlowTests {
     assertThat(completed.get("outputTokens").asInt()).isEqualTo(200);
     assertThat(model.prompts()).hasSize(1);
     assertThat(records(AnalysisFailed.TOPIC, contractId, Duration.ofSeconds(1))).isEmpty();
+    // Story 6.1: what the dashboard and the alerts read (docs/devops §6).
+    await()
+        .untilAsserted(
+            () -> {
+              assertThat(count("outcome", "completed")).isEqualTo(completedBefore + 1);
+              assertThat(count("type", "input")).isEqualTo(inputBefore + 1000);
+              assertThat(count("type", "output")).isEqualTo(outputBefore + 200);
+            });
+    assertThat(meters.find("kafka.consumer.fetch.manager.records.lag.max").gauges()).isNotEmpty();
     // Story 3.4: announced before the model call.
     JsonNode started = single(AnalysisStarted.TOPIC, contractId);
     assertThat(started.get("analysisId").asString()).isEqualTo(analysisId.toString());
@@ -83,6 +99,8 @@ class AnalysisFlowTests {
   @Test
   void invalidOutputTwicePublishesFailedAndSendsTheRequestToTheDlt() {
     model.otherwise(p -> ScriptedChatModel.answer("not json"));
+    double failedBefore = count("outcome", "failed");
+    double inputBefore = count("type", "input");
     UUID analysisId = UUID.randomUUID();
     UUID contractId = UUID.randomUUID();
 
@@ -99,6 +117,13 @@ class AnalysisFlowTests {
         .isEqualTo(analysisId.toString());
     // Not retried by Kafka: only the analyzer's own two attempts.
     assertThat(model.prompts()).hasSize(ContractAnalyzer.ATTEMPTS);
+    // Billed tokens of a failed analysis count as spend too.
+    await()
+        .untilAsserted(
+            () -> {
+              assertThat(count("outcome", "failed")).isEqualTo(failedBefore + 1);
+              assertThat(count("type", "input")).isEqualTo(inputBefore + 2000);
+            });
     assertThat(records(AnalysisCompleted.TOPIC, contractId, Duration.ofSeconds(1))).isEmpty();
   }
 
@@ -108,6 +133,7 @@ class AnalysisFlowTests {
         p -> {
           throw new IllegalStateException("simulated timeout");
         });
+    double inputBefore = count("type", "input");
     UUID contractId = UUID.randomUUID();
 
     send(contractId, request(UUID.randomUUID(), contractId, "ary"));
@@ -117,6 +143,7 @@ class AnalysisFlowTests {
     assertThat(failed.get("inputTokens").asInt()).isZero(); // outages bill nothing
     assertThat(single(AnalysisRequest.DLT, contractId)).isNotNull();
     assertThat(model.prompts()).hasSize(1 + AnalyzerKafkaConfig.RETRIES);
+    assertThat(count("type", "input")).isEqualTo(inputBefore);
   }
 
   @Test
@@ -135,6 +162,13 @@ class AnalysisFlowTests {
     return JSON.writeValueAsString(
         new AnalysisRequest(
             1, analysisId, contractId, language, "Article 1. Pénalité de 10 %.", Instant.now()));
+  }
+
+  /** mizan.analysis.outcomes by outcome, or mizan.analysis.tokens by type; 0 before the first. */
+  private double count(String tag, String value) {
+    String name = tag.equals("outcome") ? "mizan.analysis.outcomes" : "mizan.analysis.tokens";
+    Counter counter = meters.find(name).tag(tag, value).counter();
+    return counter == null ? 0 : counter.count();
   }
 
   private static void send(UUID key, String json) {
