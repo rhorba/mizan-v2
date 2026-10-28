@@ -85,3 +85,6 @@ generic-api-key fired on `sonar.projectKey=rhorba_mizan-v2` (c73a04d, sonar-proj
 
 ### [2026-10-28] ISSUE (accepted, time-boxed to 2026-11-30) — guava CVE-2026-102554 (HIGH) in Keycloak image
 quay.io/keycloak/keycloak:26.8.1 (newest, 2026-10-13) bundles guava 33.6.0-jre; fixed in 33.7.2. Only remaining red in CI `stack` (Trivy images); mizan-api / mizan-analyzer images clean after the snappy-java pin. Options: A) time-boxed trivyignore entry to 2026-11-30 (recommended), B) replace the jar in keycloak.Dockerfile, C) wait for upstream. Owner ended the session before choosing.
+
+### [2026-10-28] ISSUE (fixed) — Gitleaks flagged my own explanation of the false positive
+The comment in .gitleaksignore and the issues.md note quoted the Sonar project-key line verbatim → 2 new generic-api-key findings (commit 4d281ce). Fingerprints added. Lesson: never quote a flagged line in prose; scan COMMITTED history locally (gitleaks git) before pushing, not the working tree.

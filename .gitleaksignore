@@ -2,3 +2,6 @@
 # sonar.projectKey=rhorba_mizan-v2 is the public SonarCloud project id (in every dashboard URL),
 # not a credential; generic-api-key fires on "Key=" + entropy. Reviewed 2026-10-28.
 c73a04d470438f4e43fcbfb174a4ba7e2ca1df84:sonar-project.properties:generic-api-key:4
+# The two lines above and the matching note in .logs/issues.md repeat that value (same reason).
+4d281ce519c8c3e1aff20b7d8df11b93fc6fc009:.gitleaksignore:generic-api-key:2
+4d281ce519c8c3e1aff20b7d8df11b93fc6fc009:.logs/issues.md:generic-api-key:84
