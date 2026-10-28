@@ -27,7 +27,7 @@ Dependabot: Maven, npm, GitHub Actions, Docker — weekly.
 
 ## 3. Infrastructure
 - **Hosting**: Oracle Cloud Always Free — region chosen at setup (home region).
-- **Terraform (`infra/terraform`)**: VCN, public subnet, internet gateway, route table, security list (22 from owner IP only, 80/443 from anywhere, 6443 closed), A1.Flex instance (4 OCPU / 24 GB, Ubuntu 24.04 aarch64, 100 GB boot volume), reserved public IP, Object Storage bucket for backups, cloud-init installing k3s + Argo CD bootstrap. Remote state in an OCI Object Storage bucket (Terraform `oci` backend). Retry across availability domains for capacity errors.
+- **Terraform (`infra/terraform`)**: VCN, public subnet, internet gateway, route table, security list (22 from owner IP only, 80/443 from anywhere, 6443 closed), A1.Flex instance (4 OCPU / 24 GB, Ubuntu 24.04 aarch64, 100 GB boot volume), reserved public IP, Object Storage bucket for backups, cloud-init installing pinned k3s (Argo CD bootstrap moves to Story 7.2). Remote state in an OCI Object Storage bucket (Terraform `oci` backend, created by `bootstrap/`). Home region eu-marseille-1 has one availability domain: an A1 capacity error means retry later. Built and verified 2026-10-28 (reserved IP, 80/443 open, 6443 closed); runbook `infra/terraform/README.md`.
 - **Compute**: k3s (Traefik, local-path storage), namespaces `mizan`, `platform`, `observability`, `argocd`.
 - **Database**: PostgreSQL 18 StatefulSet; CronJob nightly `pg_dump | age` → backup bucket (keep 7).
 - **Messaging**: Apache Kafka 4 official image (KRaft, single broker), StatefulSet, internal listener only.

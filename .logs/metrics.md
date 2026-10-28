@@ -68,3 +68,6 @@ Backend (aggregate, no exclusions): lines 99 %, branches 91 % (110 tests incl. T
 
 ### [2026-10-28] Sprint 5 B3 — tests + coverage
 API 154 · analyzer 39 · web 133 · backend line coverage 97.0% · web initial bundle 481.3 kB. Claude spend this session $0.072 (incl. $0.053 unapproved, issues.md); total ≈ $0.51 of $3.
+
+### [2026-10-28] SPRINT_SNAPSHOT — Sprint 5 (6.1, 6.2, 7.1)
+Done: 6.1 end-to-end tracing/metrics/logs + dashboard + 5 alert rules (as code), 6.2 SonarCloud gate in CI, 7.1 Terraform → live A1 k3s node on OCI (144.24.200.83). Coverage (CI, b2e321c): backend lines 97.0 % (1146/1181), branches 85.5 %; frontend lines 98.1 %, statements 97.9 %, functions 96.4 %, branches 94.3 %. Tests: API 154, analyzer 39, web 133, Terraform plan tests 6, E2E 5 (+1 opt-in). Bugs found by verification this sprint: 6 (Angular 22 fetch default, failed-analysis tokens uncounted, outbox trace break, tracing-test consumer group, lag max NaN, span-name query) + 4 CI gate findings (snappy-java CVEs, guava in Keycloak → time-boxed, Gitleaks FP ×2, Semgrep FP). Claude spend this sprint ≈ $0.09; total ≈ $0.51 of $3. Infra cost: Always Free only.
