@@ -91,3 +91,6 @@ The comment in .gitleaksignore and the issues.md note quoted the Sonar project-k
 
 ### [2026-10-28] ISSUE (fixed) — Semgrep detect-non-literal-regexp in browser-tracing.ts (B2)
 Hidden until now: the security job stopped at Gitleaks before Semgrep ran. `new RegExp('^' + escaped url)` built from build-time environment.ts (not user input), all metacharacters escaped → literal prefix, no backtracking/ReDoS. OTel accepts only exact strings or RegExps. Suppressed with reason + `nosemgrep` (repo convention, as ClamdClient). Local run of CI's exact Semgrep command: 491 rules, 280 files, 0 findings. Lesson: when a job fails at step N, the steps after N are unverified — run the whole job locally before calling it fixed.
+
+### [2026-10-28] ISSUE (fixed) — main quality gate FAILED after PR #14 merge
+First analysis of main judges all code: java:S5693 ×2 (MAJOR "vulnerability") on mizan-api application.yml lines 12–13 (multipart 10MB / 11MB > Sonar's 8 MB default) → security rating C. PR analysis passed because those lines (Sprint 2) were not in the PR diff. Owner chose a justified, file-scoped ignore in sonar-project.properties (10 MB is the Story 2.1 limit; auth + rate limit + ClamAV + PDF checks). Also: PR #14 was merged at b2e321c before the B6 push → B6 goes to main via chore/sprint-5-close.

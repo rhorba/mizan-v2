@@ -61,3 +61,6 @@ Free org `rhorba`, project `rhorba_mizan-v2`; GitHub App limited to mizan-v2 onl
 
 ### [2026-10-28] DECISION — guava CVE-2026-102554 in the Keycloak image: option A
 Owner accepted a time-boxed Trivy exception (docker/keycloak/trivyignore.yaml, expires 2026-11-30, same as CVE-2026-114406). Recheck on every Keycloak release and before preprod (Epic 7).
+
+### [2026-10-28] DECISION — Sonar java:S5693 on the upload limit: ignore in repo, file-scoped
+Owner accepted: 10 MB stays the product limit; suppression lives in git (sonar-project.properties) with the reason, scoped to mizan-api application.yml only.
