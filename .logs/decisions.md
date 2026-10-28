@@ -58,3 +58,6 @@ DailyUsage.today()/dayOf() ask the DB (ts AT TIME ZONE zone) using the injected 
 
 ### [2026-10-28] DECISION — SonarCloud setup
 Free org `rhorba`, project `rhorba_mizan-v2`; GitHub App limited to mizan-v2 only (not all repos, no auto-import). CI-based analysis (Automatic Analysis off: it cannot ingest coverage). Sonar job runs on main + PRs only; skipped without the secret (Dependabot PRs) rather than failing. Token: owner-generated, expiry chosen by owner.
+
+### [2026-10-28] DECISION — guava CVE-2026-102554 in the Keycloak image: option A
+Owner accepted a time-boxed Trivy exception (docker/keycloak/trivyignore.yaml, expires 2026-11-30, same as CVE-2026-114406). Recheck on every Keycloak release and before preprod (Epic 7).

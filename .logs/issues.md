@@ -83,5 +83,5 @@ Before starting mizan-analyzer for the 1 approved proof call, tried to skip 2 le
 ### [2026-10-28] ISSUE (fixed, not pushed) — Gitleaks false positive on sonar.projectKey
 generic-api-key fired on `sonar.projectKey=rhorba_mizan-v2` (c73a04d, sonar-project.properties:4) — a public project id. Fingerprint added to new .gitleaksignore with reason; local full-history scan: no leaks found.
 
-### [2026-10-28] ISSUE (OPEN, needs owner decision) — guava CVE-2026-102554 (HIGH) in Keycloak image
+### [2026-10-28] ISSUE (accepted, time-boxed to 2026-11-30) — guava CVE-2026-102554 (HIGH) in Keycloak image
 quay.io/keycloak/keycloak:26.8.1 (newest, 2026-10-13) bundles guava 33.6.0-jre; fixed in 33.7.2. Only remaining red in CI `stack` (Trivy images); mizan-api / mizan-analyzer images clean after the snappy-java pin. Options: A) time-boxed trivyignore entry to 2026-11-30 (recommended), B) replace the jar in keycloak.Dockerfile, C) wait for upstream. Owner ended the session before choosing.
