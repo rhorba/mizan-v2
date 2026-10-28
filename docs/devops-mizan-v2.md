@@ -16,7 +16,7 @@ jobs:
   lint:           # Spotless (Java), ESLint + Prettier (Angular), markdownlint, terraform fmt
   test-backend:   # ./mvnw verify — unit + Testcontainers + Modulith verify; JaCoCo gate 80 %
   test-frontend:  # vitest --coverage (gate 80 %), Playwright on compose stack
-  sonar:          # SonarCloud scan + quality gate (needs SONAR_TOKEN)
+  sonar:          # SonarCloud scan + quality gate (needs SONAR_TOKEN); org rhorba, project rhorba_mizan-v2; main + PRs; Automatic Analysis off
   security:       # Gitleaks, Semgrep, Trivy fs + IaC (fail on CRITICAL/HIGH)
   build-images:   # buildx linux/amd64,linux/arm64 → ghcr.io/rhorba/mizan-{api,analyzer,web}:<sha>
                   # Trivy image scan; SBOM (CycloneDX) attached

@@ -55,3 +55,6 @@ DailyUsage.today()/dayOf() ask the DB (ts AT TIME ZONE zone) using the injected 
 
 ### [2026-10-27] DECISION — Sprint 5 approach (owner)
 6.1 🔴: backend OTel through Kafka/analyzer/model/apply, Loki logs with trace ids, no-text test, browser OTel (trace starts at upload click), mizan.analyses.tokens, Grafana dashboards + alert rules as code (notification channel waits for SMTP, Sprint 6). 6.2: sonar CI job with quality-gate wait. 7.1 🟡: bootstrap config (state + backup buckets), network/firewall/A1/reserved IP/k3s, AD retry, Trivy IaC in CI; apply only after owner OK. Terraform upgrade via winget approved.
+
+### [2026-10-28] DECISION — SonarCloud setup
+Free org `rhorba`, project `rhorba_mizan-v2`; GitHub App limited to mizan-v2 only (not all repos, no auto-import). CI-based analysis (Automatic Analysis off: it cannot ingest coverage). Sonar job runs on main + PRs only; skipped without the secret (Dependabot PRs) rather than failing. Token: owner-generated, expiry chosen by owner.
