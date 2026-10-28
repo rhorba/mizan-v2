@@ -80,7 +80,9 @@ class SecurityConfig {
     CorsConfiguration cors = new CorsConfiguration();
     cors.setAllowedOrigins(properties.corsAllowedOrigins());
     cors.setAllowedMethods(List.of("GET", "POST", "DELETE", "OPTIONS"));
-    cors.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept-Language"));
+    // traceparent/tracestate: the SPA continues its trace into the API (Story 6.1, W3C).
+    cors.setAllowedHeaders(
+        List.of("Authorization", "Content-Type", "Accept-Language", "traceparent", "tracestate"));
     cors.setMaxAge(3600L);
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/api/**", cors);

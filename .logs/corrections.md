@@ -25,3 +25,9 @@ Keyset pagination (🔴 Sprint 2) orders by (created_at, id); index is (owner_su
 Nothing sets ANALYZING yet (analyzer emits no "started" event). Story 3.3 guard = "not yet terminal" via one conditional UPDATE. The PENDING→ANALYZING step moves to Story 3.4 (SSE stepper), where it is needed. docs/database access pattern updated.
 
 ### [2026-10-26] CORRECTION — Global cap via a per-day "*" row upsert instead of SUM (SUM races under READ COMMITTED). docs/database §3 updated.
+
+### [2026-10-28] CORRECTION — Sprint 5 B3 alert count 4 → 5
+Plan said "4 alert rules"; docs/devops §6 lists 5 thresholds (Loki errors, p95, lag, failed %, cost). Built all 5 (same YAML, minutes each). Cost rule reads the global-cap gauges, not tokens (the cap is in analyses, not tokens).
+
+### [2026-10-28] CORRECTION — Sprint 5 B5 scope
+No AD-retry script: home region eu-marseille-1 has one availability domain (retry = later); `availability_domain_index` kept for multi-AD regions. Argo CD bootstrap + namespaces move from cloud-init to Story 7.2 (GitOps owns them; 7.1 acceptance is k3s reachable on 80/443). ssh_public_key is now key contents (container paths).

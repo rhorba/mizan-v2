@@ -52,3 +52,12 @@ DailyUsage.today()/dayOf() ask the DB (ts AT TIME ZONE zone) using the injected 
 
 ### [2026-10-27] DECISION — admin chart colors (dataviz validator, both modes)
 14-day stacked columns: done=status-good #0ca30c, in progress=categorical blue #2a78d6 (dark #3987e5), failed=status-critical #d03b3b, stacked done→in progress→failed so red/green never touch: ALL PASS light (#fff) and dark (#1b201e). App text tokens (risk-*/primary) FAIL as fills (lightness band, deutan 5.8) — kept for text only. Risk split: single series (flag counts by level) → one hue (blue), rows labelled in words; the 3-hue risk set failed CVD (protan 5.6).
+
+### [2026-10-27] DECISION — Sprint 5 approach (owner)
+6.1 🔴: backend OTel through Kafka/analyzer/model/apply, Loki logs with trace ids, no-text test, browser OTel (trace starts at upload click), mizan.analyses.tokens, Grafana dashboards + alert rules as code (notification channel waits for SMTP, Sprint 6). 6.2: sonar CI job with quality-gate wait. 7.1 🟡: bootstrap config (state + backup buckets), network/firewall/A1/reserved IP/k3s, AD retry, Trivy IaC in CI; apply only after owner OK. Terraform upgrade via winget approved.
+
+### [2026-10-28] DECISION — SonarCloud setup
+Free org `rhorba`, project `rhorba_mizan-v2`; GitHub App limited to mizan-v2 only (not all repos, no auto-import). CI-based analysis (Automatic Analysis off: it cannot ingest coverage). Sonar job runs on main + PRs only; skipped without the secret (Dependabot PRs) rather than failing. Token: owner-generated, expiry chosen by owner.
+
+### [2026-10-28] DECISION — guava CVE-2026-102554 in the Keycloak image: option A
+Owner accepted a time-boxed Trivy exception (docker/keycloak/trivyignore.yaml, expires 2026-11-30, same as CVE-2026-114406). Recheck on every Keycloak release and before preprod (Epic 7).

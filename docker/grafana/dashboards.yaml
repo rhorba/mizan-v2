@@ -1,0 +1,11 @@
+# Story 6.1: Mizan dashboards as code, next to the image's own (RED, JVM). Mounted read-only by
+# compose; edit the JSON in the repo, not in the Grafana UI (UI changes are lost on restart).
+apiVersion: 1
+
+providers:
+  - name: Mizan
+    folder: Mizan
+    type: file
+    allowUiUpdates: false
+    options:
+      path: /otel-lgtm/mizan/dashboards

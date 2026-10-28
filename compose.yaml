@@ -91,6 +91,11 @@ services:
       - "127.0.0.1:${GRAFANA_PORT:-3000}:3000"
       - "127.0.0.1:${OTLP_GRPC_PORT:-4317}:4317"
       - "127.0.0.1:${OTLP_HTTP_PORT:-4318}:4318"
+    # Story 6.1: Mizan dashboard + alert rules as code, beside the image's own provisioning.
+    volumes:
+      - ./docker/grafana/dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/mizan.yaml:ro
+      - ./docker/grafana/dashboards:/otel-lgtm/mizan/dashboards:ro
+      - ./docker/grafana/alerting/mizan-alerts.yaml:/otel-lgtm/grafana/conf/provisioning/alerting/mizan-alerts.yaml:ro
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:3000/api/health > /dev/null"]
       interval: 10s

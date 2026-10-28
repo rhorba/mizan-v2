@@ -9,6 +9,11 @@ spring:
       enabled: true
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    # Story 6.1: the trace continues through Kafka (traceparent header) in both directions.
+    template:
+      observation-enabled: true
+    listener:
+      observation-enabled: true
     consumer:
       group-id: mizan-analyzer
       auto-offset-reset: earliest
@@ -36,6 +41,19 @@ spring:
       timeout: PT5M
       # Kafka back-off owns retries (ADR-4); SDK retries on top would multiply model calls.
       max-retries: 0
+    # The model call is a span, but never with the contract (prompt) or the answer in it.
+    chat:
+      observations:
+        log-prompt: false
+        log-completion: false
+        include-error-logging: false
+
+management:
+  # Story 6.1: every analysis is traced (demo traffic); export goes to OTEL_EXPORTER_OTLP_ENDPOINT,
+  # which Boot maps to traces, metrics and logs. Without it (tests, IDE) nothing is exported.
+  tracing:
+    sampling:
+      probability: 1.0
 
 mizan:
   analyzer:

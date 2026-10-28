@@ -1,0 +1,158 @@
+# Story 6.1: alert rules as code (docs/devops §6, Monitoring Baseline). Contact points arrive with
+# SMTP in Sprint 6; until then rules evaluate and show under Alerting, and notify nobody.
+# Metric names: skills/devops-devsecops/references/observability.md §7.
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: mizan
+    folder: Mizan
+    interval: 1m
+    rules:
+      - uid: mizan-api-p95
+        title: API p95 latency above 1 s
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: prometheus
+            model:
+              refId: A
+              instant: true
+              # SSE /events streams stay open for minutes: not latency. Buckets are in ms.
+              expr: >-
+                histogram_quantile(0.95, sum by (le) (rate(
+                http_server_requests_milliseconds_bucket{service_name="mizan-api", uri!~".*/events"}[5m])))
+          - refId: B
+            datasourceUid: __expr__
+            model: { refId: B, type: reduce, expression: A, reducer: last, settings: { mode: dropNN } }
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions: [{ evaluator: { type: gt, params: [1000] } }]
+        for: 10m
+        noDataState: OK # no traffic is not slow traffic
+        execErrState: Error
+        labels: { severity: warning }
+        annotations:
+          summary: "mizan-api p95 is {{ humanize $values.B.Value }} ms (threshold 1000 ms for 10 min)"
+
+      - uid: mizan-consumer-lag
+        title: Kafka consumer lag above 50
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: prometheus
+            model:
+              refId: A
+              instant: true
+              # Per partition; records-lag-max is NaN between fetches. The consumer's own view: a
+              # stopped consumer reports nothing (observability.md §4).
+              expr: max by (service_name) (kafka_consumer_fetch_manager_records_lag{service_name=~"mizan-.*"})
+          - refId: B
+            datasourceUid: __expr__
+            model: { refId: B, type: reduce, expression: A, reducer: last, settings: { mode: dropNN } }
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions: [{ evaluator: { type: gt, params: [50] } }]
+        for: 10m
+        noDataState: OK
+        execErrState: Error
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $labels.service_name }} is {{ $values.B.Value }} messages behind (threshold 50 for 10 min)"
+
+      - uid: mizan-analyses-failed
+        title: More than 20 % of analyses failed in the last hour
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: { from: 3600, to: 0 }
+            datasourceUid: prometheus
+            model:
+              refId: A
+              instant: true
+              expr: >-
+                sum(increase(mizan_analysis_outcomes_total{outcome="failed"}[1h]))
+                / sum(increase(mizan_analysis_outcomes_total[1h]))
+          - refId: B
+            datasourceUid: __expr__
+            model: { refId: B, type: reduce, expression: A, reducer: last, settings: { mode: dropNN } }
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions: [{ evaluator: { type: gt, params: [0.2] } }]
+        for: 5m
+        noDataState: OK # no analyses, nothing failed
+        execErrState: Error
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ humanizePercentage $values.B.Value }} of analyses failed in the last hour (threshold 20 %)"
+
+      - uid: mizan-global-cap
+        title: Global daily cap above 80 %
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: prometheus
+            model:
+              refId: A
+              instant: true
+              # Cost guard: every analysis is one paid model call; the cap bounds the day's spend.
+              expr: max(mizan_quota_global_used) / max(mizan_quota_global_cap)
+          - refId: B
+            datasourceUid: __expr__
+            model: { refId: B, type: reduce, expression: A, reducer: last, settings: { mode: dropNN } }
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions: [{ evaluator: { type: gt, params: [0.8] } }]
+        for: 0s
+        noDataState: OK
+        execErrState: Error
+        labels: { severity: info }
+        annotations:
+          summary: "{{ humanizePercentage $values.B.Value }} of today's global analysis cap is used"
+
+      - uid: mizan-error-logs
+        title: More than 5 ERROR logs in 5 min
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: { from: 300, to: 0 }
+            datasourceUid: loki
+            model:
+              refId: A
+              queryType: instant
+              expr: sum(count_over_time({service_name=~"mizan-api|mizan-analyzer"} | severity_text="ERROR" [5m]))
+          - refId: B
+            datasourceUid: __expr__
+            model: { refId: B, type: reduce, expression: A, reducer: last, settings: { mode: dropNN } }
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions: [{ evaluator: { type: gt, params: [5] } }]
+        for: 0s
+        noDataState: OK # no ERROR line, no series
+        execErrState: Error
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $values.B.Value }} ERROR log lines in 5 min (threshold 5)"

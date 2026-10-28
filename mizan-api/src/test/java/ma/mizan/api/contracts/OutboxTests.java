@@ -14,6 +14,7 @@ import ma.mizan.api.shared.kafka.KafkaTestcontainer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,8 +59,9 @@ class OutboxTests {
 
     assertThat(records).hasSize(1);
     ConsumerRecord<String, String> record = records.getFirst();
-    // No Java type headers on the wire: the analyzer maps JSON to its own record.
-    assertThat(record.headers().toArray()).isEmpty();
+    // No Java type headers on the wire: the analyzer maps JSON to its own record. The only
+    // header is the W3C trace context (Story 6.1), so the analyzer continues the upload's trace.
+    assertThat(record.headers().toArray()).extracting(Header::key).containsExactly("traceparent");
     JsonNode body = JSON.readTree(record.value());
     assertThat(body.get("schemaVersion").asInt()).isEqualTo(1);
     assertThat(body.get("contractId").asString()).isEqualTo(contractId);

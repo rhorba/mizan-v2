@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Story 6.1: Boot's console output, plus every log record sent over OTLP (Loki) with the trace and
+     span ids of the request it belongs to. Exported only when OTEL_EXPORTER_OTLP_ENDPOINT is set.
+     Logs never carry contract text, prompts or tokens (docs/security §2). -->
+<configuration>
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+  <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+  <appender name="OTEL" class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+    <captureCodeAttributes>false</captureCodeAttributes>
+    <captureExperimentalAttributes>false</captureExperimentalAttributes>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="OTEL"/>
+  </root>
+</configuration>

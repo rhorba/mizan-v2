@@ -1,0 +1,9 @@
+# Copy to terraform.tfvars (git-ignored). ../bootstrap takes the first six values.
+tenancy_ocid     = "ocid1.tenancy.oc1..<...>"
+user_ocid        = "ocid1.user.oc1..<...>"
+fingerprint      = "<aa:bb:...>"
+private_key_path = "~/.oci/oci_api_key.pem"
+region           = "<home region, e.g. eu-marseille-1>"
+compartment_ocid = "ocid1.tenancy.oc1..<...>" # root compartment = the tenancy OCID
+admin_cidr       = "<your public IP>/32"      # changes with your ISP: update and re-apply
+ssh_public_key   = "ssh-ed25519 AAAA... you@host"

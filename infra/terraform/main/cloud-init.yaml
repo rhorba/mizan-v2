@@ -1,0 +1,22 @@
+#cloud-config
+# Story 7.1: Ubuntu 24.04 + k3s (Traefik, local-path storage). Namespaces and Argo CD: Story 7.2.
+package_update: true
+package_upgrade: true
+
+write_files:
+  # OCI's Ubuntu images REJECT all but SSH in host iptables, which blocks 80/443 and k3s pod
+  # traffic. The VCN security list is the firewall (infra/terraform/main/network.tf).
+  - path: /etc/iptables/rules.v4
+    permissions: "0644"
+    content: |
+      *filter
+      :INPUT ACCEPT [0:0]
+      :FORWARD ACCEPT [0:0]
+      :OUTPUT ACCEPT [0:0]
+      COMMIT
+
+runcmd:
+  - iptables-restore < /etc/iptables/rules.v4
+  - curl -sfL https://get.k3s.io -o /tmp/k3s-install.sh
+  - INSTALL_K3S_VERSION='${k3s_version}' sh /tmp/k3s-install.sh --write-kubeconfig-mode 600 --secrets-encryption
+  - rm -f /tmp/k3s-install.sh

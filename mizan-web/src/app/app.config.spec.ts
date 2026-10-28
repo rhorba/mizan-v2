@@ -1,3 +1,4 @@
+import { HttpBackend, HttpXhrBackend } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ApplicationInitStatus } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
@@ -21,5 +22,13 @@ describe('appConfig', () => {
     expect(fake.init).toHaveBeenCalled();
     expect(TestBed.inject(OAuthStorage)).toBeInstanceOf(TransientOAuthStorage);
     localStorage.clear();
+  });
+
+  it('sends HttpClient requests over XHR: upload progress and browser tracing need it', () => {
+    // Angular 22 defaults to fetch; under fetch both silently stop working (.logs/issues.md).
+    const { provider } = fakeAuth();
+    TestBed.configureTestingModule({ providers: [...appConfig.providers, provider] });
+
+    expect(TestBed.inject(HttpBackend)).toBeInstanceOf(HttpXhrBackend);
   });
 });
