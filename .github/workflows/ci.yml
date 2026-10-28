@@ -20,6 +20,7 @@ env:
   GITLEAKS_IMAGE: zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
   SEMGREP_IMAGE: semgrep/semgrep:1.182.1@sha256:451b3d875c00dac7ed5db5293e584a07de11449a409c10b3c2d2652f429630b6
   TRIVY_IMAGE: aquasec/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c
+  TERRAFORM_IMAGE: hashicorp/terraform:1.16.5@sha256:c7926feace05d0f7e73542842bf3945924e955a1f782cf000ccbb8d18fa42d77
 
 jobs:
   lint:
@@ -47,6 +48,16 @@ jobs:
           npm ci
           npm run lint
           npm run format:check
+      - name: Terraform — fmt, validate, plan tests with a mocked provider (Story 7.1)
+        # No OCI credentials in CI: tests/plan.tftest.hcl asserts the plan against mock_provider.
+        run: |
+          tf() { docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD/infra/terraform:/tf" -w "/tf/$1" "$TERRAFORM_IMAGE" "${@:2}"; }
+          tf . fmt -check -recursive
+          for stack in bootstrap main; do
+            tf "$stack" init -backend=false -input=false
+            tf "$stack" validate
+          done
+          tf main test
 
   test-backend:
     runs-on: ubuntu-24.04

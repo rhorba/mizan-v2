@@ -38,3 +38,4 @@ Thumbs.db
 *.tfvars
 !*.tfvars.example
 *.pem
+backend.hcl

@@ -1,0 +1,9 @@
+# Copy to backend.hcl (git-ignored), fill in, then: terraform init -backend-config=backend.hcl
+bucket           = "mizan-tfstate"
+namespace        = "<object storage namespace — bootstrap output>"
+key              = "preprod/terraform.tfstate"
+region           = "<home region, e.g. eu-marseille-1>"
+tenancy_ocid     = "ocid1.tenancy.oc1..<...>"
+user_ocid        = "ocid1.user.oc1..<...>"
+fingerprint      = "<aa:bb:...>"
+private_key_path = "~/.oci/oci_api_key.pem"

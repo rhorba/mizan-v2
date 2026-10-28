@@ -28,3 +28,6 @@ Nothing sets ANALYZING yet (analyzer emits no "started" event). Story 3.3 guard 
 
 ### [2026-10-28] CORRECTION — Sprint 5 B3 alert count 4 → 5
 Plan said "4 alert rules"; docs/devops §6 lists 5 thresholds (Loki errors, p95, lag, failed %, cost). Built all 5 (same YAML, minutes each). Cost rule reads the global-cap gauges, not tokens (the cap is in analyses, not tokens).
+
+### [2026-10-28] CORRECTION — Sprint 5 B5 scope
+No AD-retry script: home region eu-marseille-1 has one availability domain (retry = later); `availability_domain_index` kept for multi-AD regions. Argo CD bootstrap + namespaces move from cloud-init to Story 7.2 (GitOps owns them; 7.1 acceptance is k3s reachable on 80/443). ssh_public_key is now key contents (container paths).
