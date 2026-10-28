@@ -7,7 +7,7 @@ Full rebuild of [mizan-ma](https://github.com/rhorba/mizan-ma) on a 2026 enterpr
 Java 25 · Spring Boot 4 · Angular 22 · Apache Kafka (transactional outbox) · Spring AI ·
 OpenTelemetry · PostgreSQL · Kubernetes (k3s) on Oracle Cloud, provisioned with Terraform.
 
-**Status:** Sprint 3 — uploads are analyzed by Claude (Opus 5.5 by default) through a Kafka outbox and the `mizan-analyzer` worker; results are applied once, with a per-user daily spend budget and an admin screen to retry failed analyses (`/admin/dead-letters`). The analysis view and live status arrive in Sprint 4. Design docs in `docs/`, pinned versions in ADR-8 (`docs/architecture-mizan-v2.md`).
+**Status:** Sprint 5 — every upload is one OpenTelemetry trace from the browser through the API, Kafka and the analyzer (model call included) back to the result, with logs in Loki and no contract text in any span or log; Grafana dashboard and alert rules are code (`docker/grafana/`); SonarCloud quality gate in CI; Terraform for one Always Free A1 k3s node on Oracle Cloud (`infra/terraform`). Kubernetes manifests and GitOps arrive in Sprint 6. Design docs in `docs/`, pinned versions in ADR-8 (`docs/architecture-mizan-v2.md`).
 
 ## Build
 
@@ -53,7 +53,7 @@ Sprint recordings are kept locally in `.recordings/` (git-ignored) and, for ever
 | Service | URL (default ports) |
 |---|---|
 | Keycloak (realm `mizan`, admin console) | http://localhost:8180 |
-| Grafana (traces, metrics, logs) | http://localhost:3000 |
+| Grafana (traces, metrics, logs; dashboard "Mizan — overview", alert rules under Alerting) | http://localhost:3000 |
 | mizan-api | http://localhost:8080/actuator/health |
 | Mailpit | http://localhost:8025 |
 | PostgreSQL | `localhost:5435`, database `mizan` |

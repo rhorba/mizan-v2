@@ -27,3 +27,9 @@ analysis-requested and .DLT keep text until retention (compose 24 h). Set retent
 
 ### [2026-10-27] RISK — time-zone data drift between JDK and PostgreSQL
 Two tz databases (JDK tzdb.dat, Alpine tzdata) update on different schedules; any day math split across them can disagree. Mitigation: single source of truth for "which day is it" (decision pending).
+
+### [2026-10-28] RISKS — from the Sprint 5 security review (act in Sprint 6 / Story 7.2)
+- R-OTLP (MEDIUM, preprod): browsers post spans to the OTLP collector; exposed publicly it accepts anything (spam, cost, log injection). Before preprod: same-origin `/otlp` path via Traefik with CORS = app origin, body-size + rate limit, or disable browser tracing in the preprod build.
+- R-GRAFANA (MEDIUM, preprod): otel-lgtm Grafana is anonymous Admin locally; in the cluster it must sit behind basic auth (docs/devops §3) and never be exposed without it.
+- R-ADMIN-IP (LOW): owner IP is dynamic; SSH breaks when it changes (fail-closed). Update admin_cidr and re-apply (security-list-only change).
+- R-A1 (LOW): node is the whole Always Free A1 allowance in a single-AD region; a lost instance may not be re-creatable immediately (capacity). Backups to mizan-backups (Story 7.2) are the recovery path.
