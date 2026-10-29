@@ -516,3 +516,7 @@ Verified: kustomize build, kubeconform strict 52/52 (CRDs pinned), actionlint; c
 deploy/argocd: HelmChart cert-manager v1.21.3 + argo-cd 10.11.6 (Argo CD v3.5.6; dex/notifications off, ApplicationSet 0 replicas, kustomize LoadRestrictionsNone), Application mizan-preprod → env/preprod (auto prune/selfHeal, SSA). deploy/bootstrap.sh (charts → ClusterIssuer from .env → secrets → Application), deploy/secrets.sh (stdin over SSH, PREPROD_* keys generated once and saved to .env), deploy/README.md runbook. Keycloak KC_HOSTNAME_ADMIN=localhost:8180 (admin via port-forward). Verified: shellcheck, kubeconform 52 + 3, actionlint. CI lint now also checks deploy/argocd + shellcheck.
 
 ### [2026-10-29] CI check — main 40864495168 RED (publish mizan-web Trivy); branch runs 40867060882/40867097972 GREEN @ e43e374. KSV-0037 ×2 dismissed (owner OK). Fix for main pushed on PR #17.
+
+### [2026-10-29] CI check — 40869098402 (push) + 40869107374 (PR) GREEN @ 55d0d3e incl. mizan-web scan in stack. PR #17 MERGEABLE/CLEAN; 30 open code-scanning notes/warnings (non-blocking) → triage in B5 security review. Waiting on owner merge.
+
+### [2026-10-29] main GREEN — run 40870369728 @ 6e44cf2 (PR #17 merged): all gates, publish ×4 (amd64+arm64, SBOM, Trivy), promote → env/preprod 0c06994 (main + newTag 6e44cf2…). main red period closed. GHCR packages still private (anonymous pull 403) → owner sets Public.
