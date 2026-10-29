@@ -507,3 +507,5 @@ Owner step after first main publish: set the 4 GHCR packages to Public (GitHub U
 ### [2026-10-29] B2 done — deploy/base + overlays/preprod (Story 7.2)
 52 objects: 3 namespaces (PSS), 11 NetworkPolicies (default deny + per-connection allows, internet egress only analyzer:443, clamav:80/443, keycloak/grafana:587, metadata 169.254/16 excluded), postgres/kafka StatefulSets, keycloak, clamav, otel-lgtm, api, analyzer, web, Traefik middlewares + IngressRoutes, 3 cert-manager Certificates. Limits per SDR + ClamAV 1.25/2.5 Gi (~16.6 Gi total limits incl. Argo CD estimate).
 Verified: kustomize build, kubeconform strict 52/52 (CRDs pinned), actionlint; container smokes with manifest security settings: postgres uid 70 RO + init schemas, kafka uid 1000 retention/roll, Grafana 401 anonymous + contact point + 5 rules + dashboards, ClamAV no-new-privileges, realm placeholders both ways. CI lint job now builds + validates manifests. Local compose stack stopped (memory).
+
+### [2026-10-29] CI check — run 40861687011 RED (security: KSV-0014 ×4); all other jobs green incl. kubeconform 52/52, realm tests, e2e. Fix pushed next.

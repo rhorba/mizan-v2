@@ -80,7 +80,15 @@ spec:
               memory: 3Gi
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
           volumeMounts:
+            # Telemetry and Grafana state (found with --read-only); lost on restart, by design.
+            - name: data
+              mountPath: /data
+            - name: tempo
+              mountPath: /var/tempo
+            - name: tmp
+              mountPath: /tmp
             # Same files as compose (Story 6.1), plus the email contact point.
             - name: grafana-provisioning
               mountPath: /otel-lgtm/grafana/conf/provisioning/dashboards/mizan.yaml
@@ -95,6 +103,14 @@ spec:
               mountPath: /otel-lgtm/mizan/dashboards
               readOnly: true
       volumes:
+        - name: data
+          emptyDir:
+            sizeLimit: 5Gi
+        - name: tempo
+          emptyDir:
+            sizeLimit: 2Gi
+        - name: tmp
+          emptyDir: {}
         - name: grafana-provisioning
           configMap:
             name: grafana-provisioning

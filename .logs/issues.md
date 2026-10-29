@@ -94,3 +94,6 @@ Hidden until now: the security job stopped at Gitleaks before Semgrep ran. `new 
 
 ### [2026-10-28] ISSUE (fixed) — main quality gate FAILED after PR #14 merge
 First analysis of main judges all code: java:S5693 ×2 (MAJOR "vulnerability") on mizan-api application.yml lines 12–13 (multipart 10MB / 11MB > Sonar's 8 MB default) → security rating C. PR analysis passed because those lines (Sprint 2) were not in the PR diff. Owner chose a justified, file-scoped ignore in sonar-project.properties (10 MB is the Story 2.1 limit; auth + rate limit + ClamAV + PDF checks). Also: PR #14 was merged at b2e321c before the B6 push → B6 goes to main via chore/sprint-5-close.
+
+### [2026-10-29] CI red — Trivy KSV-0014 on B2 manifests (run 40861687011)
+security job: readOnlyRootFilesystem false on kafka, keycloak, clamav, otel-lgtm (HIGH). Fixed, not ignored: each image run with --read-only to find its write paths (Kafka /opt/kafka/config via init-container copy + /opt/kafka/logs; ClamAV /run, /var/lock, /var/log/clamav, /tmp; otel-lgtm /data, /var/tempo, /tmp; Keycloak /tmp, data/tmp, data/transaction-logs — the last also cut start-up 75 s → 39 s). All four verified running read-only; local Trivy misconfig exit 0.

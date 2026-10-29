@@ -40,6 +40,23 @@ spec:
         fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
+      # The start script writes server.properties into /opt/kafka/config: give it a writable
+      # copy so the root file system can stay read-only.
+      initContainers:
+        - name: copy-config
+          image: apache/kafka:4.3.1@sha256:77e3df9054047a88b520d0cc46e16696d3b22022e1d580aeccd2632df6532837
+          command: ["sh", "-c", "cp -a /opt/kafka/config/. /config/"]
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits: { cpu: 100m, memory: 64Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: config
+              mountPath: /config
       containers:
         - name: kafka
           image: apache/kafka:4.3.1@sha256:77e3df9054047a88b520d0cc46e16696d3b22022e1d580aeccd2632df6532837
@@ -81,13 +98,26 @@ spec:
               memory: 2Gi
           securityContext:
             allowPrivilegeEscalation: false
-            # The image's start script writes server.properties from the environment.
-            readOnlyRootFilesystem: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
           volumeMounts:
             - name: data
               mountPath: /var/lib/kafka/data
+            - name: config
+              mountPath: /opt/kafka/config
+            - name: logs # GC log
+              mountPath: /opt/kafka/logs
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: config
+          emptyDir: {}
+        - name: logs
+          emptyDir:
+            sizeLimit: 1Gi
+        - name: tmp
+          emptyDir: {}
   volumeClaimTemplates:
     - metadata:
         name: data

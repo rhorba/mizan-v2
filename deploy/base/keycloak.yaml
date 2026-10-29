@@ -88,15 +88,27 @@ spec:
               memory: 1536Mi
           securityContext:
             allowPrivilegeEscalation: false
-            # Keycloak writes to /opt/keycloak/data at runtime.
-            readOnlyRootFilesystem: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
           volumeMounts:
             - name: realm
               mountPath: /opt/keycloak/data/import
               readOnly: true
+            - name: tmp
+              mountPath: /tmp
+            - name: data-tmp
+              mountPath: /opt/keycloak/data/tmp
+            # Without it the transaction manager retries for ~30 s at start-up.
+            - name: transaction-logs
+              mountPath: /opt/keycloak/data/transaction-logs
       volumes:
         - name: realm
           configMap:
             name: keycloak-realm
+        - name: tmp
+          emptyDir: {}
+        - name: data-tmp
+          emptyDir: {}
+        - name: transaction-logs
+          emptyDir: {}

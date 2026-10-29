@@ -1,6 +1,6 @@
 # Story 7.2 / docs/devops: apps in mizan, stateful services in platform, telemetry in observability.
-# Our own images meet the "restricted" Pod Security Standard; third-party images that start as
-# root (ClamAV, otel-lgtm) or write to their image (Kafka, Keycloak) get "baseline".
+# Every container has a read-only root file system. Our own images meet the "restricted" Pod
+# Security Standard; ClamAV and otel-lgtm start as root, so their namespaces enforce "baseline".
 apiVersion: v1
 kind: Namespace
 metadata:
