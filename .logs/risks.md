@@ -33,3 +33,4 @@ Two tz databases (JDK tzdb.dat, Alpine tzdata) update on different schedules; an
 - R-GRAFANA (MEDIUM, preprod): otel-lgtm Grafana is anonymous Admin locally; in the cluster it must sit behind basic auth (docs/devops §3) and never be exposed without it.
 - R-ADMIN-IP (LOW): owner IP is dynamic; SSH breaks when it changes (fail-closed). Update admin_cidr and re-apply (security-list-only change).
 - R-A1 (LOW): node is the whole Always Free A1 allowance in a single-AD region; a lost instance may not be re-creatable immediately (capacity). Backups to mizan-backups (Story 7.2) are the recovery path.
+- R-SMTP-CHAT (LOW, 2026-10-29): the Gmail app password `mizan-preprod` was pasted in chat (session transcript). Owner to revoke it and create a new one pasted straight into .env before 7.4 / v2.0, then re-run deploy/secrets.sh. Scope: send-mail only for rrhorba.mohamed@gmail.com.

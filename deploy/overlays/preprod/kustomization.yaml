@@ -1,0 +1,19 @@
+# Preprod on OCI k3s (Story 7.2). Argo CD syncs this overlay from the env/preprod branch.
+# On main every newTag stays "unreleased": CI's promote job builds env/preprod = main@<sha>
+# plus one commit that sets every newTag to <sha> (main is protected, so the bump never lands there).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+images:
+  - name: mizan-api
+    newName: ghcr.io/rhorba/mizan-api
+    newTag: "unreleased"
+  - name: mizan-analyzer
+    newName: ghcr.io/rhorba/mizan-analyzer
+    newTag: "unreleased"
+  - name: mizan-web
+    newName: ghcr.io/rhorba/mizan-web
+    newTag: "unreleased"
+  - name: mizan-keycloak
+    newName: ghcr.io/rhorba/mizan-keycloak
+    newTag: "unreleased"

@@ -4,13 +4,16 @@
 
 ARG KEYCLOAK_IMAGE=quay.io/keycloak/keycloak:26.8.1@sha256:79c623a22abacf3fe6c00a5fb30f5b7843d717b234033b80995891c06116d244
 
-FROM ${KEYCLOAK_IMAGE} AS build
+# The build only writes Java artifacts under /opt/keycloak, so it runs natively; under QEMU
+# (arm64 image on an amd64 runner) kc.sh build took over 8 minutes.
+FROM --platform=$BUILDPLATFORM ${KEYCLOAK_IMAGE} AS build
 ENV KC_DB=postgres \
     KC_HEALTH_ENABLED=true \
     KC_CACHE=local
 RUN /opt/keycloak/bin/kc.sh build
 
 FROM ${KEYCLOAK_IMAGE}
+LABEL org.opencontainers.image.source="https://github.com/rhorba/mizan-v2"
 COPY --from=build /opt/keycloak/ /opt/keycloak/
 # Realm policy passwordBlacklist(mizan.txt) reads this (see keycloak/password-blacklist.NOTICE).
 COPY --chown=1000:0 keycloak/themes/ /opt/keycloak/themes/

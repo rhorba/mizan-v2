@@ -64,3 +64,9 @@ Owner accepted a time-boxed Trivy exception (docker/keycloak/trivyignore.yaml, e
 
 ### [2026-10-28] DECISION — Sonar java:S5693 on the upload limit: ignore in repo, file-scoped
 Owner accepted: 10 MB stays the product limit; suppression lives in git (sonar-project.properties) with the reason, scoped to mizan-api application.yml only.
+
+### [2026-10-29] Sprint 6 env/hosting
+sslip.io host, Gmail SMTP, public GHCR multi-arch (amd64+arm64) images. New gap found: CI publishes no images yet — part of 7.2.
+
+### [2026-10-29] 7.2 promotion = A (CI commits newTag <sha> to overlays/preprod, [skip ci], Argo CD auto-sync)
+Rejected B (Image Updater: extra controller + in-cluster Git credential), C (mutable tag: not reproducible).

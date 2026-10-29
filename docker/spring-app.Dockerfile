@@ -5,8 +5,8 @@
 ARG JDK_IMAGE=eclipse-temurin:25.0.4.1_1-jdk-alpine@sha256:1e20ead9eec7234db293f1913438090d533ed47c0b9e12dc8c7627a802a44ed6
 ARG JRE_IMAGE=eclipse-temurin:25.0.4.1_1-jre-alpine@sha256:b7528962e65d43064d8a8b67ba175367896bc948363ea2d3fcd7f10d34e1f048
 
-# === Build ===
-FROM ${JDK_IMAGE} AS build
+# === Build === the jar is the same on every platform, so build natively (no QEMU for Maven).
+FROM --platform=$BUILDPLATFORM ${JDK_IMAGE} AS build
 ARG MODULE
 WORKDIR /src
 COPY mvnw pom.xml ./
