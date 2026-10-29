@@ -18,6 +18,13 @@ RUN npx ng build --configuration ${NG_CONFIGURATION}
 # === Runtime ===
 FROM ${NGINX_IMAGE}
 LABEL org.opencontainers.image.source="https://github.com/rhorba/mizan-v2"
+# CVE-2026-111497 (CRITICAL): the pinned base ships brotli-libs 1.2.0-r1; Alpine has 1.2.1-r0.
+# Drop the upgrade once the nginx digest above is bumped to an image that includes the fix.
+# curl is not needed at runtime (probes come from the kubelet); removing it also removes
+# CVE-2026-92392 (HIGH, curl/libcurl).
+USER root
+RUN apk upgrade --no-cache brotli-libs && apk del --no-cache curl
+USER 101
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /src/dist/mizan-web/browser/ /usr/share/nginx/html/
 USER 101

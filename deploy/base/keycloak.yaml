@@ -51,6 +51,8 @@ spec:
             - name: KC_HOSTNAME
               valueFrom:
                 configMapKeyRef: { name: public-urls, key: AUTH_ORIGIN }
+            # The admin console is only reached through a port-forward (deploy/README.md).
+            - { name: KC_HOSTNAME_ADMIN, value: "http://localhost:8180" }
             # The API fetches signing keys over the cluster network, not the public host.
             - { name: KC_HOSTNAME_BACKCHANNEL_DYNAMIC, value: "true" }
             - { name: KC_HTTP_ENABLED, value: "true" }
