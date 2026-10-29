@@ -275,9 +275,19 @@ jobs:
       - name: Logs on failure
         if: failure()
         run: docker compose --profile '*' logs --no-color --tail 200
+      # Not part of compose; built here so its scan runs on PRs, not first in publish on main.
+      - name: Build mizan-web image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: mizan-web
+          file: docker/web.Dockerfile
+          tags: mizan-web:local
+          load: true
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,scope=web,mode=max
       - name: Trivy — images (fixable HIGH/CRITICAL)
         run: |
-          for image in mizan-api:local mizan-analyzer:local mizan-keycloak:local; do
+          for image in mizan-api:local mizan-analyzer:local mizan-keycloak:local mizan-web:local; do
             echo "::group::$image"
             ignore=()
             # Time-boxed, documented exceptions for the Keycloak base image only.

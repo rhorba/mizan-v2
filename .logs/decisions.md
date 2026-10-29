@@ -78,3 +78,6 @@ Rejected B (Image Updater: extra controller + in-cluster Git credential), C (mut
 - ClamAV: clamav/clamav-debian:1.5.4 (clamav/clamav is amd64-only).
 - Overlays: preprod only (local = compose). Files shared with compose referenced in place → kustomize --load-restrictor LoadRestrictionsNone (CI + argocd-cm).
 - ClusterIssuer created from .env at bootstrap (keeps LETSENCRYPT_EMAIL out of the public repo).
+
+### [2026-10-29] Code scanning KSV-0037 ×2 (HelmChart in kube-system) dismissed — owner approved
+k3s helm-controller convention; workloads run in argocd / cert-manager. Alerts #47, #48 "won't fix"; PR #17 threads resolved.

@@ -97,3 +97,6 @@ First analysis of main judges all code: java:S5693 ×2 (MAJOR "vulnerability") o
 
 ### [2026-10-29] CI red — Trivy KSV-0014 on B2 manifests (run 40861687011)
 security job: readOnlyRootFilesystem false on kafka, keycloak, clamav, otel-lgtm (HIGH). Fixed, not ignored: each image run with --read-only to find its write paths (Kafka /opt/kafka/config via init-container copy + /opt/kafka/logs; ClamAV /run, /var/lock, /var/log/clamav, /tmp; otel-lgtm /data, /var/tempo, /tmp; Keycloak /tmp, data/tmp, data/transaction-logs — the last also cut start-up 75 s → 39 s). All four verified running read-only; local Trivy misconfig exit 0.
+
+### [2026-10-29] main CI red — run 40864495168 @ d45802d (owner merged PR #16 = B1+B2)
+publish(mizan-web) Trivy: brotli-libs CVE-2026-111497 CRITICAL, curl/libcurl CVE-2026-92392 HIGH from the nginx-unprivileged 1.30.6 base; fail-fast cancelled the other images, promote skipped → nothing deployed (gate worked). Fix: upgrade brotli-libs, remove curl (unused at runtime); verified Trivy 0, uid 101, read-only, /healthz, arm64 build. Root cause of reaching main: PR CI never scanned the web image → stack job now builds and scans mizan-web on every PR.
