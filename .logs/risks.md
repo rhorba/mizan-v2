@@ -34,3 +34,6 @@ Two tz databases (JDK tzdb.dat, Alpine tzdata) update on different schedules; an
 - R-ADMIN-IP (LOW): owner IP is dynamic; SSH breaks when it changes (fail-closed). Update admin_cidr and re-apply (security-list-only change).
 - R-A1 (LOW): node is the whole Always Free A1 allowance in a single-AD region; a lost instance may not be re-creatable immediately (capacity). Backups to mizan-backups (Story 7.2) are the recovery path.
 - R-SMTP-CHAT (LOW, 2026-10-29): the Gmail app password `mizan-preprod` was pasted in chat (session transcript). Owner to revoke it and create a new one pasted straight into .env before 7.4 / v2.0, then re-run deploy/secrets.sh. Scope: send-mail only for rrhorba.mohamed@gmail.com.
+- [2026-10-29] Kafka text retention (2026-10-26): broker retention 24 h + log.roll.hours=1 in deploy/base/kafka.yaml (default 7-day segment roll would have kept text up to a week). Verified on the image.
+- [2026-10-29] R-OTLP / R-GRAFANA: mitigations in manifests (same-origin Path /otlp/v1/traces, 512 KB, rate limit; Grafana anonymous off, verified 401 locally). Close after live check in B3.
+- R-K8S-RO (LOW): Kafka, Keycloak, ClamAV, otel-lgtm run with writable root FS; ClamAV and otel-lgtm start as root (baseline PSS in platform/observability). Our images are restricted + read-only.

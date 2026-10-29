@@ -1,0 +1,56 @@
+# mizan-analyzer (SDR memory budget: 0.75 / 1 GB). A Kafka worker with no web server, so no
+# HTTP probes: the JVM exits on OOM (-XX:+ExitOnOutOfMemoryError) and the pod restarts.
+# Secret "mizan-analyzer" (deploy/secrets.sh): ANTHROPIC_API_KEY.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mizan-analyzer
+  namespace: mizan
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mizan-analyzer
+  template:
+    metadata:
+      labels:
+        app: mizan-analyzer
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: mizan-analyzer
+          image: mizan-analyzer
+          env:
+            - { name: KAFKA_BOOTSTRAP_SERVERS, value: "kafka.platform.svc.cluster.local:9092" }
+            - { name: MIZAN_AI_MODEL, value: claude-opus-5-5 }
+            - { name: MIZAN_AI_MAX_TOKENS, value: "16000" }
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-lgtm.observability.svc.cluster.local:4318
+          envFrom:
+            - secretRef:
+                name: mizan-analyzer
+          resources:
+            requests:
+              cpu: 100m
+              memory: 768Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi

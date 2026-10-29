@@ -1,0 +1,25 @@
+# Story 7.2 / docs/devops: apps in mizan, stateful services in platform, telemetry in observability.
+# Our own images meet the "restricted" Pod Security Standard; third-party images that start as
+# root (ClamAV, otel-lgtm) or write to their image (Kafka, Keycloak) get "baseline".
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mizan
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: platform
+  labels:
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: observability
+  labels:
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn: restricted

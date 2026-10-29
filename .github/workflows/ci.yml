@@ -23,6 +23,12 @@ env:
   SEMGREP_IMAGE: semgrep/semgrep:1.182.1@sha256:451b3d875c00dac7ed5db5293e584a07de11449a409c10b3c2d2652f429630b6
   TRIVY_IMAGE: aquasec/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c
   TERRAFORM_IMAGE: hashicorp/terraform:1.16.5@sha256:c7926feace05d0f7e73542842bf3945924e955a1f782cf000ccbb8d18fa42d77
+  KUSTOMIZE_IMAGE: registry.k8s.io/kustomize/kustomize:v5.8.1@sha256:899fcd3bc898160e62bcaf82932b0cb29ba38d16272353db2e7acbba82129429
+  # kubeconform's image is not anonymously pullable; the release binary is checked against this sum.
+  KUBECONFORM_VERSION: v0.8.0
+  KUBECONFORM_SHA256: 9bc2bffbf71f261128533edaf912153948b7ff238f9a531ae6d34466ec287883
+  # Traefik and cert-manager CRD schemas, pinned to a commit of datreeio/CRDs-catalog.
+  CRD_SCHEMAS: https://raw.githubusercontent.com/datreeio/CRDs-catalog/3eb90d47aba8d61919d4419dd38301536e32a94b/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json
 
 jobs:
   lint:
@@ -60,6 +66,16 @@ jobs:
             tf "$stack" validate
           done
           tf main test
+      - name: Kubernetes — kustomize build, kubeconform (Story 7.2)
+        run: |
+          docker run --rm -v "$PWD:/repo:ro" -w /repo "$KUSTOMIZE_IMAGE" \
+            build --load-restrictor LoadRestrictionsNone deploy/overlays/preprod > "$RUNNER_TEMP/preprod.yaml"
+          curl -fsSL -o "$RUNNER_TEMP/kubeconform.tar.gz" \
+            "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz"
+          echo "${KUBECONFORM_SHA256}  $RUNNER_TEMP/kubeconform.tar.gz" | sha256sum -c -
+          tar xzf "$RUNNER_TEMP/kubeconform.tar.gz" -C "$RUNNER_TEMP" kubeconform
+          "$RUNNER_TEMP/kubeconform" -strict -summary -kubernetes-version 1.34.0 \
+            -schema-location default -schema-location "$CRD_SCHEMAS" "$RUNNER_TEMP/preprod.yaml"
 
   test-backend:
     runs-on: ubuntu-24.04

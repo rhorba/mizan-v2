@@ -1,0 +1,103 @@
+# Collector + Tempo + Loki + Prometheus + Grafana in one pod (SDR memory budget: 2 / 3 GB).
+# R-GRAFANA: anonymous access off, Grafana's own login with the generated admin password.
+# Secret "grafana" (deploy/secrets.sh): GF_SECURITY_ADMIN_PASSWORD, GF_SMTP_HOST, GF_SMTP_USER,
+# GF_SMTP_PASSWORD, GF_SMTP_FROM_ADDRESS, ALERT_EMAIL. Telemetry is not persisted (demo).
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-lgtm
+  namespace: observability
+  labels:
+    app: otel-lgtm
+spec:
+  selector:
+    app: otel-lgtm
+  ports:
+    - name: grafana
+      port: 3000
+    - name: otlp-grpc
+      port: 4317
+    - name: otlp-http
+      port: 4318
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-lgtm
+  namespace: observability
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: otel-lgtm
+  template:
+    metadata:
+      labels:
+        app: otel-lgtm
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: otel-lgtm
+          image: grafana/otel-lgtm:0.37.0@sha256:57b5ab1ca6619beb180174e2fccce04762470750669d043f544b4726d0582d07
+          env:
+            - { name: GF_AUTH_ANONYMOUS_ENABLED, value: "false" }
+            - name: GF_SERVER_ROOT_URL
+              valueFrom:
+                configMapKeyRef: { name: public-urls, key: GRAFANA_ORIGIN }
+            # The image would otherwise download grafana-llm-app at every start.
+            - { name: GF_PLUGINS_PREINSTALL_DISABLED, value: "true" }
+            - { name: GF_SMTP_ENABLED, value: "true" }
+            - { name: GF_SMTP_FROM_NAME, value: "Mizan alerts" }
+          envFrom:
+            - secretRef:
+                name: grafana
+          ports:
+            - name: grafana
+              containerPort: 3000
+            - name: otlp-grpc
+              containerPort: 4317
+            - name: otlp-http
+              containerPort: 4318
+          readinessProbe:
+            httpGet: { path: /api/health, port: grafana }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /api/health, port: grafana }
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 250m
+              memory: 2Gi
+            limits:
+              cpu: "2"
+              memory: 3Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+          volumeMounts:
+            # Same files as compose (Story 6.1), plus the email contact point.
+            - name: grafana-provisioning
+              mountPath: /otel-lgtm/grafana/conf/provisioning/dashboards/mizan.yaml
+              subPath: dashboards.yaml
+            - name: grafana-provisioning
+              mountPath: /otel-lgtm/grafana/conf/provisioning/alerting/mizan-alerts.yaml
+              subPath: mizan-alerts.yaml
+            - name: grafana-provisioning
+              mountPath: /otel-lgtm/grafana/conf/provisioning/alerting/mizan-contact-point.yaml
+              subPath: contact-point.yaml
+            - name: grafana-dashboards
+              mountPath: /otel-lgtm/mizan/dashboards
+              readOnly: true
+      volumes:
+        - name: grafana-provisioning
+          configMap:
+            name: grafana-provisioning
+        - name: grafana-dashboards
+          configMap:
+            name: grafana-dashboards

@@ -1,0 +1,17 @@
+# Alert notifications by email (docs/devops §6). Grafana expands $ALERT_EMAIL from the
+# environment (secret "grafana"); SMTP settings come from the GF_SMTP_* variables.
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: mizan-email
+    receivers:
+      - uid: mizan-email
+        type: email
+        settings:
+          addresses: $ALERT_EMAIL
+          singleEmail: true
+
+policies:
+  - orgId: 1
+    receiver: mizan-email

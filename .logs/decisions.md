@@ -70,3 +70,11 @@ sslip.io host, Gmail SMTP, public GHCR multi-arch (amd64+arm64) images. New gap 
 
 ### [2026-10-29] 7.2 promotion = A (CI commits newTag <sha> to overlays/preprod, [skip ci], Argo CD auto-sync)
 Rejected B (Image Updater: extra controller + in-cluster Git credential), C (mutable tag: not reproducible).
+
+### [2026-10-29] B2 design calls (DevOps + Security)
+- Keycloak on its own host auth.<ip>.sslip.io (http-relative-path is build-time; /auth would change the local issuer). Grafana on grafana.<ip>.sslip.io (cookie isolation). Web, /api, /otlp share the app origin.
+- R-GRAFANA: Grafana's own login (anonymous off, generated admin password) instead of Traefik basic auth in front — one login, Grafana's brute-force protection. devops §3 updated.
+- One realm file for local and preprod: ${MIZAN_WEB_ORIGIN:…} and ${SMTP_*:…} placeholders, defaults = previous local values (verified both ways).
+- ClamAV: clamav/clamav-debian:1.5.4 (clamav/clamav is amd64-only).
+- Overlays: preprod only (local = compose). Files shared with compose referenced in place → kustomize --load-restrictor LoadRestrictionsNone (CI + argocd-cm).
+- ClusterIssuer created from .env at bootstrap (keeps LETSENCRYPT_EMAIL out of the public repo).
