@@ -511,3 +511,6 @@ Verified: kustomize build, kubeconform strict 52/52 (CRDs pinned), actionlint; c
 ### [2026-10-29] CI check — run 40861687011 RED (security: KSV-0014 ×4); all other jobs green incl. kubeconform 52/52, realm tests, e2e. Fix pushed next.
 
 ### [2026-10-29] CI check — run 40863671645 GREEN @ 7ac42ad (lint, test-backend, test-frontend, sonar, security, stack, e2e; publish/promote skipped off main). B2 complete.
+
+### [2026-10-29] B3 part 1 (local) — Argo CD / cert-manager bootstrap files
+deploy/argocd: HelmChart cert-manager v1.21.3 + argo-cd 10.11.6 (Argo CD v3.5.6; dex/notifications off, ApplicationSet 0 replicas, kustomize LoadRestrictionsNone), Application mizan-preprod → env/preprod (auto prune/selfHeal, SSA). deploy/bootstrap.sh (charts → ClusterIssuer from .env → secrets → Application), deploy/secrets.sh (stdin over SSH, PREPROD_* keys generated once and saved to .env), deploy/README.md runbook. Keycloak KC_HOSTNAME_ADMIN=localhost:8180 (admin via port-forward). Verified: shellcheck, kubeconform 52 + 3, actionlint. CI lint now also checks deploy/argocd + shellcheck.

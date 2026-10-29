@@ -1,0 +1,41 @@
+# Story 7.2: Argo CD through k3s's built-in Helm controller (SDR memory budget: 1 / 1.5 GB).
+# The UI is not exposed: kubectl -n argocd port-forward svc/argocd-server 8443:443 (over SSH).
+# Dex, notifications and ApplicationSets are off until needed (YAGNI).
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: argo-cd
+  namespace: kube-system
+spec:
+  repo: https://argoproj.github.io/argo-helm
+  chart: argo-cd
+  version: 10.11.6
+  targetNamespace: argocd
+  createNamespace: true
+  valuesContent: |-
+    configs:
+      cm:
+        # deploy/base references files shared with compose (realm, DB init, Grafana).
+        kustomize.buildOptions: --load-restrictor LoadRestrictionsNone
+    dex:
+      enabled: false
+    notifications:
+      enabled: false
+    applicationSet:
+      replicas: 0
+    controller:
+      resources:
+        requests: { cpu: 100m, memory: 384Mi }
+        limits: { memory: 640Mi }
+    repoServer:
+      resources:
+        requests: { cpu: 50m, memory: 256Mi }
+        limits: { memory: 512Mi }
+    server:
+      resources:
+        requests: { cpu: 25m, memory: 128Mi }
+        limits: { memory: 256Mi }
+    redis:
+      resources:
+        requests: { cpu: 10m, memory: 64Mi }
+        limits: { memory: 128Mi }

@@ -1,0 +1,22 @@
+# Story 7.2: preprod follows env/preprod, which CI's promote job rebuilds on every merge to main
+# (main@<sha> + image tags). Secrets are created by deploy/secrets.sh, outside Argo CD, so prune
+# never touches them.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mizan-preprod
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/rhorba/mizan-v2.git
+    targetRevision: env/preprod
+    path: deploy/overlays/preprod
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
