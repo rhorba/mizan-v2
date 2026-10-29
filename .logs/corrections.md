@@ -31,3 +31,6 @@ Plan said "4 alert rules"; docs/devops §6 lists 5 thresholds (Loki errors, p95,
 
 ### [2026-10-28] CORRECTION — Sprint 5 B5 scope
 No AD-retry script: home region eu-marseille-1 has one availability domain (retry = later); `availability_domain_index` kept for multi-AD regions. Argo CD bootstrap + namespaces move from cloud-init to Story 7.2 (GitOps owns them; 7.1 acceptance is k3s reachable on 80/443). ssh_public_key is now key contents (container paths).
+
+### [2026-10-29] Promotion option A adjusted
+Branch protection blocks bot pushes to main → tag bump goes to env/preprod (rebuilt from main each merge). Same GitOps properties; main stays PR-only.

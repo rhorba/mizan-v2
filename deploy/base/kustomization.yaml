@@ -1,0 +1,43 @@
+# Story 7.2: everything Mizan runs in the cluster, environment-neutral (overlays add hosts, TLS
+# and image tags). Files shared with compose are referenced in place, so build with
+#   kustomize build --load-restrictor LoadRestrictionsNone deploy/overlays/preprod
+# (Argo CD gets the same option in argocd-cm).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: mizan
+
+resources:
+  - namespaces.yaml
+  - network-policies.yaml
+  - traefik-middlewares.yaml
+  - postgres.yaml
+  - kafka.yaml
+  - keycloak.yaml
+  - clamav.yaml
+  - otel-lgtm.yaml
+  - mizan-api.yaml
+  - mizan-analyzer.yaml
+  - mizan-web.yaml
+
+configMapGenerator:
+  - name: postgres-init
+    namespace: platform
+    files:
+      - ../../db/init/01-schemas.sh
+  - name: keycloak-realm
+    namespace: platform
+    files:
+      - ../../keycloak/realm-mizan.json
+  - name: grafana-provisioning
+    namespace: observability
+    files:
+      - ../../docker/grafana/dashboards.yaml
+      - ../../docker/grafana/alerting/mizan-alerts.yaml
+      - grafana/contact-point.yaml
+  - name: grafana-dashboards
+    namespace: observability
+    files:
+      - ../../docker/grafana/dashboards/mizan-overview.json

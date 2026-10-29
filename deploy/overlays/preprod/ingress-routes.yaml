@@ -1,0 +1,102 @@
+# Traefik routes. Longer rules win, so /otlp/v1/traces and /api beat the web catch-all.
+# HTTP redirects to HTTPS, except the ACME HTTP-01 challenge path cert-manager answers.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: http-to-https
+  namespace: mizan
+spec:
+  entryPoints: [web]
+  routes:
+    - match: HostRegexp(`^.+$`) && !PathPrefix(`/.well-known/acme-challenge/`)
+      kind: Rule
+      priority: 1
+      middlewares:
+        - name: redirect-https
+      services:
+        - name: noop@internal
+          kind: TraefikService
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: app
+  namespace: mizan
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`144.24.200.83.sslip.io`) && PathPrefix(`/api`)
+      kind: Rule
+      middlewares:
+        - name: security-headers
+      services:
+        - name: mizan-api
+          port: 8080
+    - match: Host(`144.24.200.83.sslip.io`)
+      kind: Rule
+      middlewares:
+        - name: security-headers
+      services:
+        - name: mizan-web
+          port: 8080
+  tls:
+    secretName: app-tls
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: auth
+  namespace: platform
+spec:
+  entryPoints: [websecure]
+  routes:
+    # Login, tokens, account pages and their assets; never /admin (port-forward only).
+    - match: Host(`auth.144.24.200.83.sslip.io`) && (PathPrefix(`/realms/`) || PathPrefix(`/resources/`))
+      kind: Rule
+      middlewares:
+        - name: security-headers
+      services:
+        - name: keycloak
+          port: 8080
+  tls:
+    secretName: auth-tls
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: grafana
+  namespace: observability
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`grafana.144.24.200.83.sslip.io`)
+      kind: Rule
+      middlewares:
+        - name: security-headers
+      services:
+        - name: otel-lgtm
+          port: 3000
+  tls:
+    secretName: grafana-tls
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: otlp
+  namespace: observability
+spec:
+  entryPoints: [websecure]
+  routes:
+    # Same origin as the app (R-OTLP): no CORS grant, so other sites' pages cannot post here.
+    - match: Host(`144.24.200.83.sslip.io`) && Path(`/otlp/v1/traces`)
+      kind: Rule
+      middlewares:
+        - name: otlp-rate-limit
+        - name: otlp-body-limit
+        - name: otlp-strip-prefix
+      services:
+        - name: otel-lgtm
+          port: 4318
+  # The app host's certificate lives in namespace mizan (app-tls); Traefik serves it by SNI
+  # from its certificate store, so this router only needs TLS turned on.
+  tls: {}

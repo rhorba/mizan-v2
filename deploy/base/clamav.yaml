@@ -1,0 +1,99 @@
+# ClamAV daemon for upload scanning (Story 2.1). The Debian variant: clamav/clamav is amd64-only.
+# The image starts as root and drops to the clamav user itself, hence the baseline namespace;
+# the root file system is read-only, with emptyDirs where it writes.
+# clamd briefly holds two signature sets while reloading, so the limit is about twice the request.
+apiVersion: v1
+kind: Service
+metadata:
+  name: clamav
+  namespace: platform
+  labels:
+    app: clamav
+spec:
+  selector:
+    app: clamav
+  ports:
+    - name: clamd
+      port: 3310
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: clamav-db
+  namespace: platform
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clamav
+  namespace: platform
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # one pod owns the signature volume
+  selector:
+    matchLabels:
+      app: clamav
+  template:
+    metadata:
+      labels:
+        app: clamav
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: clamav
+          image: clamav/clamav-debian:1.5.4@sha256:cce3e1a43ae2bb40e11335c52c0e1e98273b12fa3d587e617f63a6907cc4b70b
+          ports:
+            - name: clamd
+              containerPort: 3310
+          # First start downloads ~300 MB of signatures.
+          startupProbe:
+            tcpSocket: { port: clamd }
+            periodSeconds: 10
+            failureThreshold: 60
+          readinessProbe:
+            tcpSocket: { port: clamd }
+            periodSeconds: 15
+          livenessProbe:
+            tcpSocket: { port: clamd }
+            periodSeconds: 30
+            failureThreshold: 4
+          resources:
+            requests:
+              cpu: 100m
+              memory: 1280Mi
+            limits:
+              cpu: "1"
+              memory: 2560Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: db
+              mountPath: /var/lib/clamav
+            # Paths the entrypoint, freshclam and clamd write (found with --read-only).
+            - { name: run, mountPath: /run }
+            - { name: lock, mountPath: /var/lock }
+            - { name: log, mountPath: /var/log/clamav }
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - name: db
+          persistentVolumeClaim:
+            claimName: clamav-db
+        - { name: run, emptyDir: {} }
+        - { name: lock, emptyDir: {} }
+        - name: log
+          emptyDir:
+            sizeLimit: 256Mi
+        - name: tmp # clamd unpacks scanned files here
+          emptyDir:
+            sizeLimit: 512Mi

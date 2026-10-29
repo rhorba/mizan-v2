@@ -18,9 +18,10 @@ jobs:
   test-frontend:  # vitest --coverage (gate 80 %), Playwright on compose stack
   sonar:          # SonarCloud scan + quality gate (needs SONAR_TOKEN); org rhorba, project rhorba_mizan-v2; main + PRs; Automatic Analysis off
   security:       # Gitleaks, Semgrep, Trivy fs + IaC (fail on CRITICAL/HIGH)
-  build-images:   # buildx linux/amd64,linux/arm64 → ghcr.io/rhorba/mizan-{api,analyzer,web}:<sha>
-                  # Trivy image scan; SBOM (CycloneDX) attached
-  bump-preprod:   # on main only: commit new image tags into deploy/overlays/preprod (kustomize edit)
+  publish:        # main only, after every gate: buildx linux/amd64,linux/arm64 →
+                  # ghcr.io/rhorba/mizan-{api,analyzer,web,keycloak}:<sha>; SBOM; Trivy on both platforms
+  promote:        # main only: force-push env/preprod = main@<sha> + one commit setting every newTag
+                  # to <sha> (main is protected, so the bump never lands there); Argo CD tracks env/preprod
   # deploy: Argo CD in the cluster pulls — the cluster API is never exposed to CI
 ```
 Dependabot: Maven, npm, GitHub Actions, Docker — weekly.
@@ -31,14 +32,14 @@ Dependabot: Maven, npm, GitHub Actions, Docker — weekly.
 - **Compute**: k3s (Traefik, local-path storage), namespaces `mizan`, `platform`, `observability`, `argocd`.
 - **Database**: PostgreSQL 18 StatefulSet; CronJob nightly `pg_dump | age` → backup bucket (keep 7).
 - **Messaging**: Apache Kafka 4 official image (KRaft, single broker), StatefulSet, internal listener only.
-- **Secrets**: Kubernetes Secrets created once by a `make secrets` script from local `.env` (not in Git). Sealed Secrets if multi-maintainer later (YAGNI).
-- **TLS / DNS**: cert-manager + Let's Encrypt HTTP-01; host = owner's subdomain or `<ip>.sslip.io`.
-- **Monitoring**: `grafana/otel-lgtm` pod; Grafana at `/grafana` with basic auth.
+- **Secrets**: Kubernetes Secrets created by `deploy/secrets.sh` from local `.env` (not in Git; missing passwords generated). Sealed Secrets if multi-maintainer later (YAGNI).
+- **TLS / DNS**: cert-manager + Let's Encrypt HTTP-01 on sslip.io hosts: `144.24.200.83.sslip.io` (web, `/api`, `/otlp`), `auth.…` (Keycloak: `/realms`, `/resources` only; admin console via port-forward), `grafana.…`. Keycloak has its own host because `http-relative-path` is a build-time option.
+- **Monitoring**: `grafana/otel-lgtm` pod; Grafana at `grafana.…` with anonymous access off and its own login (R-GRAFANA); browser spans only via same-origin `/otlp/v1/traces`, 512 KB body cap, rate limit (R-OTLP).
 
 Repository layout:
 ```
 mizan-api/  mizan-analyzer/  mizan-web/  keycloak/ (realm + theme)
-deploy/base/  deploy/overlays/{local,preprod}/  deploy/argocd/
+deploy/base/  deploy/overlays/preprod/  deploy/argocd/   (local = compose.yaml)
 infra/terraform/  compose.yaml  .github/workflows/
 ```
 
@@ -80,4 +81,4 @@ ENTRYPOINT ["java", "-XX:MaxRAMPercentage=70", "-jar", "app.jar"]
 | Metrics | Prometheus | API p95 > 1 s for 10 min; consumer lag > 50 for 10 min; analyses FAILED > 20 % per hour |
 | Cost | `mizan.quota.global.used` / `mizan.quota.global.cap` (gauges, mizan-api); tokens in `mizan.analysis.tokens` (dashboard) | > 80 % of daily global cap |
 | Uptime | GitHub Actions cron hitting `/api/actuator/health` every 30 min | 2 consecutive failures → issue opened |
-Dashboard and alert rules are code: `docker/grafana/` (mounted into otel-lgtm; see `skills/devops-devsecops/references/observability.md`). Grafana alerts notify by email (same SMTP as Keycloak) once the contact point lands with SMTP in Sprint 6; until then they show under Alerting only.
+Dashboard and alert rules are code: `docker/grafana/` (mounted into otel-lgtm; see `skills/devops-devsecops/references/observability.md`). In the cluster, alerts notify by email (contact point `deploy/base/grafana/contact-point.yaml`, same SMTP as Keycloak); locally they show under Alerting only.

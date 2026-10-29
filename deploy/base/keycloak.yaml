@@ -1,0 +1,114 @@
+# Keycloak 26 (SDR memory budget: 1 / 1.5 GB). TLS ends at Traefik; the ingress exposes only
+# /realms and /resources, so the admin console is reachable through kubectl port-forward only.
+# The realm import resolves ${MIZAN_WEB_ORIGIN} and ${SMTP_*} placeholders from this environment.
+# Secret "keycloak" (deploy/secrets.sh): KC_DB_PASSWORD, KC_BOOTSTRAP_ADMIN_USERNAME,
+# KC_BOOTSTRAP_ADMIN_PASSWORD, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM.
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: platform
+  labels:
+    app: keycloak
+spec:
+  selector:
+    app: keycloak
+  ports:
+    - name: http
+      port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 0 # the image's files are group 0
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: keycloak
+          image: mizan-keycloak
+          args: ["start", "--optimized", "--import-realm"]
+          env:
+            - name: KC_DB_URL
+              value: jdbc:postgresql://postgres.platform.svc.cluster.local:5432/mizan
+            - { name: KC_DB_SCHEMA, value: keycloak }
+            - { name: KC_DB_USERNAME, value: keycloak }
+            - name: KC_HOSTNAME
+              valueFrom:
+                configMapKeyRef: { name: public-urls, key: AUTH_ORIGIN }
+            # The API fetches signing keys over the cluster network, not the public host.
+            - { name: KC_HOSTNAME_BACKCHANNEL_DYNAMIC, value: "true" }
+            - { name: KC_HTTP_ENABLED, value: "true" }
+            - { name: KC_PROXY_HEADERS, value: xforwarded }
+            - name: MIZAN_WEB_ORIGIN
+              valueFrom:
+                configMapKeyRef: { name: public-urls, key: APP_ORIGIN }
+            - { name: SMTP_AUTH, value: "true" }
+            - { name: SMTP_STARTTLS, value: "true" }
+          envFrom:
+            - secretRef:
+                name: keycloak
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: management
+              containerPort: 9000
+          startupProbe:
+            httpGet: { path: /health/started, port: management }
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet: { path: /health/ready, port: management }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health/live, port: management }
+            periodSeconds: 20
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+            limits:
+              cpu: "1"
+              memory: 1536Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: realm
+              mountPath: /opt/keycloak/data/import
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+            - name: data-tmp
+              mountPath: /opt/keycloak/data/tmp
+            # Without it the transaction manager retries for ~30 s at start-up.
+            - name: transaction-logs
+              mountPath: /opt/keycloak/data/transaction-logs
+      volumes:
+        - name: realm
+          configMap:
+            name: keycloak-realm
+        - name: tmp
+          emptyDir: {}
+        - name: data-tmp
+          emptyDir: {}
+        - name: transaction-logs
+          emptyDir: {}

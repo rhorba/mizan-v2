@@ -28,10 +28,14 @@
   "supportedLocales": ["fr", "ar", "en"],
   "defaultLocale": "fr",
   "smtpServer": {
-    "host": "mailpit",
-    "port": "1025",
-    "from": "no-reply@mizan.local",
-    "fromDisplayName": "Mizan"
+    "host": "${SMTP_HOST:mailpit}",
+    "port": "${SMTP_PORT:1025}",
+    "from": "${SMTP_FROM:no-reply@mizan.local}",
+    "fromDisplayName": "Mizan",
+    "auth": "${SMTP_AUTH:false}",
+    "starttls": "${SMTP_STARTTLS:false}",
+    "user": "${SMTP_USER:}",
+    "password": "${SMTP_PASSWORD:}"
   },
   "roles": {
     "realm": [
@@ -58,13 +62,13 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "frontchannelLogout": true,
-      "rootUrl": "http://localhost:4200",
+      "rootUrl": "${MIZAN_WEB_ORIGIN:http://localhost:4200}",
       "baseUrl": "/",
-      "redirectUris": ["http://localhost:4200/*"],
-      "webOrigins": ["http://localhost:4200"],
+      "redirectUris": ["${MIZAN_WEB_ORIGIN:http://localhost:4200}/*"],
+      "webOrigins": ["${MIZAN_WEB_ORIGIN:http://localhost:4200}"],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:4200/*"
+        "post.logout.redirect.uris": "${MIZAN_WEB_ORIGIN:http://localhost:4200}/*"
       },
       "protocolMappers": [
         {

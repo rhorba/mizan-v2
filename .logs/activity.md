@@ -489,3 +489,23 @@ VIDEO_RECORDED .recordings/v0.5-2026-10-28.webm (69 s, VP9): sign-up/quota/logou
 - **Went badly**: 2 unapproved Opus calls ($0.053) from an unchecked Kafka offset reset; CI needed 4 red rounds — the branch was pushed only after 3 batches, and each fix revealed the next step of the same job (Gitleaks → Semgrep); my own notes re-triggered Gitleaks; one more heredoc quoting failure; local full verify killed by low memory.
 - **Change for Sprint 6**: verify every precondition before an action that bills (describe the group, then start); push the branch after the FIRST batch so CI runs early; when a CI job fails at step N, run the whole job locally before calling it fixed; never quote a flagged secret-looking line in prose; Write tool for every multi-line file; keep Docker lean (stop the stack between heavy runs).
 ### [2026-10-28] PUSH — feature/s5-observability @ 198e9bf (B6: E2E observability, docs, logs). CI monitoring.
+### [2026-10-28] PUSH — chore/sprint-5-close @ 16569b8 (B6 + Sonar S5693 ignore); PR to main opened. main CI was red (sonar gate) after #14 merge.
+### [2026-10-28] CI GREEN — PR #15 (chore/sprint-5-close @ 16569b8): all jobs pass, mergeable. Awaiting owner merge; then confirm main sonar gate passes (0 vulnerabilities).
+### [2026-10-28] CI GREEN — main @ ff9ae55 (merge of PR #15), run 40702422037: all 7 jobs success. SonarCloud main: quality gate OK, security rating A (1.0), 0 vulnerabilities/bugs/code smells, coverage 95.3 %. Sprint 5 closed.
+
+### [2026-10-29] PLAN snapshot — Sprint 6 (awaiting owner OK)
+Correction to A: main is protected (PR + 6 required checks), so GITHUB_TOKEN cannot push the tag bump to main. CI instead force-pushes env/preprod = main@sha + one tag-bump commit; Argo CD tracks env/preprod.
+B1 publish (web image + multi-arch GHCR + env/preprod) · B2 deploy/base + overlays (limits, NetworkPolicies, ClamAV +1.5 GB) · B3 live: k3s HelmChart Argo CD + cert-manager, secrets.sh, HTTPS, R-OTLP/R-GRAFANA · B4 7.3 backups + restore test + uptime workflow · B5 7.4 smoke vs public URL, video v2.0, README, verify, ship.
+
+### [2026-10-29] Env collected for Sprint 6
+.env: MIZAN_PUBLIC_HOST, LETSENCRYPT_EMAIL, SMTP_* (Gmail app password mizan-preprod). Risk R-SMTP-CHAT logged (rotate before v2.0).
+
+### [2026-10-29] B1 done — multi-arch publish + env/preprod promotion (Story 7.2)
+mizan-web image (docker/web.Dockerfile, nginx-unprivileged 1.30.6, CSP/nosniff, read-only OK, uid 101); Angular `preprod` config (same origin: /api, /auth, /otlp; no critical-CSS onload). CI: publish (main only, after all gates; 4 images amd64+arm64 → ghcr.io/rhorba/*:<sha>, SBOM, Trivy both platforms) → promote (force-push env/preprod = main + newTag <sha>); push trigger ignores env/**. Build stages on $BUILDPLATFORM: Keycloak arm64 build 8+ min → 17 s; API arm64 ~2 min. Verified: actionlint 0, arm64 builds api/keycloak/web, Keycloak arm64 show-config optimized, ng build preprod, eslint.
+Owner step after first main publish: set the 4 GHCR packages to Public (GitHub UI, user-owned packages have no visibility API).
+
+### [2026-10-29] B2 done — deploy/base + overlays/preprod (Story 7.2)
+52 objects: 3 namespaces (PSS), 11 NetworkPolicies (default deny + per-connection allows, internet egress only analyzer:443, clamav:80/443, keycloak/grafana:587, metadata 169.254/16 excluded), postgres/kafka StatefulSets, keycloak, clamav, otel-lgtm, api, analyzer, web, Traefik middlewares + IngressRoutes, 3 cert-manager Certificates. Limits per SDR + ClamAV 1.25/2.5 Gi (~16.6 Gi total limits incl. Argo CD estimate).
+Verified: kustomize build, kubeconform strict 52/52 (CRDs pinned), actionlint; container smokes with manifest security settings: postgres uid 70 RO + init schemas, kafka uid 1000 retention/roll, Grafana 401 anonymous + contact point + 5 rules + dashboards, ClamAV no-new-privileges, realm placeholders both ways. CI lint job now builds + validates manifests. Local compose stack stopped (memory).
+
+### [2026-10-29] CI check — run 40861687011 RED (security: KSV-0014 ×4); all other jobs green incl. kubeconform 52/52, realm tests, e2e. Fix pushed next.

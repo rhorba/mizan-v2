@@ -1,0 +1,103 @@
+# mizan-api (SDR memory budget: 1 / 1.5 GB). Secret "mizan-api" (deploy/secrets.sh):
+# SPRING_DATASOURCE_PASSWORD. Quota and price values match .env.example.
+apiVersion: v1
+kind: Service
+metadata:
+  name: mizan-api
+  namespace: mizan
+  labels:
+    app: mizan-api
+spec:
+  selector:
+    app: mizan-api
+  ports:
+    - name: http
+      port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mizan-api
+  namespace: mizan
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mizan-api
+  template:
+    metadata:
+      labels:
+        app: mizan-api
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: mizan-api
+          image: mizan-api
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://postgres.platform.svc.cluster.local:5432/mizan
+            - { name: SPRING_DATASOURCE_USERNAME, value: mizan_app }
+            - name: APP_ORIGIN
+              valueFrom:
+                configMapKeyRef: { name: public-urls, key: APP_ORIGIN }
+            - name: AUTH_ORIGIN
+              valueFrom:
+                configMapKeyRef: { name: public-urls, key: AUTH_ORIGIN }
+            # Tokens carry the public issuer; signing keys come over the cluster network.
+            - { name: KEYCLOAK_ISSUER_URI, value: "$(AUTH_ORIGIN)/realms/mizan" }
+            - name: KEYCLOAK_JWK_SET_URI
+              value: http://keycloak.platform.svc.cluster.local:8080/realms/mizan/protocol/openid-connect/certs
+            - { name: MIZAN_CORS_ALLOWED_ORIGINS, value: "$(APP_ORIGIN)" }
+            - { name: MIZAN_QUOTA_DAILY_PER_USER, value: "5" }
+            - { name: MIZAN_QUOTA_DAILY_GLOBAL, value: "20" }
+            - { name: MIZAN_UPLOADS_PER_MINUTE, value: "10" }
+            - { name: MIZAN_CLAMAV_HOST, value: clamav.platform.svc.cluster.local }
+            - { name: KAFKA_BOOTSTRAP_SERVERS, value: "kafka.platform.svc.cluster.local:9092" }
+            - { name: MIZAN_AI_DAILY_BUDGET_USD, value: "0.50" }
+            - { name: MIZAN_AI_INPUT_USD_PER_MTOK, value: "4" }
+            - { name: MIZAN_AI_OUTPUT_USD_PER_MTOK, value: "20" }
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-lgtm.observability.svc.cluster.local:4318
+            - { name: MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED, value: "true" }
+          envFrom:
+            - secretRef:
+                name: mizan-api
+          ports:
+            - name: http
+              containerPort: 8080
+          startupProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            periodSeconds: 5
+            failureThreshold: 36
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: http }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            periodSeconds: 20
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 1536Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp # Tomcat multipart uploads
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi

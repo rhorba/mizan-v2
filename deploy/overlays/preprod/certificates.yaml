@@ -1,0 +1,43 @@
+# Let's Encrypt certificates via HTTP-01 (cert-manager). The ClusterIssuer "letsencrypt" is created
+# by deploy/bootstrap.sh from .env (LETSENCRYPT_EMAIL), so no personal address sits in Git.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: app-tls
+  namespace: mizan
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  secretName: app-tls
+  dnsNames: ["144.24.200.83.sslip.io"]
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: auth-tls
+  namespace: platform
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  secretName: auth-tls
+  dnsNames: ["auth.144.24.200.83.sslip.io"]
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: grafana-tls
+  namespace: observability
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  secretName: grafana-tls
+  dnsNames: ["grafana.144.24.200.83.sslip.io"]
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt

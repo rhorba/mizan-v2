@@ -21,3 +21,6 @@ Datasource defaults OK (SPRING_DATASOURCE_URL jdbc:postgresql://localhost:5435/m
 ### [2026-10-26] Sprint 3 UNDERSTAND: owner wants spend kept under $3/month (cap set in Console). Prefers I act directly ("just do it"). Paid/credential steps stay with the owner.
 
 ### [2026-10-26] Sprint 4 UNDERSTAND: owner picked per-user 5, global 20, tokens in daily_usage.
+
+### [2026-10-29] Sprint 6 UNDERSTAND — owner choices
+Host 144.24.200.83.sslip.io; SMTP Gmail app password (owner puts it in .env, not chat); GHCR packages public (no pull secret). Generated locally: DB/Keycloak/Grafana passwords, age key pair.
