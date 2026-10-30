@@ -46,3 +46,6 @@ Merging #27 at 08:57 cancelled the #26 run mid-publish (analyzer Trivy step). Ha
 - R-GRAFANA: CLOSED — anonymous /api/search and /api/dashboards/home → 401; /login 200.
 - TLS: Let's Encrypt (YR2) on all 3 hosts, valid to 2027-01-28; http → 301 https. Keycloak /admin → 404; /api/admin/stats without token → 401.
 - NEW R-KC-MASTER (MEDIUM → fixing): route matched /realms/* so the master realm token endpoint was public (password grant on admin-cli answered invalid_grant = guessable). Fix: PathPrefix /realms/mizan/ (fix/auth-route-mizan-realm). Re-test after promote.
+- [2026-10-30] R-KC-MASTER: CLOSED after promote 99a067e — /realms/master/* → 404 publicly; /realms/mizan OIDC + account 200.
+- [2026-10-30] R-BACKUP-PAR (LOW): the backup upload URL expires 2027-10-30 (var backup_upload_expires); renew + re-apply + secrets.sh before then, or nightly backups fail.
+- [2026-10-30] R-BACKUP-KEY (MEDIUM): the age private key (~/.mizan/backup-age.key) is the only way to read backups; owner keeps a copy in a password manager. Lost key = useless backups.

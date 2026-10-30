@@ -1,0 +1,59 @@
+# Story 7.3: nightly encrypted pg_dump to the backup bucket (docker/backup/backup.sh).
+# Secret "backup" (deploy/secrets.sh): BACKUP_AGE_RECIPIENT, BACKUP_PAR_URL. Run once by hand:
+#   kubectl -n platform create job --from=cronjob/backup backup-manual
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup
+  namespace: platform
+spec:
+  schedule: "30 2 * * *"
+  timeZone: Etc/UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 900
+      template:
+        metadata:
+          labels:
+            app: backup
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 70
+            runAsGroup: 70
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: backup
+              image: mizan-backup
+              env:
+                - { name: PGHOST, value: postgres.platform.svc.cluster.local }
+                - { name: PGDATABASE, value: mizan }
+                - { name: PGUSER, value: postgres }
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef: { name: postgres, key: POSTGRES_PASSWORD }
+              envFrom:
+                - secretRef:
+                    name: backup
+              resources:
+                requests: { cpu: 50m, memory: 64Mi }
+                limits: { cpu: 500m, memory: 256Mi }
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: tmp
+              emptyDir:
+                sizeLimit: 1Gi

@@ -37,3 +37,6 @@ images:
   - name: mizan-keycloak
     newName: ghcr.io/rhorba/mizan-keycloak
     newTag: "unreleased"
+  - name: mizan-backup
+    newName: ghcr.io/rhorba/mizan-backup
+    newTag: "unreleased"
