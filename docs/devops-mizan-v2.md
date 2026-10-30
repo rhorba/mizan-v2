@@ -33,7 +33,7 @@ Dependabot: Maven, npm, GitHub Actions, Docker — weekly.
 - **Database**: PostgreSQL 18 StatefulSet; CronJob nightly `pg_dump | age` → backup bucket (keep 7).
 - **Messaging**: Apache Kafka 4 official image (KRaft, single broker), StatefulSet, internal listener only.
 - **Secrets**: Kubernetes Secrets created by `deploy/secrets.sh` from local `.env` (not in Git; missing passwords generated). Sealed Secrets if multi-maintainer later (YAGNI).
-- **TLS / DNS**: cert-manager + Let's Encrypt HTTP-01 on sslip.io hosts: `144.24.200.83.sslip.io` (web, `/api`, `/otlp`), `auth.…` (Keycloak: `/realms`, `/resources` only; admin console via port-forward), `grafana.…`. Keycloak has its own host because `http-relative-path` is a build-time option.
+- **TLS / DNS**: cert-manager + Let's Encrypt HTTP-01 on sslip.io hosts: `144.24.200.83.sslip.io` (web, `/api`, `/otlp`), `auth.…` (Keycloak: `/realms/mizan`, `/resources` only; master realm and admin console via port-forward), `grafana.…`. Keycloak has its own host because `http-relative-path` is a build-time option.
 - **Monitoring**: `grafana/otel-lgtm` pod; Grafana at `grafana.…` with anonymous access off and its own login (R-GRAFANA); browser spans only via same-origin `/otlp/v1/traces`, 512 KB body cap, rate limit (R-OTLP).
 
 Repository layout:

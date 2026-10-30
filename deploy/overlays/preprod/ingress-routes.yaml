@@ -50,8 +50,9 @@ metadata:
 spec:
   entryPoints: [websecure]
   routes:
-    # Login, tokens, account pages and their assets; never /admin (port-forward only).
-    - match: Host(`auth.144.24.200.83.sslip.io`) && (PathPrefix(`/realms/`) || PathPrefix(`/resources/`))
+    # Login, tokens, account pages and their assets of the mizan realm only: never /admin, and
+    # never the master realm (its token endpoint would take admin password guesses). Port-forward.
+    - match: Host(`auth.144.24.200.83.sslip.io`) && (PathPrefix(`/realms/mizan/`) || PathPrefix(`/resources/`))
       kind: Rule
       middlewares:
         - name: security-headers
