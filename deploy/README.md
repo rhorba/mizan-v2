@@ -6,7 +6,7 @@ touches the cluster API (port 6443 is closed).
 | URL | What |
 |---|---|
 | https://144.24.200.83.sslip.io | App (`/api`, `/otlp/v1/traces` on the same origin) |
-| https://auth.144.24.200.83.sslip.io | Keycloak login (`/realms`, `/resources` only) |
+| https://auth.144.24.200.83.sslip.io | Keycloak login (`/realms/mizan`, `/resources` only; master realm and admin via port-forward) |
 | https://grafana.144.24.200.83.sslip.io | Grafana (user `admin`, `GRAFANA_ADMIN_PASSWORD` in `.env`) |
 
 ## How a change reaches preprod

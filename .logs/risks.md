@@ -40,3 +40,9 @@ Two tz databases (JDK tzdb.dat, Alpine tzdata) update on different schedules; an
 
 ### [2026-10-30] RISK R-CI-CANCEL — main CI `cancel-in-progress` drops publish/promote on back-to-back merges
 Merging #27 at 08:57 cancelled the #26 run mid-publish (analyzer Trivy step). Harmless today (the newer run carries both), but a steady stream of Dependabot merges could keep preprod from ever promoting. Mitigation (later, small): cancel-in-progress only for pull_request refs; or merge Dependabot PRs in one batch. Owner decides.
+
+### [2026-10-30] Live checks on preprod (public URLs)
+- R-OTLP: CLOSED — /otlp/v1/traces: small batch 200; 600 KB → 413; foreign Origin preflight gets no Allow-Origin; /otlp/v1/logs|metrics not routed (405); 100 concurrent → 42×200 / 58×429.
+- R-GRAFANA: CLOSED — anonymous /api/search and /api/dashboards/home → 401; /login 200.
+- TLS: Let's Encrypt (YR2) on all 3 hosts, valid to 2027-01-28; http → 301 https. Keycloak /admin → 404; /api/admin/stats without token → 401.
+- NEW R-KC-MASTER (MEDIUM → fixing): route matched /realms/* so the master realm token endpoint was public (password grant on admin-cli answered invalid_grant = guessable). Fix: PathPrefix /realms/mizan/ (fix/auth-route-mizan-realm). Re-test after promote.

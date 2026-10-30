@@ -1,5 +1,5 @@
 # Keycloak 26 (SDR memory budget: 1 / 1.5 GB). TLS ends at Traefik; the ingress exposes only
-# /realms and /resources, so the admin console is reachable through kubectl port-forward only.
+# /realms/mizan and /resources, so the admin console is reachable through kubectl port-forward only.
 # The realm import resolves ${MIZAN_WEB_ORIGIN} and ${SMTP_*} placeholders from this environment.
 # Secret "keycloak" (deploy/secrets.sh): KC_DB_PASSWORD, KC_BOOTSTRAP_ADMIN_USERNAME,
 # KC_BOOTSTRAP_ADMIN_PASSWORD, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM.
