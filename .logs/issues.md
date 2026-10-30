@@ -100,3 +100,16 @@ security job: readOnlyRootFilesystem false on kafka, keycloak, clamav, otel-lgtm
 
 ### [2026-10-29] main CI red — run 40864495168 @ d45802d (owner merged PR #16 = B1+B2)
 publish(mizan-web) Trivy: brotli-libs CVE-2026-111497 CRITICAL, curl/libcurl CVE-2026-92392 HIGH from the nginx-unprivileged 1.30.6 base; fail-fast cancelled the other images, promote skipped → nothing deployed (gate worked). Fix: upgrade brotli-libs, remove curl (unused at runtime); verified Trivy 0, uid 101, read-only, /healthz, arm64 build. Root cause of reaching main: PR CI never scanned the web image → stack job now builds and scans mizan-web on every PR.
+
+### [2026-10-30] ISSUE — first preprod sync: 4 manifest bugs (fixed on chore/sprint-6-b3-live)
+1. bootstrap.sh waited for `argocd-server`; the Helm release names it `argo-cd-argocd-server` (also README/argocd.yaml port-forward). Fixed, re-ran bootstrap (idempotent).
+2. Kafka init `cp -a` → "preserving times for '/config/.': Operation not permitted" (non-root, emptyDir root) → CrashLoop; api/analyzer crash on unresolvable kafka DNS as a knock-on. Fix: `cp -R`.
+3. Let's Encrypt HTTP-01 502: default-deny blocked Traefik → cert-manager solver pods (8089). Fix: acme-http01-solver NetworkPolicy ×3.
+4. Kafka/Postgres StatefulSets OutOfSync forever: claim templates lacked apiVersion/kind/volumeMode. Fix: add them.
+Verified: kustomize build (55 objects) + server-side dry-run on the node. Lesson: the overlay was never applied to a real cluster before B3 — add a server-side dry-run against a throwaway k3s (kind/k3d) to CI.
+
+### [2026-10-30] ISSUE — main RED after 7 Dependabot merges (#19–#25)
+Rule 11 stop. (a) #21 logback appender 2.32.0-alpha → semconv 1.44.0 vs 1.41.1 from Spring Boot 4.1.2 → enforcer DependencyConvergence fails (lint, test-backend, stack, e2e). Pom/ADR-8 already pinned 2.28.1-alpha. (b) #20/#25 @opentelemetry/exporter-trace-otlp-http + instrumentation-xml-http-request 0.300.0 = OTel JS 3.0 line, needs sdk-trace 3 + newer api → browser-tracing.spec "Named export 'logs' not found".
+Fix (chore/sprint-6-b3-live, with the deploy fixes): back to 2.28.1-alpha and 0.223.0; dependabot.yml ignores the appender (moves with Spring Boot) and groups @opentelemetry/* npm. Verified: mvn validate OK, web lint/build OK, npm test 133/133, 97.9 % stmts. OTel JS 3.0 upgrade = future story if wanted.
+### [2026-10-30] ISSUE — axe-core 4.14 (#22) flags label-content-name-mismatch on .lang-switch
+Visible "العربية" vs aria-label "Afficher en arabe" (WCAG 2.5.3, serious). Real finding, fixed not suppressed: no aria-label; name = visible text (lang=ar/fr) + visually-hidden explanation in page language. Unit + E2E selectors updated.

@@ -520,3 +520,12 @@ deploy/argocd: HelmChart cert-manager v1.21.3 + argo-cd 10.11.6 (Argo CD v3.5.6;
 ### [2026-10-29] CI check — 40869098402 (push) + 40869107374 (PR) GREEN @ 55d0d3e incl. mizan-web scan in stack. PR #17 MERGEABLE/CLEAN; 30 open code-scanning notes/warnings (non-blocking) → triage in B5 security review. Waiting on owner merge.
 
 ### [2026-10-29] main GREEN — run 40870369728 @ 6e44cf2 (PR #17 merged): all gates, publish ×4 (amd64+arm64, SBOM, Trivy), promote → env/preprod 0c06994 (main + newTag 6e44cf2…). main red period closed. GHCR packages still private (anonymous pull 403) → owner sets Public.
+
+### [2026-10-30] B3 live step 1 — admin_cidr plan
+Owner IP changed → admin_cidr 196.119.227.23/32 (tfvars, gitignored). Plan via pinned image hashicorp/terraform:1.16.5 (local C:\terraform 1.11.4 lacks the `oci` backend; Docker Desktop started): 0 add / 1 change / 0 destroy — only the security-list SSH source. Saved plan main/admin-ip.tfplan; apply awaiting owner OK.
+### [2026-10-30] B3 live step 1 applied + step 2 read-only check
+Apply: 1 changed (SSH source 196.119.227.23/32). SSH OK. Node Ready, k3s v1.37.1+k3s1 arm64, 23.4 GiB total / 22.0 GiB available, disk 5 % of 96 G, Traefik LB on 80/443, only kube-system workloads — clean slate for bootstrap.
+### [2026-10-30] B3 live step 3 — bootstrap run
+bootstrap.sh: cert-manager + Argo CD up, ClusterIssuer, 5 secrets (PREPROD_* + GRAFANA_ADMIN_PASSWORD generated into .env), Application mizan-preprod created after the name fix. First sync: Synced op but Degraded — 4 bugs (issues.md), fixes committed locally; GitOps path needs merge to main → promote → env/preprod.
+### [2026-10-30] CI — PR #26 all green (push + PR runs) @ 7a75d44
+Contains: deploy fixes (d1f24f9), OTel pins + dependabot groups (628da47), lang-switch a11y (7a75d44). main still red until owner merges #26. Then: publish → promote → Argo CD sync → verify preprod.

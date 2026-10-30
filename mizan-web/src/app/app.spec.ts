@@ -30,9 +30,10 @@ describe('App shell', () => {
   it('switches to Arabic and right-to-left from the toolbar button', async () => {
     const { fixture, el } = await render();
     const button = el.querySelector<HTMLButtonElement>('.lang-switch')!;
-    expect(button.textContent?.trim()).toBe('العربية');
+    expect(button.querySelector('[lang]')?.textContent?.trim()).toBe('العربية');
     expect(button.querySelector('[lang]')?.getAttribute('lang')).toBe('ar');
-    expect(button.getAttribute('aria-label')).toBe('Afficher en arabe');
+    expect(button.querySelector('.visually-hidden')?.textContent).toBe('Afficher en arabe');
+    expect(button.hasAttribute('aria-label')).toBe(false);
 
     button.click();
     await fixture.whenStable();
@@ -41,7 +42,8 @@ describe('App shell', () => {
     expect(document.documentElement.lang).toBe('ar');
     expect(el.querySelector('.shell')?.getAttribute('dir')).toBe('rtl');
     expect(el.querySelector('footer')?.textContent).toContain('ليس استشارة قانونية');
-    expect(button.textContent?.trim()).toBe('Français');
+    expect(button.querySelector('[lang]')?.textContent?.trim()).toBe('Français');
+    expect(button.querySelector('[lang]')?.getAttribute('lang')).toBe('fr');
   });
 
   it('signed out: offers login, no contracts link', async () => {

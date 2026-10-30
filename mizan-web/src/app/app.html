@@ -27,16 +27,12 @@
       </nav>
     }
     <span class="spacer"></span>
-    <button
-      mat-button
-      type="button"
-      class="lang-switch"
-      [attr.aria-label]="'shell.switchLanguage' | transloco"
-      (click)="language.toggle()"
-    >
+    <button mat-button type="button" class="lang-switch" (click)="language.toggle()">
+      <!-- Name starts with the visible text (WCAG 2.5.3); each part keeps its own language -->
       <span [attr.lang]="language.other()">{{
         'shell.languageName.' + language.other() | transloco
       }}</span>
+      <span class="visually-hidden">{{ 'shell.switchLanguage' | transloco }}</span>
     </button>
     @if (auth.isAuthenticated()) {
       <button mat-button type="button" class="logout" (click)="auth.logout()">

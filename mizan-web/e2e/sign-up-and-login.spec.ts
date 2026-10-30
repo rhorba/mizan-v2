@@ -93,7 +93,7 @@ test('visitor signs up, verifies the e-mail, sees the quota, and logs out', asyn
   });
 
   await step('Arabic: right-to-left with the Arabic plural', async () => {
-    await page.getByRole('button', { name: 'Afficher en arabe' }).click();
+    await page.getByRole('button', { name: 'العربية Afficher en arabe' }).click();
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
     await expect(page.locator('.quota-chip')).toHaveText('5 تحليلات متبقية اليوم');
   });

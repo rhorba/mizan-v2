@@ -45,7 +45,7 @@ spec:
       initContainers:
         - name: copy-config
           image: apache/kafka:4.3.1@sha256:77e3df9054047a88b520d0cc46e16696d3b22022e1d580aeccd2632df6532837
-          command: ["sh", "-c", "cp -a /opt/kafka/config/. /config/"]
+          command: ["sh", "-c", "cp -R /opt/kafka/config/. /config/"] # not -a: the non-root user cannot set times on the volume root
           resources:
             requests: { cpu: 10m, memory: 16Mi }
             limits: { cpu: 100m, memory: 64Mi }
@@ -119,10 +119,14 @@ spec:
         - name: tmp
           emptyDir: {}
   volumeClaimTemplates:
-    - metadata:
+    # apiVersion, kind and volumeMode as the API server stores them, or Argo CD reports OutOfSync forever
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
         name: data
       spec:
         accessModes: ["ReadWriteOnce"]
+        volumeMode: Filesystem
         storageClassName: local-path
         resources:
           requests:
