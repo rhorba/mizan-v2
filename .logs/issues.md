@@ -113,3 +113,6 @@ Rule 11 stop. (a) #21 logback appender 2.32.0-alpha → semconv 1.44.0 vs 1.41.1
 Fix (chore/sprint-6-b3-live, with the deploy fixes): back to 2.28.1-alpha and 0.223.0; dependabot.yml ignores the appender (moves with Spring Boot) and groups @opentelemetry/* npm. Verified: mvn validate OK, web lint/build OK, npm test 133/133, 97.9 % stmts. OTel JS 3.0 upgrade = future story if wanted.
 ### [2026-10-30] ISSUE — axe-core 4.14 (#22) flags label-content-name-mismatch on .lang-switch
 Visible "العربية" vs aria-label "Afficher en arabe" (WCAG 2.5.3, serious). Real finding, fixed not suppressed: no aria-label; name = visible text (lang=ar/fr) + visually-hidden explanation in page language. Unit + E2E selectors updated.
+
+### [2026-10-30] ISSUE — main RED again: #28 (grouped OTel JS bump) merged with red CI
+Partial 3.0 line (api 1.10, resources 3.0, 0.300 packages; sdk-trace-web 3.0 still in cooldown). Also #27 and #28 merges cancelled the #26 publish/promote runs (R-CI-CANCEL). Fix: revert #28 + dependabot ignore OTel JS >=3 / >=0.300 (fix/revert-otel-js-3); owner OK'd branch protection on main (required checks).

@@ -37,3 +37,6 @@ Two tz databases (JDK tzdb.dat, Alpine tzdata) update on different schedules; an
 - [2026-10-29] Kafka text retention (2026-10-26): broker retention 24 h + log.roll.hours=1 in deploy/base/kafka.yaml (default 7-day segment roll would have kept text up to a week). Verified on the image.
 - [2026-10-29] R-OTLP / R-GRAFANA: mitigations in manifests (same-origin Path /otlp/v1/traces, 512 KB, rate limit; Grafana anonymous off, verified 401 locally). Close after live check in B3.
 - R-K8S-RO: RESOLVED 2026-10-29 — every container now has a read-only root FS (emptyDirs at the write paths found by --read-only runs; Kafka config copied by an init container). Only ClamAV and otel-lgtm still start as root (baseline PSS).
+
+### [2026-10-30] RISK R-CI-CANCEL — main CI `cancel-in-progress` drops publish/promote on back-to-back merges
+Merging #27 at 08:57 cancelled the #26 run mid-publish (analyzer Trivy step). Harmless today (the newer run carries both), but a steady stream of Dependabot merges could keep preprod from ever promoting. Mitigation (later, small): cancel-in-progress only for pull_request refs; or merge Dependabot PRs in one batch. Owner decides.

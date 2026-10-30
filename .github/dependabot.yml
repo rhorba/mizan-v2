@@ -27,6 +27,21 @@ updates:
       # One OpenTelemetry JS release line: stable 2.x and experimental 0.x packages move together.
       opentelemetry:
         patterns: ["@opentelemetry/*"]
+    # OpenTelemetry JS 3.0 (stable 3.x, experimental 0.300+) is an upgrade story of its own,
+    # done when every package we use has shipped it; stay on the 2.x line until then.
+    ignore:
+      - dependency-name: "@opentelemetry/api"
+        versions: [">=1.10.0"]
+      - dependency-name: "@opentelemetry/resources"
+        versions: [">=3.0.0"]
+      - dependency-name: "@opentelemetry/sdk-trace-web"
+        versions: [">=3.0.0"]
+      - dependency-name: "@opentelemetry/exporter-trace-otlp-http"
+        versions: [">=0.300.0"]
+      - dependency-name: "@opentelemetry/instrumentation"
+        versions: [">=0.300.0"]
+      - dependency-name: "@opentelemetry/instrumentation-xml-http-request"
+        versions: [">=0.300.0"]
 
   - package-ecosystem: github-actions
     directory: /
