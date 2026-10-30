@@ -33,7 +33,7 @@ Admin consoles stay private — tunnel and port-forward:
 
 ```bash
 ssh -L 8443:localhost:8443 ubuntu@144.24.200.83 \
-  sudo k3s kubectl -n argocd port-forward svc/argocd-server 8443:443         # Argo CD
+  sudo k3s kubectl -n argocd port-forward svc/argo-cd-argocd-server 8443:443         # Argo CD
 ssh -L 8180:localhost:8180 ubuntu@144.24.200.83 \
   sudo k3s kubectl -n platform port-forward svc/keycloak 8180:8080          # Keycloak admin
 ```

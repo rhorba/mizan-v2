@@ -99,10 +99,14 @@ spec:
             medium: Memory
             sizeLimit: 256Mi
   volumeClaimTemplates:
-    - metadata:
+    # apiVersion, kind and volumeMode as the API server stores them, or Argo CD reports OutOfSync forever
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
         name: data
       spec:
         accessModes: ["ReadWriteOnce"]
+        volumeMode: Filesystem
         storageClassName: local-path
         resources:
           requests:

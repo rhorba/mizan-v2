@@ -100,3 +100,10 @@ security job: readOnlyRootFilesystem false on kafka, keycloak, clamav, otel-lgtm
 
 ### [2026-10-29] main CI red — run 40864495168 @ d45802d (owner merged PR #16 = B1+B2)
 publish(mizan-web) Trivy: brotli-libs CVE-2026-111497 CRITICAL, curl/libcurl CVE-2026-92392 HIGH from the nginx-unprivileged 1.30.6 base; fail-fast cancelled the other images, promote skipped → nothing deployed (gate worked). Fix: upgrade brotli-libs, remove curl (unused at runtime); verified Trivy 0, uid 101, read-only, /healthz, arm64 build. Root cause of reaching main: PR CI never scanned the web image → stack job now builds and scans mizan-web on every PR.
+
+### [2026-10-30] ISSUE — first preprod sync: 4 manifest bugs (fixed on chore/sprint-6-b3-live)
+1. bootstrap.sh waited for `argocd-server`; the Helm release names it `argo-cd-argocd-server` (also README/argocd.yaml port-forward). Fixed, re-ran bootstrap (idempotent).
+2. Kafka init `cp -a` → "preserving times for '/config/.': Operation not permitted" (non-root, emptyDir root) → CrashLoop; api/analyzer crash on unresolvable kafka DNS as a knock-on. Fix: `cp -R`.
+3. Let's Encrypt HTTP-01 502: default-deny blocked Traefik → cert-manager solver pods (8089). Fix: acme-http01-solver NetworkPolicy ×3.
+4. Kafka/Postgres StatefulSets OutOfSync forever: claim templates lacked apiVersion/kind/volumeMode. Fix: add them.
+Verified: kustomize build (55 objects) + server-side dry-run on the node. Lesson: the overlay was never applied to a real cluster before B3 — add a server-side dry-run against a throwaway k3s (kind/k3d) to CI.

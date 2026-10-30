@@ -59,7 +59,7 @@ echo "== 3/4 Secrets"
 deploy/secrets.sh
 
 echo "== 4/4 Argo CD Application"
-for deployment in argocd-server argocd-repo-server; do
+for deployment in argo-cd-argocd-server argo-cd-argocd-repo-server; do
   rolled_out argocd "$deployment"
 done
 kubectl_remote apply -f - < deploy/argocd/application.yaml
