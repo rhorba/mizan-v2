@@ -57,6 +57,10 @@ spec:
             - { name: KC_HOSTNAME_BACKCHANNEL_DYNAMIC, value: "true" }
             - { name: KC_HTTP_ENABLED, value: "true" }
             - { name: KC_PROXY_HEADERS, value: xforwarded }
+            # One replica: no Infinispan cluster. A runtime option in Keycloak 26.8 (a build-time
+            # value is dropped); with the default the rolling update tries to join the old pod over
+            # JGroups, which the NetworkPolicy blocks, and the new pod never turns Ready.
+            - { name: KC_CACHE, value: local }
             - name: MIZAN_WEB_ORIGIN
               valueFrom:
                 configMapKeyRef: { name: public-urls, key: APP_ORIGIN }

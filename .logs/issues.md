@@ -116,3 +116,8 @@ Visible "العربية" vs aria-label "Afficher en arabe" (WCAG 2.5.3, serious)
 
 ### [2026-10-30] ISSUE — main RED again: #28 (grouped OTel JS bump) merged with red CI
 Partial 3.0 line (api 1.10, resources 3.0, 0.300 packages; sdk-trace-web 3.0 still in cooldown). Also #27 and #28 merges cancelled the #26 publish/promote runs (R-CI-CANCEL). Fix: revert #28 + dependabot ignore OTel JS >=3 / >=0.300 (fix/revert-otel-js-3); owner OK'd branch protection on main (required checks).
+
+### [2026-10-30] ISSUE — preprod after promote 46db710: two rollout snags
+1. kafka-0 kept the old `cp -a` pod: a StatefulSet RollingUpdate never replaces a pod that never became Ready. Deleted kafka-0 by hand (no data yet) → Ready with `cp -R`. api/analyzer recovered on their own.
+2. New Keycloak pod never Ready: Keycloak 26.8 treats `cache` as runtime, so KC_CACHE=local baked at build was dropped → default ispn + JDBC_PING → JOIN to old pod over JGroups blocked by NetworkPolicy → cluster health DOWN. Fix: KC_CACHE=local on the Deployment, dead build line removed (fix/keycloak-local-cache). Old pod keeps serving meanwhile.
+Certificates: all 3 Ready (ACME policy fix works). Argo CD: Synced (claim-template fix works).

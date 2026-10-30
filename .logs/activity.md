@@ -529,3 +529,5 @@ Apply: 1 changed (SSH source 196.119.227.23/32). SSH OK. Node Ready, k3s v1.37.1
 bootstrap.sh: cert-manager + Argo CD up, ClusterIssuer, 5 secrets (PREPROD_* + GRAFANA_ADMIN_PASSWORD generated into .env), Application mizan-preprod created after the name fix. First sync: Synced op but Degraded — 4 bugs (issues.md), fixes committed locally; GitOps path needs merge to main → promote → env/preprod.
 ### [2026-10-30] CI — PR #26 all green (push + PR runs) @ 7a75d44
 Contains: deploy fixes (d1f24f9), OTel pins + dependabot groups (628da47), lang-switch a11y (7a75d44). main still red until owner merges #26. Then: publish → promote → Argo CD sync → verify preprod.
+### [2026-10-30] Steps 2–4 (owner OK)
+PR #29 (revert #28 + dependabot hold OTel JS < 3 / < 0.300) — CI all green. Branch protection on main already required lint/test-backend/test-frontend/security/stack/e2e (strict); enforce_admins was OFF (how #28 merged red) → now ON. Next: owner merges #29, no other merges until publish + promote finish.

@@ -8,8 +8,7 @@ ARG KEYCLOAK_IMAGE=quay.io/keycloak/keycloak:26.8.1@sha256:79c623a22abacf3fe6c00
 # (arm64 image on an amd64 runner) kc.sh build took over 8 minutes.
 FROM --platform=$BUILDPLATFORM ${KEYCLOAK_IMAGE} AS build
 ENV KC_DB=postgres \
-    KC_HEALTH_ENABLED=true \
-    KC_CACHE=local
+    KC_HEALTH_ENABLED=true
 RUN /opt/keycloak/bin/kc.sh build
 
 FROM ${KEYCLOAK_IMAGE}
