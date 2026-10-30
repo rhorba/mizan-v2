@@ -1,5 +1,4 @@
 #!/bin/sh
-# shellcheck shell=busybox # Alpine ash: pipefail is supported
 # Story 7.3: nightly backup. pg_dump of the "mizan" database (schemas mizan and keycloak),
 # encrypted to the owner's age public key, uploaded through a write-only pre-authenticated
 # request on the backup bucket (it can add objects, never read or list them). The bucket's
@@ -8,6 +7,7 @@
 # Env: PGHOST, PGUSER, PGPASSWORD, PGDATABASE, BACKUP_AGE_RECIPIENT, BACKUP_PAR_URL (ends in /o/).
 # Restore: deploy/README.md "Backups".
 set -eu
+# shellcheck disable=SC3040 # Alpine ash supports pipefail
 set -o pipefail
 
 : "${BACKUP_AGE_RECIPIENT:?}" "${BACKUP_PAR_URL:?}"
