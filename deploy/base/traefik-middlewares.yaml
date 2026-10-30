@@ -18,6 +18,17 @@ spec:
     scheme: https
     permanent: true
 ---
+# Story 7.3 uptime check: public /api/health is the API's overall health (database included),
+# status only (details stay hidden); the rest of /actuator is never routed.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: api-health
+  namespace: mizan
+spec:
+  replacePath:
+    path: /actuator/health
+---
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:

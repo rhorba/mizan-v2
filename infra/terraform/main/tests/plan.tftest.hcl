@@ -113,6 +113,30 @@ run "buckets_are_private" {
   }
 }
 
+run "backup_url_only_uploads_and_seven_are_kept" {
+  command = plan
+
+  assert {
+    condition     = oci_objectstorage_preauthrequest.backup_upload.access_type == "AnyObjectWrite"
+    error_message = "The cluster's backup URL must be upload-only (no read, no list)."
+  }
+
+  assert {
+    condition = [
+      for r in oci_objectstorage_object_lifecycle_policy.backups.rules : "${r.action} ${r.time_amount} ${r.time_unit}" if r.is_enabled
+    ] == ["DELETE 7 DAYS"]
+    error_message = "Backups older than 7 days must be deleted (one a night, 7 kept)."
+  }
+
+  assert {
+    condition = (
+      length(oci_identity_policy.objectstorage_lifecycle.statements) == 1 &&
+      oci_identity_policy.objectstorage_lifecycle.statements[0] == "Allow service objectstorage-eu-marseille-1 to manage object-family in tenancy"
+    )
+    error_message = "Object Storage needs exactly this grant to run the lifecycle rule."
+  }
+}
+
 run "next_availability_domain_wraps_around" {
   command = plan
 

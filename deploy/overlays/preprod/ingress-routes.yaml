@@ -25,6 +25,15 @@ metadata:
 spec:
   entryPoints: [websecure]
   routes:
+    - match: Host(`144.24.200.83.sslip.io`) && Path(`/api/health`)
+      kind: Rule
+      priority: 1000 # above the /api prefix rule
+      middlewares:
+        - name: security-headers
+        - name: api-health
+      services:
+        - name: mizan-api
+          port: 8080
     - match: Host(`144.24.200.83.sslip.io`) && PathPrefix(`/api`)
       kind: Rule
       middlewares:

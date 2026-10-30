@@ -51,3 +51,9 @@ variable "k3s_version" {
   type        = string
   default     = "v1.37.1+k3s1"
 }
+
+variable "backup_upload_expires" {
+  description = "Expiry of the backup bucket's upload-only URL (RFC 3339); renew and re-apply before it"
+  type        = string
+  default     = "2027-10-30T00:00:00Z"
+}

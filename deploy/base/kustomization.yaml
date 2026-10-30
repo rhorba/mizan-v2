@@ -21,6 +21,7 @@ resources:
   - mizan-api.yaml
   - mizan-analyzer.yaml
   - mizan-web.yaml
+  - backup.yaml
 
 configMapGenerator:
   - name: postgres-init

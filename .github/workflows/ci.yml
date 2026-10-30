@@ -76,8 +76,8 @@ jobs:
           tar xzf "$RUNNER_TEMP/kubeconform.tar.gz" -C "$RUNNER_TEMP" kubeconform
           "$RUNNER_TEMP/kubeconform" -strict -summary -kubernetes-version 1.34.0 \
             -schema-location default -schema-location "$CRD_SCHEMAS" "$RUNNER_TEMP/preprod.yaml" deploy/argocd
-      - name: Shell scripts — shellcheck (deploy)
-        run: shellcheck deploy/*.sh
+      - name: Shell scripts — shellcheck (deploy, backup job)
+        run: shellcheck deploy/*.sh docker/backup/*.sh
 
   test-backend:
     runs-on: ubuntu-24.04
@@ -285,9 +285,18 @@ jobs:
           load: true
           cache-from: type=gha,scope=web
           cache-to: type=gha,scope=web,mode=max
+      - name: Build mizan-backup image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: docker
+          file: docker/backup.Dockerfile
+          tags: mizan-backup:local
+          load: true
+          cache-from: type=gha,scope=backup
+          cache-to: type=gha,scope=backup,mode=max
       - name: Trivy — images (fixable HIGH/CRITICAL)
         run: |
-          for image in mizan-api:local mizan-analyzer:local mizan-keycloak:local mizan-web:local; do
+          for image in mizan-api:local mizan-analyzer:local mizan-keycloak:local mizan-web:local mizan-backup:local; do
             echo "::group::$image"
             ignore=()
             # Time-boxed, documented exceptions for the Keycloak base image only.
@@ -399,6 +408,10 @@ jobs:
             context: docker
             file: docker/keycloak.Dockerfile
             build-args: ""
+          - image: mizan-backup
+            context: docker
+            file: docker/backup.Dockerfile
+            build-args: ""
     env:
       IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:${{ github.sha }}
     steps:
@@ -463,7 +476,7 @@ jobs:
         run: |
           git switch -C env/preprod
           sed -i -E "s/^( +newTag: ).*/\1\"${SHA}\"/" "$OVERLAY"
-          test "$(grep -c "newTag: \"${SHA}\"" "$OVERLAY")" -eq 4
+          test "$(grep -c "newTag: \"${SHA}\"" "$OVERLAY")" -eq 5
           git -c user.name="github-actions[bot]" \
               -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
               commit -qam "deploy(preprod): images ${SHA:0:7}"

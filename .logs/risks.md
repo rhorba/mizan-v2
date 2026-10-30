@@ -46,3 +46,8 @@ Merging #27 at 08:57 cancelled the #26 run mid-publish (analyzer Trivy step). Ha
 - R-GRAFANA: CLOSED — anonymous /api/search and /api/dashboards/home → 401; /login 200.
 - TLS: Let's Encrypt (YR2) on all 3 hosts, valid to 2027-01-28; http → 301 https. Keycloak /admin → 404; /api/admin/stats without token → 401.
 - NEW R-KC-MASTER (MEDIUM → fixing): route matched /realms/* so the master realm token endpoint was public (password grant on admin-cli answered invalid_grant = guessable). Fix: PathPrefix /realms/mizan/ (fix/auth-route-mizan-realm). Re-test after promote.
+- [2026-10-30] R-KC-MASTER: CLOSED after promote 99a067e — /realms/master/* → 404 publicly; /realms/mizan OIDC + account 200.
+- [2026-10-30] R-BACKUP-PAR (LOW): the backup upload URL expires 2027-10-30 (var backup_upload_expires); renew + re-apply + secrets.sh before then, or nightly backups fail.
+- [2026-10-30] R-BACKUP-KEY (MEDIUM): the age private key (~/.mizan/backup-age.key) is the only way to read backups; owner keeps a copy in a password manager. Lost key = useless backups.
+- [2026-10-30] R-BACKUP-OVERWRITE (LOW, accepted for now): AnyObjectWrite PAR also overwrites an existing name (verified: list 404, read 404, upload 200, overwrite 200). Needs a leaked URL + exact timestamped name. Fix if wanted: bucket retention rule 7 days.
+- [2026-10-30] R-PG-GOSU (LOW): postgres:18.6-alpine ships /usr/local/bin/gosu built with Go 1.24.6 (Trivy: 1 CRITICAL + 25 HIGH stdlib CVEs). The backup image deletes it; the server StatefulSet runs as uid 70 so the entrypoint never calls gosu, but CI does not scan upstream images. Track: bump the postgres digest when upstream rebuilds gosu; consider scanning third-party images in CI.

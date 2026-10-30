@@ -81,3 +81,6 @@ Rejected B (Image Updater: extra controller + in-cluster Git credential), C (mut
 
 ### [2026-10-29] Code scanning KSV-0037 ×2 (HelmChart in kube-system) dismissed — owner approved
 k3s helm-controller convention; workloads run in argocd / cert-manager. Alerts #47, #48 "won't fix"; PR #17 threads resolved.
+
+### [2026-10-30] DECISION — B4 (Story 7.3) design, owner approved
+Backup: CronJob nightly 02:30 UTC, own image (postgres:18.6-alpine + age + curl, published multi-arch), `pg_dump -Fc mizan | age -r $BACKUP_AGE_RECIPIENT | curl -T - $BACKUP_PAR_URL`. Bucket: write-only PAR (AnyObjectWrite, no read/list, 1-year expiry) + lifecycle delete > 7 days (Terraform). Restore test once into a throwaway local Postgres. Uptime: public /api/health → Traefik replacePath → /actuator/health/readiness; GH Actions cron 30 min, issue after 2 consecutive failures, closed on recovery. age private key outside repo (~/.mizan/backup-age.key) + owner's password manager. Kafka not backed up (24 h retention; Postgres is the source of truth).

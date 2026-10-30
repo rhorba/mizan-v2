@@ -44,7 +44,10 @@ secret() {
     | sudo k3s kubectl apply -f -"
 }
 
-for key in ANTHROPIC_API_KEY SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASSWORD SMTP_FROM; do need "$key"; done
+for key in ANTHROPIC_API_KEY SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASSWORD SMTP_FROM \
+  BACKUP_AGE_RECIPIENT BACKUP_PAR_URL; do
+  need "$key"
+done
 for key in PREPROD_POSTGRES_PASSWORD PREPROD_MIZAN_DB_PASSWORD PREPROD_KEYCLOAK_DB_PASSWORD \
   PREPROD_KEYCLOAK_ADMIN_PASSWORD GRAFANA_ADMIN_PASSWORD; do
   generated "$key"
@@ -56,6 +59,12 @@ secret platform postgres <<EOF
 POSTGRES_PASSWORD=$(val PREPROD_POSTGRES_PASSWORD)
 MIZAN_DB_PASSWORD=$(val PREPROD_MIZAN_DB_PASSWORD)
 KEYCLOAK_DB_PASSWORD=$(val PREPROD_KEYCLOAK_DB_PASSWORD)
+EOF
+
+# Story 7.3: public key only (the private key never leaves the owner); upload-only URL.
+secret platform backup <<EOF
+BACKUP_AGE_RECIPIENT=$(val BACKUP_AGE_RECIPIENT)
+BACKUP_PAR_URL=$(val BACKUP_PAR_URL)
 EOF
 
 secret platform keycloak <<EOF
