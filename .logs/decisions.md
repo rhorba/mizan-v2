@@ -84,3 +84,6 @@ k3s helm-controller convention; workloads run in argocd / cert-manager. Alerts #
 
 ### [2026-10-30] DECISION — B4 (Story 7.3) design, owner approved
 Backup: CronJob nightly 02:30 UTC, own image (postgres:18.6-alpine + age + curl, published multi-arch), `pg_dump -Fc mizan | age -r $BACKUP_AGE_RECIPIENT | curl -T - $BACKUP_PAR_URL`. Bucket: write-only PAR (AnyObjectWrite, no read/list, 1-year expiry) + lifecycle delete > 7 days (Terraform). Restore test once into a throwaway local Postgres. Uptime: public /api/health → Traefik replacePath → /actuator/health/readiness; GH Actions cron 30 min, issue after 2 consecutive failures, closed on recovery. age private key outside repo (~/.mizan/backup-age.key) + owner's password manager. Kafka not backed up (24 h retention; Postgres is the source of truth).
+
+### [2026-10-30] DECISION — CVE-2026-91415 (Keycloak JDK font rendering): option A, owner
+Time-boxed Trivy exception to 2026-11-30 (docker/keycloak/trivyignore.yaml), same policy as guava/ca-certificates. No fixed Keycloak image (26.8.1 and 26.8.1-1 both JDK 21.0.12.1; ubi9-micro has no package manager). Rejected: B JDK swap (untested upstream), C wait (CI red). Verified locally: Trivy exit 0 with the ignorefile.
