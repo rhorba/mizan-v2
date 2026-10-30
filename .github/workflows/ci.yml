@@ -76,8 +76,8 @@ jobs:
           tar xzf "$RUNNER_TEMP/kubeconform.tar.gz" -C "$RUNNER_TEMP" kubeconform
           "$RUNNER_TEMP/kubeconform" -strict -summary -kubernetes-version 1.34.0 \
             -schema-location default -schema-location "$CRD_SCHEMAS" "$RUNNER_TEMP/preprod.yaml" deploy/argocd
-      - name: Shell scripts — shellcheck (deploy)
-        run: shellcheck deploy/*.sh
+      - name: Shell scripts — shellcheck (deploy, backup job)
+        run: shellcheck deploy/*.sh docker/backup/*.sh
 
   test-backend:
     runs-on: ubuntu-24.04

@@ -1,0 +1,49 @@
+# Story 7.3: preprod uptime. Every 30 min GET /api/health (the API's overall health, database
+# included). A failed check fails the run; the second failure in a row opens an "uptime" issue,
+# and the next good check closes it. GitHub runs schedules from the default branch only.
+name: uptime
+
+on:
+  schedule:
+    - cron: "7,37 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: read # the previous run's result
+      issues: write
+    env:
+      URL: https://144.24.200.83.sslip.io/api/health
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Check, then open or close the uptime issue
+        run: |
+          code=$(curl -s -o body.json -w '%{http_code}' -m 20 --retry 2 --retry-delay 15 --retry-all-errors "$URL" || true)
+          echo "GET $URL → $code $(head -c 200 body.json 2>/dev/null)"
+          open=$(gh issue list --label uptime --state open --json number --jq '.[0].number // empty')
+
+          if [ "$code" = 200 ] && grep -q '"status":"UP"' body.json; then
+            if [ -n "$open" ]; then
+              gh issue close "$open" --comment "Back up: $URL answered 200 UP ($RUN_URL)."
+            fi
+            exit 0
+          fi
+
+          previous=$(gh run list --workflow uptime.yml --status completed --limit 1 --json conclusion --jq '.[0].conclusion // empty')
+          if [ "$previous" = failure ] && [ -z "$open" ]; then
+            gh label create uptime --color B60205 --description "Preprod health check failing" 2>/dev/null || true
+            gh issue create --label uptime --title "Preprod down: /api/health failed twice in a row" \
+              --body "$URL answered $code on two consecutive checks (30 min apart). Latest: $RUN_URL"
+          fi
+          exit 1

@@ -49,3 +49,4 @@ Merging #27 at 08:57 cancelled the #26 run mid-publish (analyzer Trivy step). Ha
 - [2026-10-30] R-KC-MASTER: CLOSED after promote 99a067e — /realms/master/* → 404 publicly; /realms/mizan OIDC + account 200.
 - [2026-10-30] R-BACKUP-PAR (LOW): the backup upload URL expires 2027-10-30 (var backup_upload_expires); renew + re-apply + secrets.sh before then, or nightly backups fail.
 - [2026-10-30] R-BACKUP-KEY (MEDIUM): the age private key (~/.mizan/backup-age.key) is the only way to read backups; owner keeps a copy in a password manager. Lost key = useless backups.
+- [2026-10-30] R-BACKUP-OVERWRITE (LOW, accepted for now): AnyObjectWrite PAR also overwrites an existing name (verified: list 404, read 404, upload 200, overwrite 200). Needs a leaked URL + exact timestamped name. Fix if wanted: bucket retention rule 7 days.
