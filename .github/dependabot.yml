@@ -10,6 +10,10 @@ updates:
     groups:
       spring:
         patterns: ["org.springframework*"]
+    # The logback appender must stay on the release built on the OpenTelemetry version Spring Boot
+    # manages (ADR-8); move it by hand with Spring Boot, not on its own.
+    ignore:
+      - dependency-name: "io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0"
 
   - package-ecosystem: npm
     directory: /mizan-web
@@ -20,6 +24,9 @@ updates:
     groups:
       angular:
         patterns: ["@angular/*", "@angular-devkit/*", "angular-eslint", "@angular-eslint/*"]
+      # One OpenTelemetry JS release line: stable 2.x and experimental 0.x packages move together.
+      opentelemetry:
+        patterns: ["@opentelemetry/*"]
 
   - package-ecosystem: github-actions
     directory: /

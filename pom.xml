@@ -40,7 +40,7 @@
     <testcontainers-keycloak.version>4.4.0</testcontainers-keycloak.version>
     <!-- Logback to OpenTelemetry bridge (Story 6.1): the release built on OpenTelemetry 1.62.0,
          the version Spring Boot 4.1.2 manages; newer ones pull a newer API (ADR-8) -->
-    <opentelemetry-logback-appender.version>2.32.0-alpha</opentelemetry-logback-appender.version>
+    <opentelemetry-logback-appender.version>2.28.1-alpha</opentelemetry-logback-appender.version>
     <spotless.version>3.10.4</spotless.version>
     <jacoco.version>0.8.15</jacoco.version>
     <maven-enforcer-plugin.version>3.6.3</maven-enforcer-plugin.version>
