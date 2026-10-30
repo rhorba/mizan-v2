@@ -17,8 +17,8 @@ Trivy) → `promote` (force-pushes `env/preprod` = `main@<sha>` + image tags) �
 
 ## First time (once)
 
-1. The four GHCR packages are public (GitHub → profile → Packages → each → visibility).
-2. `.env` has `LETSENCRYPT_EMAIL`, `SMTP_*`, `ANTHROPIC_API_KEY` (see `.env.example`).
+1. The five GHCR packages are public (GitHub → profile → Packages → each → visibility).
+2. `.env` has `LETSENCRYPT_EMAIL`, `SMTP_*`, `ANTHROPIC_API_KEY`, `BACKUP_*` (see `.env.example`).
 3. `deploy/bootstrap.sh` — cert-manager, Argo CD, ClusterIssuer, Secrets, Application.
 
 ## Day to day
@@ -40,3 +40,47 @@ ssh -L 8180:localhost:8180 ubuntu@144.24.200.83 \
 
 SSH only works from `admin_cidr` (`infra/terraform`); a new home IP means updating it and
 re-applying (R-ADMIN-IP).
+
+## Backups (Story 7.3)
+
+Every night at 02:30 UTC the `platform/backup` CronJob dumps the `mizan` database (schemas
+`mizan` and `keycloak`), encrypts it to the age public key `BACKUP_AGE_RECIPIENT` and uploads it
+through an upload-only URL to the `mizan-backups` bucket; objects older than 7 days are deleted.
+Only the private key `~/.mizan/backup-age.key` (copy in the owner's Google Drive) can read a dump.
+
+```bash
+# Run one now
+ssh ubuntu@144.24.200.83 sudo k3s kubectl -n platform create job --from=cronjob/backup backup-manual
+# List and download (OCI CLI, owner's API key; read access is never given to the cluster)
+oci os object list -bn mizan-backups --query 'data[].{name:name,size:size}' --output table
+oci os object get -bn mizan-backups --name mizan-<timestamp>.dump.age --file mizan.dump.age
+```
+
+Restore test (throwaway database on the owner's machine; the backup image has age and pg_restore):
+
+```bash
+docker network create restore
+docker run -d --name restore-pg --network restore -e POSTGRES_PASSWORD=pw \
+  postgres:18.6-alpine
+docker run --rm -i --network restore -e PGPASSWORD=pw -v ~/.mizan:/k:ro \
+  --entrypoint sh ghcr.io/rhorba/mizan-backup:<sha> -c '
+    age -d -i /k/backup-age.key > /tmp/mizan.dump &&
+    createdb -h restore-pg -U postgres mizan &&
+    pg_restore -h restore-pg -U postgres -d mizan --no-owner /tmp/mizan.dump &&
+    psql -h restore-pg -U postgres -d mizan -c "select count(*) from mizan.contracts"' < mizan.dump.age
+docker rm -f restore-pg && docker network rm restore
+```
+
+Restore into preprod (replaces current data). Argo CD self-heal would scale the writers straight
+back up, so pause auto-sync for the duration:
+
+```bash
+K="ssh ubuntu@144.24.200.83 sudo k3s kubectl"
+$K -n argocd patch application mizan-preprod --type merge -p '{"spec":{"syncPolicy":{"automated":null}}}'
+$K -n mizan scale deploy/mizan-api deploy/mizan-analyzer --replicas=0
+$K -n platform scale deploy/keycloak --replicas=0
+# decrypt locally as above, then stream the dump into the server:
+$K -n platform exec -i postgres-0 -- pg_restore -U postgres -d mizan --clean --if-exists --no-owner < mizan.dump
+# re-enable auto-sync (as in deploy/argocd/application.yaml); it scales everything back up
+$K apply -f - < deploy/argocd/application.yaml
+```
