@@ -531,3 +531,5 @@ bootstrap.sh: cert-manager + Argo CD up, ClusterIssuer, 5 secrets (PREPROD_* + G
 Contains: deploy fixes (d1f24f9), OTel pins + dependabot groups (628da47), lang-switch a11y (7a75d44). main still red until owner merges #26. Then: publish → promote → Argo CD sync → verify preprod.
 ### [2026-10-30] Steps 2–4 (owner OK)
 PR #29 (revert #28 + dependabot hold OTel JS < 3 / < 0.300) — CI all green. Branch protection on main already required lint/test-backend/test-frontend/security/stack/e2e (strict); enforce_admins was OFF (how #28 merged red) → now ON. Next: owner merges #29, no other merges until publish + promote finish.
+### [2026-10-30] MILESTONE — preprod Synced + Healthy (env/preprod c868901 = main cfd8e6b)
+8/8 workloads Ready (api, analyzer, web, keycloak local cache — 0 JGroups lines, kafka, postgres, clamav, otel-lgtm). Node memory: 5.3 GiB used / 18.1 GiB available. Live checks: TLS ×3, R-OTLP + R-GRAFANA closed (risks.md). PR #31 (master realm off the public route) green, awaiting owner merge.
