@@ -27,16 +27,16 @@ configMapGenerator:
 images:
   - name: mizan-api
     newName: ghcr.io/rhorba/mizan-api
-    newTag: "unreleased"
+    newTag: "b40fa73d939520fa6bcfd7fa6ada5f42dbef2afa"
   - name: mizan-analyzer
     newName: ghcr.io/rhorba/mizan-analyzer
-    newTag: "unreleased"
+    newTag: "b40fa73d939520fa6bcfd7fa6ada5f42dbef2afa"
   - name: mizan-web
     newName: ghcr.io/rhorba/mizan-web
-    newTag: "unreleased"
+    newTag: "b40fa73d939520fa6bcfd7fa6ada5f42dbef2afa"
   - name: mizan-keycloak
     newName: ghcr.io/rhorba/mizan-keycloak
-    newTag: "unreleased"
+    newTag: "b40fa73d939520fa6bcfd7fa6ada5f42dbef2afa"
   - name: mizan-backup
     newName: ghcr.io/rhorba/mizan-backup
-    newTag: "unreleased"
+    newTag: "b40fa73d939520fa6bcfd7fa6ada5f42dbef2afa"
