@@ -67,11 +67,19 @@ docker run --rm -i --network restore -e PGPASSWORD=pw -v ~/.mizan:/k:ro \
     age -d -i /k/backup-age.key > /tmp/mizan.dump &&
     createdb -h restore-pg -U postgres mizan &&
     pg_restore -h restore-pg -U postgres -d mizan --no-owner /tmp/mizan.dump &&
-    psql -h restore-pg -U postgres -d mizan -c "select count(*) from mizan.contracts"' < mizan.dump.age
+    psql -h restore-pg -U postgres -d mizan -c "select name from keycloak.realm"       -c "select count(*) from mizan.contracts"' < mizan.dump.age
 docker rm -f restore-pg && docker network rm restore
 ```
 
-Restore into preprod (replaces current data). Argo CD self-heal would scale the writers straight
+In Git Bash, `export MSYS_NO_PATHCONV=1` first. If Docker Desktop's proxy answers `denied` for
+ghcr.io although the image is public, build it instead:
+`docker build -t local/mizan-backup -f docker/backup.Dockerfile docker`.
+
+Verified 2026-10-31 with `mizan-20261031T111237Z.dump.age`: 107 tables restored, row counts
+identical to live table by table, realms `master` and `mizan` present. The business tables were
+empty on preprod that day, so repeat this once real contracts exist.
+
+Restore into preprod (replaces current data; not rehearsed yet). Argo CD self-heal would scale the writers straight
 back up, so pause auto-sync for the duration:
 
 ```bash
