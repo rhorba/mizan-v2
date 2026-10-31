@@ -52,3 +52,9 @@ Merging #27 at 08:57 cancelled the #26 run mid-publish (analyzer Trivy step). Ha
 - [2026-10-30] R-BACKUP-OVERWRITE (LOW, accepted for now): AnyObjectWrite PAR also overwrites an existing name (verified: list 404, read 404, upload 200, overwrite 200). Needs a leaked URL + exact timestamped name. Fix if wanted: bucket retention rule 7 days.
 - [2026-10-30] R-PG-GOSU (LOW): postgres:18.6-alpine ships /usr/local/bin/gosu built with Go 1.24.6 (Trivy: 1 CRITICAL + 25 HIGH stdlib CVEs). The backup image deletes it; the server StatefulSet runs as uid 70 so the entrypoint never calls gosu, but CI does not scan upstream images. Track: bump the postgres digest when upstream rebuilds gosu; consider scanning third-party images in CI.
 - [2026-10-30] R-AGE-CHAT — CLOSED (rotated before any real backup; new key in Drive + ~/.mizan) — was MEDIUM: owner pasted the backup age PRIVATE key in chat (session transcript). No real backup encrypted with it yet → rotate before the first backup (proposed to owner).
+
+### [2026-10-31] RISK R-BACKUP-ALERT — failed backup raised no alert
+Job backup-29890230 failed all 3 attempts and nothing notified the owner; it was found by manual inspection 8 h later. The 5 alert rules do not cover the CronJob. Mitigation: alert on failed backup jobs. LOW-MEDIUM until real user data exists.
+
+### [2026-10-31] RISK R-RESTORE-EMPTY — restore not proven on contract data
+Preprod has no contracts yet. Repeat the restore test after the B5 public-URL run creates one.
