@@ -58,3 +58,6 @@ Job backup-29890230 failed all 3 attempts and nothing notified the owner; it was
 
 ### [2026-10-31] RISK R-RESTORE-EMPTY — restore not proven on contract data
 Preprod has no contracts yet. Repeat the restore test after the B5 public-URL run creates one.
+
+### [2026-11-02] R-ANALYZER-REDELIVERY (MEDIUM, open): AnalysisFlowTests.invalidOutputTwice... saw 4 prompts instead of 2 in PR #36 run 41465296518, passing on the same commit in run 41465277254. Either prompts leaked between tests or Kafka redelivered the request. Redelivery would double-spend a model call: investigate before relying on the spend cap.
+### [2026-11-02] R-RESTORE-EMPTY closed: restore proven with contract data.

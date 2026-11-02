@@ -76,8 +76,9 @@ ghcr.io although the image is public, build it instead:
 `docker build -t local/mizan-backup -f docker/backup.Dockerfile docker`.
 
 Verified 2026-10-31 with `mizan-20261031T111237Z.dump.age`: 107 tables restored, row counts
-identical to live table by table, realms `master` and `mizan` present. The business tables were
-empty on preprod that day, so repeat this once real contracts exist.
+identical to live table by table, realms `master` and `mizan` present. Verified again
+2026-11-02 with `mizan-20261102T152249Z.dump.age` and contract data: contracts 1, analyses 1,
+users 2, realms 2, tables 107, identical to live.
 
 Restore into preprod (replaces current data; not rehearsed yet). Argo CD self-heal would scale the writers straight
 back up, so pause auto-sync for the duration:

@@ -124,3 +124,13 @@ Certificates: all 3 Ready (ACME policy fix works). Argo CD: Synced (claim-templa
 
 ### [2026-10-30] ISSUE — first manual backup: pg_dump "connection refused" (k3s NetworkPolicy race)
 Policies correct (postgres ingress allows app=backup; backup egress 5432). kube-router applies a new pod's rules a moment after start: probe pod saw "no response" then "accepting connections" after 2 s. Short-lived job connected at once → refused on all 3 tries. Fix (fix/backup-netpol-race): pg_isready loop ≤ 60 s + curl --retry-connrefused. Also: mizan-backup package already anonymously pullable (200), no visibility step. Key rotated (R-AGE-CHAT closed: new public key age133s9…6c7naz in .env + Secret; owner uploaded the new private key file to Google Drive).
+
+### [2026-11-02] BLOCKER — terraform apply of admin_cidr denied by the harness permission classifier; SSH closed, so the 11-01 backup check and Batch 3 are waiting on the owner.
+
+### [2026-11-02] CI RED on PR #35 (run 41448894930): HEALTHCHECK NONE in spring image broke compose --wait for mizan-analyzer. Own regression from Batch 1; fixed with a JVM liveness check.
+
+### [2026-11-02] PR #35 merge blocked by 2 unresolved Trivy DS-0013 threads (RUN cd) from my otel-lgtm Dockerfile; fixed with WORKDIR. Argo pause denied by the harness permission classifier: auto-sync still ON, backup-pre-cutover uploaded.
+
+### [2026-11-02] CI RED on main run 41452626955: publish mizan-otel-lgtm failed on a sum.golang.org stream error during go mod download (transient). Promote skipped, preprod 52177e8 unchanged. Re-running failed job.
+
+### [2026-11-02] BUG (v2.0 blocker, since S6 B1): mizan-web CSP connect-src self blocks the OIDC discovery call to the auth host, so public sign-in cannot start. Found by first run of the public smoke. Fix: allow exactly the auth origin.
