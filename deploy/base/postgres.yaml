@@ -35,9 +35,9 @@ spec:
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: 70 # postgres in the Alpine image
-        runAsGroup: 70
-        fsGroup: 70
+        runAsUser: 10006 # data directory ownership moved in the cutover, see deploy/README.md
+        runAsGroup: 10006
+        fsGroup: 10006
         seccompProfile:
           type: RuntimeDefault
       containers:

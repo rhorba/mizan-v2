@@ -384,7 +384,8 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [lint, test-backend, test-frontend, security, stack, e2e]
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    # otel-lgtm compiles Tempo, Pyroscope and the collector for two platforms.
+    timeout-minutes: 150
     permissions:
       contents: read
       packages: write
@@ -411,6 +412,18 @@ jobs:
           - image: mizan-backup
             context: docker
             file: docker/backup.Dockerfile
+            build-args: ""
+          - image: mizan-clamav
+            context: docker
+            file: docker/clamav.Dockerfile
+            build-args: ""
+          - image: mizan-kafka
+            context: docker
+            file: docker/kafka.Dockerfile
+            build-args: ""
+          - image: mizan-otel-lgtm
+            context: docker
+            file: docker/otel-lgtm.Dockerfile
             build-args: ""
     env:
       IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:${{ github.sha }}
@@ -441,10 +454,13 @@ jobs:
           cache-to: type=gha,scope=publish-${{ matrix.image }},mode=max
       # A failed scan stops promote, so a vulnerable image is pushed but never deployed.
       - name: Trivy — both platforms (fixable HIGH/CRITICAL)
+        env:
+          MATRIX_IMAGE: ${{ matrix.image }}
         run: |
           ignore=()
-          if [ "${{ matrix.image }}" = mizan-keycloak ]; then
-            ignore=(--ignorefile /repo/docker/keycloak/trivyignore.yaml)
+          ignorefile="docker/${MATRIX_IMAGE#mizan-}/trivyignore.yaml"
+          if [ -f "$ignorefile" ]; then
+            ignore=(--ignorefile "/repo/$ignorefile")
           fi
           for platform in linux/amd64 linux/arm64; do
             echo "::group::$platform"
@@ -476,7 +492,7 @@ jobs:
         run: |
           git switch -C env/preprod
           sed -i -E "s/^( +newTag: ).*/\1\"${SHA}\"/" "$OVERLAY"
-          test "$(grep -c "newTag: \"${SHA}\"" "$OVERLAY")" -eq 5
+          test "$(grep -c "newTag: \"${SHA}\"" "$OVERLAY")" -eq 8
           git -c user.name="github-actions[bot]" \
               -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
               commit -qam "deploy(preprod): images ${SHA:0:7}"

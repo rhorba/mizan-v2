@@ -92,3 +92,11 @@ $K -n platform exec -i postgres-0 -- pg_restore -U postgres -d mizan --clean --i
 # re-enable auto-sync (as in deploy/argocd/application.yaml); it scales everything back up
 $K apply -f - < deploy/argocd/application.yaml
 ```
+
+## PostgreSQL data directory ownership
+
+PostgreSQL refuses a data directory that its own UID does not own, and `fsGroup` changes only the
+group. A change to `runAsUser` in `deploy/base/postgres.yaml` therefore needs the old data re-owned
+on the node while PostgreSQL is stopped: take a backup, pause Argo CD auto-sync, scale the
+StatefulSet to 0, `chown -R` the volume under `/var/lib/rancher/k3s/storage/`, sync, and verify.
+A root init container would do this automatically, but it would put a root workload back.

@@ -35,13 +35,13 @@ spec:
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 0 # the image's files are group 0
+        runAsUser: 10002
+        runAsGroup: 10002
         seccompProfile:
           type: RuntimeDefault
       containers:
         - name: keycloak
-          image: mizan-keycloak
+          image: mizan-keycloak:unreleased
           args: ["start", "--optimized", "--import-realm"]
           env:
             - name: KC_DB_URL

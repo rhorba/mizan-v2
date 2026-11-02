@@ -30,13 +30,16 @@ FROM ${JRE_IMAGE}
 LABEL org.opencontainers.image.source="https://github.com/rhorba/mizan-v2"
 # CVE-2026-111497 (HIGH): the pinned JRE image ships brotli-libs 1.2.0-r1; Alpine has 1.2.1-r0.
 # Drop this line once the Temurin digest above is bumped to an image that includes the fix.
-RUN apk upgrade --no-cache brotli-libs  && addgroup -S -g 1001 app && adduser -S -D -H -u 1001 -G app app
+RUN apk upgrade --no-cache brotli-libs  && addgroup -S -g 10001 app && adduser -S -D -H -u 10001 -G app app
 WORKDIR /app
 # Least-changing layers first so dependency layers stay cached between builds.
 COPY --from=build /layers/dependencies/ ./
 COPY --from=build /layers/spring-boot-loader/ ./
 COPY --from=build /layers/snapshot-dependencies/ ./
 COPY --from=build /layers/application/ ./
-USER 1001
+USER 10001
+# One image, two modules, and only mizan-api has a port, so this checks that the JVM is alive.
+# Not HEALTHCHECK NONE: compose --wait fails on it. Real health is the kubelet's job (deploy/base).
+HEALTHCHECK --interval=5s --timeout=3s CMD ["sh", "-c", "kill -0 1"]
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError"
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -39,11 +39,14 @@ spec:
     spec:
       automountServiceAccountToken: false
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 10004
+        runAsGroup: 10004
         seccompProfile:
           type: RuntimeDefault
       containers:
         - name: otel-lgtm
-          image: grafana/otel-lgtm:0.37.0@sha256:57b5ab1ca6619beb180174e2fccce04762470750669d043f544b4726d0582d07
+          image: mizan-otel-lgtm:unreleased
           env:
             - { name: GF_AUTH_ANONYMOUS_ENABLED, value: "false" }
             - name: GF_SERVER_ROOT_URL
@@ -81,6 +84,8 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
           volumeMounts:
             # Telemetry and Grafana state (found with --read-only); lost on restart, by design.
             - name: data

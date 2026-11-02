@@ -31,13 +31,13 @@ spec:
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: 101 # nginx in nginx-unprivileged
-        runAsGroup: 101
+        runAsUser: 10101
+        runAsGroup: 10101
         seccompProfile:
           type: RuntimeDefault
       containers:
         - name: mizan-web
-          image: mizan-web
+          image: mizan-web:unreleased
           ports:
             - name: http
               containerPort: 8080

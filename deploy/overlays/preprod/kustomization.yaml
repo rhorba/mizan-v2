@@ -40,3 +40,12 @@ images:
   - name: mizan-backup
     newName: ghcr.io/rhorba/mizan-backup
     newTag: "unreleased"
+  - name: mizan-clamav
+    newName: ghcr.io/rhorba/mizan-clamav
+    newTag: "unreleased"
+  - name: mizan-kafka
+    newName: ghcr.io/rhorba/mizan-kafka
+    newTag: "unreleased"
+  - name: mizan-otel-lgtm
+    newName: ghcr.io/rhorba/mizan-otel-lgtm
+    newTag: "unreleased"

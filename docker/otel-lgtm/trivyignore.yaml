@@ -1,0 +1,17 @@
+# Trivy exceptions for mizan-otel-lgtm ONLY, limited to the Tempo datasource plugin binary.
+# After expired_at Trivy reports the finding again and CI turns red.
+# The plugin pins github.com/grafana/tempo at v1.5.1-0.20260910130453-bcfe9f230c1d. That Go
+# pseudo-version sorts below the fixed releases, but the commit already contains both fixes.
+vulnerabilities:
+  - id: CVE-2026-28377
+    paths: ["otel-lgtm/grafana/data/plugins-bundled/tempo/gpx_grafana-tempo-datasource_*"]
+    expired_at: 2027-02-01
+    statement: >-
+      False positive. Fix PR grafana/tempo#6711 (bb8ca663) is an ancestor of bcfe9f230c1d: GitHub
+      compare reports ahead=597 behind=0 (checked 2026-11-02).
+  - id: CVE-2026-21728
+    paths: ["otel-lgtm/grafana/data/plugins-bundled/tempo/gpx_grafana-tempo-datasource_*"]
+    expired_at: 2027-02-01
+    statement: >-
+      False positive. Fix PR grafana/tempo#6525 (650eb198) is an ancestor of bcfe9f230c1d: GitHub
+      compare reports ahead=716 behind=0 (checked 2026-11-02).
