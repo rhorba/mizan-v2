@@ -7,7 +7,32 @@ Full rebuild of [mizan-ma](https://github.com/rhorba/mizan-ma) on a 2026 enterpr
 Java 25 · Spring Boot 4 · Angular 22 · Apache Kafka (transactional outbox) · Spring AI ·
 OpenTelemetry · PostgreSQL · Kubernetes (k3s) on Oracle Cloud, provisioned with Terraform.
 
-**Status:** Sprint 5 — every upload is one OpenTelemetry trace from the browser through the API, Kafka and the analyzer (model call included) back to the result, with logs in Loki and no contract text in any span or log; Grafana dashboard and alert rules are code (`docker/grafana/`); SonarCloud quality gate in CI; Terraform for one Always Free A1 k3s node on Oracle Cloud (`infra/terraform`). Kubernetes manifests and GitOps arrive in Sprint 6. Design docs in `docs/`, pinned versions in ADR-8 (`docs/architecture-mizan-v2.md`).
+**Status:** v2.0 on preprod: https://144.24.200.83.sslip.io
+
+## Case study
+
+**The problem.** Freelancers and small businesses in Morocco sign contracts they cannot afford to have reviewed. Mizan reads a contract PDF and explains it clause by clause, flagging the risky terms. It is document analysis, not legal advice.
+
+**How it works.** An upload never blocks on the model. The API stores the contract and writes an event to a transactional outbox; Kafka carries it to a separate analyzer worker, and the browser follows the status live.
+
+```mermaid
+flowchart LR
+  B[Browser] -->|upload| A[mizan-api]
+  A --> P[(PostgreSQL + outbox)]
+  P --> K[[Kafka]]
+  K --> Z[mizan-analyzer]
+  Z -->|Spring AI| M[Claude]
+  Z --> K
+  K --> A
+  A -->|live status| B
+  B -.->|sign-in| I[Keycloak]
+```
+
+**How it runs.** One Always Free Oracle Cloud Arm node running k3s, provisioned with Terraform and deployed by Argo CD from an `env/preprod` branch that CI promotes after every green main build. Each upload is a single OpenTelemetry trace from the browser through the API, Kafka and the analyzer to the model.
+
+**What hardening looked like.** Before v2.0, all 43 open code-scanning alerts were closed: 42 fixed and 1 dismissed as a documented false positive. All eight workloads run above UID 10000 on read-only root file systems with every capability dropped. ClamAV and otel-lgtm no longer run as root.
+
+**What was proven, not assumed.** The first run of the public end-to-end test found that a Content Security Policy blocked sign-in on the live site, a bug no local test could see. Nightly encrypted backups were restored into a throwaway database holding a real analysis, and every compared count matched live. Combined coverage is 95.3 %, with a CI gate at 80 %.
 
 ## Build
 

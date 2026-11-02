@@ -547,3 +547,23 @@ Owner closed #32 after seeing the stale 672f5f1 failure; reopened on 5aaf69d (al
 Main run 41123454334 re-run green; publish/promote done, env/preprod 0253993. Failed job backup-29890230 confirmed as the netpol race on the old image (pg_dump connection refused ×3). backup-manual-2 on f9244a5 uploaded mizan-20261031T111237Z.dump.age (274702 bytes). Runbook restore on a throwaway postgres:18.6-alpine: 107 tables, per-table row counts identical to live, realms master + mizan. Limit: mizan.* business tables empty on preprod (only flyway history), so contract data not round-tripped. Preprod-in-place restore not rehearsed. Local docker pull from ghcr.io denied via Docker Desktop proxy while anonymous curl gives 200; image built locally for the test. Uptime workflow green ×2. CI check: main green.
 ### [2026-10-31] PR #34 (runbook) CI green on push + PR runs; awaiting owner merge. CI check logged. B5 started on owner OK (1 Opus call approved).
 ### [2026-10-31] B5 blocked at test account: auto mode denied creating a Keycloak user over the remote shell (nothing ran). Spec + public config written locally, uncommitted; test listed by Playwright, not run. No Opus call spent.
+### 2026-11-02 B5: rebased feature/s6-release on main b40fa73; #34 merged, env/preprod 52177e8, uptime green x8.
+### 2026-11-02 PLAN (awaiting owner OK): S6 B5 fix all 43 alerts. Batches: S1 unprivileged UIDs/tags/HEALTHCHECK; S2 clamav + otel-lgtm non-root derived images (ghcr); S3 stateful PVC chown cutover (needs SSH); S4 Semgrep + Trivy re-scan + merge. Rendered from read-only review of deploy/base + docker/.
+### [2026-11-02] B5 security Batch 1 done locally (fix/s6-security-alerts, not pushed): Trivy config 42 → 22; keycloak/web/backup smoke-tested under new uid:gid, read-only, cap-drop ALL; spring image not rebuilt. admin_cidr terraform apply BLOCKED by the Claude Code permission classifier (not applied; state unchanged, local tfvars + admin-ip.tfplan ready). E2E_PUBLIC_* added to .env.
+### [2026-11-02] B5 security Batch 2 done locally: mizan-clamav/kafka/otel-lgtm images, non-root, cap-drop ALL; tested read-only (EICAR detected, Kafka broker up, all LGTM components ready). Promote newTag check 5 → 8. Trivy config 0 findings. Semgrep nosemgrep already present: alert needs dismissing. Note: 3 new GHCR packages start private; pause Argo auto-sync before merge. Terraform apply not yet run by owner.
+### [2026-11-02] admin_cidr → 196.75.208.53/32 applied (owner OK; 1 change, SSH source only).
+
+### [2026-11-02] DECISION — mirrored images: rebuild from source (owner chose 🔴 over recommended 🟡).
+### [2026-11-02] B5 2b done: kafka 4.4.0 patched, 0 fixable HIGH/CRIT, snappy+lz4 round trip OK. 2c/2d in progress: otel-lgtm 0.39.0 Dockerfile written. Risk: rebuilt Grafana plugins would break PGP signatures.
+### [2026-11-02] B5 2c/2d: otel-lgtm 0.39.0 rebuilt, 50 → 8 fixable findings (all in signed loki/tempo/pyroscope plugins), trace reached Tempo, amd64 only. Plugin source not found in grafana/grafana v13.3.0.
+### [2026-11-02] otel-lgtm: signed plugins (signature valid), 2 proven false positives ignored for the Tempo plugin path only. Ignore-file gate run interrupted, to repeat.
+### [2026-11-02] PUSH fix/s6-security-alerts (3d8db5b), draft PR opened.
+### [2026-11-02] CI: green on fix/s6-security-alerts (d5360c6), run 41449776698.
+### [2026-11-02] otel-lgtm vuln gate exit 0 with ignore file (pre-WORKDIR build). arm64 build finished, see session.
+### [2026-11-02] arm64 builds OK for clamav/kafka/otel-lgtm (pre-WORKDIR Dockerfile); final Dockerfile amd64 smoke run.
+### [2026-11-02] Owner merged PR #35 (main 1813a75) before cutover; owner paused Argo auto-sync by hand. Promote pending; preprod still 52177e8.
+### [2026-11-02] CI: main green on re-run (41452626955 attempt 2), promote env/preprod 72e610d. All 8 images pull anonymously. Cutover started.
+### [2026-11-02] Cutover done: Postgres re-owned (10006), sync OK, 8/8 workloads above UID 10000, 107 tables, realm OK, EICAR detected, Kafka 4.4.0, auto-sync back on, backup-post-cutover OK. R: all 43 code-scanning alerts closed (42 fixed, 1 dismissed FP).
+### [2026-11-02] PR #36 merged (owner instruction). CI green on re-run after R-ANALYZER-REDELIVERY flake.
+### [2026-11-02] VIDEO_RECORDED .recordings/v2.0-2026-11-02.webm (public happy path: sign in, upload, live status, result, history). Public smoke passed on arm64 preprod.
+### [2026-11-02] Restore test with contract data passed (mizan-20261102T152249Z.dump.age): contracts 1, analyses 1, users 2, realms 2, tables 107, identical to live; R-RESTORE-EMPTY closed.

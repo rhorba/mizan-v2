@@ -87,3 +87,5 @@ Backup: CronJob nightly 02:30 UTC, own image (postgres:18.6-alpine + age + curl,
 
 ### [2026-10-30] DECISION — CVE-2026-91415 (Keycloak JDK font rendering): option A, owner
 Time-boxed Trivy exception to 2026-11-30 (docker/keycloak/trivyignore.yaml), same policy as guava/ca-certificates. No fixed Keycloak image (26.8.1 and 26.8.1-1 both JDK 21.0.12.1; ubi9-micro has no package manager). Rejected: B JDK swap (untested upstream), C wait (CI red). Verified locally: Trivy exit 0 with the ignorefile.
+
+### [2026-11-02] DECISION — S6 B5 security alerts: fix everything (owner chose 🔴 over the recommended 🟡, risk to preprod accepted)
