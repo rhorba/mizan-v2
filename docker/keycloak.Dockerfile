@@ -13,9 +13,11 @@ RUN /opt/keycloak/bin/kc.sh build
 
 FROM ${KEYCLOAK_IMAGE}
 LABEL org.opencontainers.image.source="https://github.com/rhorba/mizan-v2"
-COPY --from=build /opt/keycloak/ /opt/keycloak/
+COPY --chown=10002:10002 --from=build /opt/keycloak/ /opt/keycloak/
 # Realm policy passwordBlacklist(mizan.txt) reads this (see keycloak/password-blacklist.NOTICE).
-COPY --chown=1000:0 keycloak/themes/ /opt/keycloak/themes/
-COPY --chown=1000:0 keycloak/password-blacklist.txt /opt/keycloak/data/password-blacklists/mizan.txt
-USER 1000
+COPY --chown=10002:10002 keycloak/themes/ /opt/keycloak/themes/
+COPY --chown=10002:10002 keycloak/password-blacklist.txt /opt/keycloak/data/password-blacklists/mizan.txt
+USER 10002
+# The image has no curl or wget: HTTP over bash /dev/tcp to the management port.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=120s   CMD ["bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/live HTTP/1.0\r\n\r\n' >&3 && grep -q ' 200 ' <&3"]
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]

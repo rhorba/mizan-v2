@@ -32,13 +32,13 @@ spec:
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1001
-        runAsGroup: 1001
+        runAsUser: 10001
+        runAsGroup: 10001
         seccompProfile:
           type: RuntimeDefault
       containers:
         - name: mizan-api
-          image: mizan-api
+          image: mizan-api:unreleased
           env:
             - name: SPRING_DATASOURCE_URL
               value: jdbc:postgresql://postgres.platform.svc.cluster.local:5432/mizan

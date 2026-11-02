@@ -19,13 +19,13 @@ spec:
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1001
-        runAsGroup: 1001
+        runAsUser: 10001
+        runAsGroup: 10001
         seccompProfile:
           type: RuntimeDefault
       containers:
         - name: mizan-analyzer
-          image: mizan-analyzer
+          image: mizan-analyzer:unreleased
           env:
             - { name: KAFKA_BOOTSTRAP_SERVERS, value: "kafka.platform.svc.cluster.local:9092" }
             - { name: MIZAN_AI_MODEL, value: claude-opus-5-5 }

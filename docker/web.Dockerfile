@@ -24,7 +24,8 @@ LABEL org.opencontainers.image.source="https://github.com/rhorba/mizan-v2"
 # CVE-2026-92392 (HIGH, curl/libcurl).
 USER root
 RUN apk upgrade --no-cache brotli-libs && apk del --no-cache curl
-USER 101
+USER 10101
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /src/dist/mizan-web/browser/ /usr/share/nginx/html/
-USER 101
+USER 10101
+HEALTHCHECK --interval=30s --timeout=3s CMD ["wget", "-q", "--spider", "http://127.0.0.1:8080/healthz"]
