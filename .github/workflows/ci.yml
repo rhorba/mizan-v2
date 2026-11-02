@@ -384,7 +384,8 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [lint, test-backend, test-frontend, security, stack, e2e]
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    # otel-lgtm compiles Tempo, Pyroscope and the collector for two platforms.
+    timeout-minutes: 150
     permissions:
       contents: read
       packages: write
@@ -453,10 +454,13 @@ jobs:
           cache-to: type=gha,scope=publish-${{ matrix.image }},mode=max
       # A failed scan stops promote, so a vulnerable image is pushed but never deployed.
       - name: Trivy — both platforms (fixable HIGH/CRITICAL)
+        env:
+          MATRIX_IMAGE: ${{ matrix.image }}
         run: |
           ignore=()
-          if [ "${{ matrix.image }}" = mizan-keycloak ]; then
-            ignore=(--ignorefile /repo/docker/keycloak/trivyignore.yaml)
+          ignorefile="docker/${MATRIX_IMAGE#mizan-}/trivyignore.yaml"
+          if [ -f "$ignorefile" ]; then
+            ignore=(--ignorefile "/repo/$ignorefile")
           fi
           for platform in linux/amd64 linux/arm64; do
             echo "::group::$platform"
