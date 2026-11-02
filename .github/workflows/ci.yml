@@ -412,6 +412,18 @@ jobs:
             context: docker
             file: docker/backup.Dockerfile
             build-args: ""
+          - image: mizan-clamav
+            context: docker
+            file: docker/clamav.Dockerfile
+            build-args: ""
+          - image: mizan-kafka
+            context: docker
+            file: docker/kafka.Dockerfile
+            build-args: ""
+          - image: mizan-otel-lgtm
+            context: docker
+            file: docker/otel-lgtm.Dockerfile
+            build-args: ""
     env:
       IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:${{ github.sha }}
     steps:
@@ -476,7 +488,7 @@ jobs:
         run: |
           git switch -C env/preprod
           sed -i -E "s/^( +newTag: ).*/\1\"${SHA}\"/" "$OVERLAY"
-          test "$(grep -c "newTag: \"${SHA}\"" "$OVERLAY")" -eq 5
+          test "$(grep -c "newTag: \"${SHA}\"" "$OVERLAY")" -eq 8
           git -c user.name="github-actions[bot]" \
               -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
               commit -qam "deploy(preprod): images ${SHA:0:7}"

@@ -47,11 +47,15 @@ spec:
     spec:
       automountServiceAccountToken: false
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 10003
+        runAsGroup: 10003
+        fsGroup: 10003
         seccompProfile:
           type: RuntimeDefault
       containers:
         - name: clamav
-          image: clamav/clamav-debian:1.5.4@sha256:cce3e1a43ae2bb40e11335c52c0e1e98273b12fa3d587e617f63a6907cc4b70b
+          image: mizan-clamav:unreleased
           ports:
             - name: clamd
               containerPort: 3310
@@ -77,6 +81,8 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
           volumeMounts:
             - name: db
               mountPath: /var/lib/clamav

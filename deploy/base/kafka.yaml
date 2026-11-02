@@ -35,16 +35,16 @@ spec:
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1000 # appuser
-        runAsGroup: 1000
-        fsGroup: 1000
+        runAsUser: 10005
+        runAsGroup: 10005
+        fsGroup: 10005
         seccompProfile:
           type: RuntimeDefault
       # The start script writes server.properties into /opt/kafka/config: give it a writable
       # copy so the root file system can stay read-only.
       initContainers:
         - name: copy-config
-          image: apache/kafka:4.3.1@sha256:77e3df9054047a88b520d0cc46e16696d3b22022e1d580aeccd2632df6532837
+          image: mizan-kafka:unreleased
           command: ["sh", "-c", "cp -R /opt/kafka/config/. /config/"] # not -a: the non-root user cannot set times on the volume root
           resources:
             requests: { cpu: 10m, memory: 16Mi }
@@ -59,7 +59,7 @@ spec:
               mountPath: /config
       containers:
         - name: kafka
-          image: apache/kafka:4.3.1@sha256:77e3df9054047a88b520d0cc46e16696d3b22022e1d580aeccd2632df6532837
+          image: mizan-kafka:unreleased
           env:
             - { name: KAFKA_NODE_ID, value: "1" }
             - { name: KAFKA_PROCESS_ROLES, value: "broker,controller" }
