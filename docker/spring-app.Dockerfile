@@ -38,7 +38,8 @@ COPY --from=build /layers/spring-boot-loader/ ./
 COPY --from=build /layers/snapshot-dependencies/ ./
 COPY --from=build /layers/application/ ./
 USER 10001
-# One image, two modules: only mizan-api has a port. Health is the kubelet's job (probes in deploy/base).
-HEALTHCHECK NONE
+# One image, two modules, and only mizan-api has a port, so this checks that the JVM is alive.
+# Not HEALTHCHECK NONE: compose --wait fails on it. Real health is the kubelet's job (deploy/base).
+HEALTHCHECK --interval=5s --timeout=3s CMD ["sh", "-c", "kill -0 1"]
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError"
 ENTRYPOINT ["java", "-jar", "app.jar"]
