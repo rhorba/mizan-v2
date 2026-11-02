@@ -27,25 +27,25 @@ configMapGenerator:
 images:
   - name: mizan-api
     newName: ghcr.io/rhorba/mizan-api
-    newTag: "unreleased"
+    newTag: "03593b07b60f98a69f771ab0ca55d420fdd4b694"
   - name: mizan-analyzer
     newName: ghcr.io/rhorba/mizan-analyzer
-    newTag: "unreleased"
+    newTag: "03593b07b60f98a69f771ab0ca55d420fdd4b694"
   - name: mizan-web
     newName: ghcr.io/rhorba/mizan-web
-    newTag: "unreleased"
+    newTag: "03593b07b60f98a69f771ab0ca55d420fdd4b694"
   - name: mizan-keycloak
     newName: ghcr.io/rhorba/mizan-keycloak
-    newTag: "unreleased"
+    newTag: "03593b07b60f98a69f771ab0ca55d420fdd4b694"
   - name: mizan-backup
     newName: ghcr.io/rhorba/mizan-backup
-    newTag: "unreleased"
+    newTag: "03593b07b60f98a69f771ab0ca55d420fdd4b694"
   - name: mizan-clamav
     newName: ghcr.io/rhorba/mizan-clamav
-    newTag: "unreleased"
+    newTag: "03593b07b60f98a69f771ab0ca55d420fdd4b694"
   - name: mizan-kafka
     newName: ghcr.io/rhorba/mizan-kafka
-    newTag: "unreleased"
+    newTag: "03593b07b60f98a69f771ab0ca55d420fdd4b694"
   - name: mizan-otel-lgtm
     newName: ghcr.io/rhorba/mizan-otel-lgtm
-    newTag: "unreleased"
+    newTag: "03593b07b60f98a69f771ab0ca55d420fdd4b694"
