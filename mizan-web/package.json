@@ -33,7 +33,7 @@
     "@opentelemetry/instrumentation-xml-http-request": "0.223.0",
     "@opentelemetry/resources": "2.12.0",
     "@opentelemetry/sdk-trace-web": "2.12.0",
-    "@opentelemetry/semantic-conventions": "1.43.0",
+    "@opentelemetry/semantic-conventions": "1.44.0",
     "angular-oauth2-oidc": "22.0.2",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
