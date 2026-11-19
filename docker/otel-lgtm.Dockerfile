@@ -65,7 +65,7 @@ RUN set -eu; \
     fetch grafana-pyroscope-datasource 13.0.9 "$pyroscope"; \
     chmod 0755 /out/*/gpx_*
 
-FROM grafana/otel-lgtm:0.39.0@sha256:4c8056c9c05fcb3c8fd93800e85334bfd79b4d0271b47a54a121a64af41fe1fe
+FROM grafana/otel-lgtm:0.40.0@sha256:72e05804790e6e0d8c0b70a6d5ff1f721ef7b203463374631e99aa3429bd0cf6
 LABEL org.opencontainers.image.source="https://github.com/rhorba/mizan-v2"
 COPY --from=tempo /out/tempo /otel-lgtm/tempo/tempo
 COPY --from=pyroscope /out/pyroscope /otel-lgtm/pyroscope/pyroscope
